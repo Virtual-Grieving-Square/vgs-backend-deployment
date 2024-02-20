@@ -115,7 +115,7 @@ export const resetPassword: RequestHandler = async (req: Request, res: Response,
 
         return res.status(200).json({ message: "Password reset successful." });
     } catch (error) {
-        if (error.name === 'TokenExpiredError') {
+        if ((error as any).name === 'TokenExpiredError') {
             return res.status(400).json({ message: "Token expired. Please request a new password reset." });
         }
         console.error("Error resetting password:", error);
