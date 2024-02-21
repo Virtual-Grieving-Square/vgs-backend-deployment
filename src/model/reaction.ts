@@ -1,15 +1,22 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
-interface IReaction extends Document {
-  reaction: string;
-  userId: string;
+
+export interface IReaction extends Document {
+  userId: string; 
+  reactionType: string; 
+  postId: string; 
+  createdAt: Date; 
 }
 
+
 const ReactionSchema: Schema = new Schema({
-  reaction: { type: String, required: true },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Assuming userId references the User model
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
+  reactionType: { type: String, required: true }, 
+  postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true }, 
+  createdAt: { type: Date, default: Date.now }
 });
 
-const ReactionModel = mongoose.model<IReaction>('Reaction', ReactionSchema);
+
+const ReactionModel = model<IReaction>('Reaction', ReactionSchema);
 
 export default ReactionModel;

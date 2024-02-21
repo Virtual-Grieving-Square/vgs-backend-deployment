@@ -1,17 +1,21 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
-interface IComment extends Document {
-  content: string;
-  userId: string;
-  reaction?: string; // Assuming reaction is optional
+
+export interface IComment extends Document {
+  authorId: string; 
+  content: string; 
+  postId: string;
+  createdAt: Date; 
 }
 
+
 const CommentSchema: Schema = new Schema({
+  authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
   content: { type: String, required: true },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Assuming userId references the User model
-  reaction: { type: String }, // Optional field for reaction
+  postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true }, 
+  createdAt: { type: Date, default: Date.now }
 });
 
-const CommentModel = mongoose.model<IComment>('Comment', CommentSchema);
+const CommentModel = model<IComment>('Comment', CommentSchema);
 
 export default CommentModel;

@@ -1,15 +1,23 @@
 import { Request, Response } from "express";
-import PostModel from "../../model/Post";
+import PostModel, { IPost } from "../../model/Post";
 import ReactionModel from "../../model/reaction";
 import CommentModel from "../../model/comment";
-import { UserModel } from "../../model/user";
+import { Multer } from "multer";
+import { checkComment } from "../../util/commentFilter";
+import Filter from 'bad-words'; 
 
+
+const filter = new Filter();
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { title, content, userId, photos } = req.body;
+    const { title, content, userId } = req.body;
     const currentDate = new Date();
 
-   
+    const photos = (req.files as Express.Multer.File[]).map(
+      (file: Express.Multer.File) => ({
+        url: file.path,
+      })
+    );
 
     const post = new PostModel({
       title,
@@ -18,8 +26,7 @@ export const createPost = async (req: Request, res: Response) => {
       reacts: 0,
       comments: 0,
       author: userId,
-        photos: photos.map((url: string) => ({ url })),
- 
+      photos: photos,
     });
 
     await post.save();
@@ -31,90 +38,105 @@ export const createPost = async (req: Request, res: Response) => {
   }
 };
 
-const checkUserExists = async (userId: string): Promise<boolean> => {
+export const getPostsWithImages = async (req: Request, res: Response) => {
   try {
-    const user = await UserModel.findById(userId);
+    const posts: IPost[] = await PostModel.find().exec();
 
-    return !!user;
-  } catch (error) {
-    console.error("Error checking user existence:", error);
-    return false;
-  }
-};
+    const postsWithImages = posts.map((post) => {
+      return {
+        _id: post._id,
+        title: post.title,
+        content: post.content,
+        createdAt: post.createdAt,
+        reacts: post.reacts,
+        comments: post.comments,
+        author: post.author,
+        photos: post.photos.map((photo: { url: any }) => photo.url),
+      };
+    });
 
-export const readPost = async (req: Request, res: Response) => {
-  try {
-    const posts = await PostModel.find().sort({ createdAt: "desc" });
-    res.status(200).json({ posts });
+    res.status(200).json(postsWithImages);
   } catch (error) {
-    console.error("Error reading posts:", error);
+    console.error("Error fetching posts:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// export const addComment = async (req: Request, res: Response) => {
-//   try {
-//     const { postId, userId, content } = req.body;
+export const deletePost = async (req: Request, res: Response) => {
+  try {
+    const postId = req.params.id;
 
-//     const post = await PostModel.findById(postId);
-//     if (!post) {
-//       return res.status(404).json({ error: "Post not found" });
-//     }
+    const deletedPost = await PostModel.findByIdAndDelete(postId);
 
-//     CommentModel.push({ content, userId });
-//     await post.save();
+    if (!deletedPost) {
+      return res.status(404).json({ error: "Post not found" });
+    }
 
-//     res.status(201).json({ message: "Comment added successfully", post });
-//   } catch (error) {
-//     console.error("Error adding comment:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
+    res.status(200).json({ message: "Post deleted successfully", deletedPost });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
-// Similar implementation can be done for adding reaction to post
-// export const addReactionToComment = async (req: Request, res: Response) => {
-//   try {
-//     const { commentId, userId, reaction } = req.body;
+export const createComment = async (req: Request, res: Response) => {
+  try {
+    const { authorId, content, postId } = req.body;
 
-//     const post = await PostModel.findOne({ "comments._id": commentId });
-//     if (!post) {
-//       return res.status(404).json({ error: "Comment not found" });
-//     }
+    // Check if the comment contains bad words from library
+    const response: any = filter.isProfane(content);
+    console.log(response)
+    if (filter.isProfane(content)) {
+      return res.status(400).json({ error: "Inappropriate comment detected" });
+    }
 
-//     // const comment = post.comments.id(commentId);
-//     const comment = post.comments.id(commentId);
+    const comment = new CommentModel({
+      authorId,
+      content,
+      postId,
+    });
 
-//     comment.reaction = reaction;
-//     await post.save();
+     // test is on progress needs api key 
+    //  const isCommentInappropriate = await checkComment(content);
 
-//     res.status(201).json({ message: "Reaction added successfully", post });
-//   } catch (error) {
-//     console.error("Error adding reaction:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
+    //  if (isCommentInappropriate) {
+    //    return res.status(400).json({ error: "Inappropriate comment detected" });
+    //  }
 
-// export const deletePost = async (req: Request, res: Response) => {
-//   try {
-//     const postId = req.params.id;
-//     const userId = req.body.userId;
+    await comment.save();
+    await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
 
-//     const post = await PostModel.findById(postId);
-//     if (!post) {
-//       return res.status(404).json({ error: "Post not found" });
-//     }
+    res.status(201).json({ message: "Comment created successfully", comment });
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
-//     if (post.author !== userId) {
-//       return res
-//         .status(403)
-//         .json({ error: "You are not authorized to delete this post" });
-//     }
+export const makeReaction = async (req: Request, res: Response) => {
+  try {
+    const { postId, reactionType, userId } = req.body;
 
-//     await post.remove();
+    const reaction = new ReactionModel({
+      postId,
+      reactionType,
+      userId,
+    });
 
-//     res.status(200).json({ message: "Post deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting post:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
+    await reaction.save();
+    await PostModel.findByIdAndUpdate(postId, { $inc: { reacts: 1 } });
+
+    res
+      .status(201)
+      .json({ message: "Reaction created successfully", reaction });
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+//helperfunctions 
+
+
