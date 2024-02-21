@@ -5,24 +5,42 @@ import {
   resetPassword,
   signup,
 } from "../controller/user/auth.controller";
-import { createComment, createPost, deletePost, getPostsWithImages, makeReaction } from "../controller/user/post.controller";
+import {
+  createComment,
+  createPost,
+  deletePost,
+  getPostsWithImages,
+  makeReaction,
+} from "../controller/user/post.controller";
 import express from "express";
-import multer from 'multer';
+import multer from "multer";
+import {
+  createGallery,
+  createGroup,
+  getGalleryByGroupId,
+} from "../controller/user/group.controller";
 
 // Set up multer storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/') 
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname) 
-  }
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
+const secondStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/gallary");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
 
 const upload = multer({ storage: storage });
-
-
+const uploadGallary = multer({ storage: secondStorage });
 
 const router = express.Router();
 
@@ -33,10 +51,15 @@ router.post("/recoverPassword", requestPasswordReset);
 
 // Media Post Api
 
-router.post("/createPost", upload.array('photos'), createPost);
-router.get("/getallPost",  getPostsWithImages);
-router.delete('/deleteposts/:id', deletePost);
-router.post('/comments', createComment);
-router.post('/Reactions', makeReaction);
+router.post("/createPost", upload.array("photos"), createPost);
+router.get("/getallPost", getPostsWithImages);
+router.delete("/deleteposts/:id", deletePost);
+router.post("/comments", createComment);
+router.post("/Reactions", makeReaction);
+
+// interactive Group
+router.post("/createGroup", createGroup);
+router.post("/addGallery", uploadGallary.array("photos"), createGallery);
+router.get("/gallery/:groupId", getGalleryByGroupId);
 
 export default router;

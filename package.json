@@ -21,12 +21,15 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@google-cloud/translate": "^8.1.0",
+    "@googleapis/docs": "^3.0.0",
     "axios": "^1.6.7",
     "bad-words": "^3.0.4",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
+    "googleapis": "^133.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.3",

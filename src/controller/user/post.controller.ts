@@ -84,11 +84,11 @@ export const createComment = async (req: Request, res: Response) => {
     const { authorId, content, postId } = req.body;
 
     // Check if the comment contains bad words from library
-    const response: any = filter.isProfane(content);
-    console.log(response)
-    if (filter.isProfane(content)) {
-      return res.status(400).json({ error: "Inappropriate comment detected" });
-    }
+    // const response: any = filter.isProfane(content);
+    // console.log(response)
+    // if (filter.isProfane(content)) {
+    //   return res.status(400).json({ error: "Inappropriate comment detected" });
+    // }
 
     const comment = new CommentModel({
       authorId,
@@ -97,11 +97,11 @@ export const createComment = async (req: Request, res: Response) => {
     });
 
      // test is on progress needs api key 
-    //  const isCommentInappropriate = await checkComment(content);
+     const isCommentInappropriate = await checkComment(content);
 
-    //  if (isCommentInappropriate) {
-    //    return res.status(400).json({ error: "Inappropriate comment detected" });
-    //  }
+     if (isCommentInappropriate) {
+       return res.status(400).json({ error: "Inappropriate comment detected" });
+     }
 
     await comment.save();
     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
