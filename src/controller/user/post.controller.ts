@@ -1,11 +1,14 @@
 import { Request, Response } from "express";
 import PostModel, { IPost } from "../../model/Post";
+import { UserModel } from "../../model/user";
 import ReactionModel from "../../model/reaction";
 import CommentModel from "../../model/comment";
 import { Multer } from "multer";
-import { checkComment } from "../../util/commentFilter";
-import Filter from 'bad-words'; 
-
+import {
+  checkComment,
+  checkCommentUsingSapling,
+} from "../../util/commentFilter";
+import Filter from "bad-words";
 
 const filter = new Filter();
 export const createPost = async (req: Request, res: Response) => {
@@ -96,12 +99,37 @@ export const createComment = async (req: Request, res: Response) => {
       postId,
     });
 
-     // test is on progress needs api key 
-     const isCommentInappropriate = await checkComment(content);
+    //  const isCommentInappropriate = await checkComment(content);
 
-     if (isCommentInappropriate) {
-       return res.status(400).json({ error: "Inappropriate comment detected" });
-     }
+    const isCommentInappropriate = await checkCommentUsingSapling(content);
+
+    if (isCommentInappropriate) {
+      try {
+        const user = await UserModel.findById(authorId);
+
+        if (user) {
+          if (user.blacklistCount < 2) {
+            user.blacklistCount += 1;
+            await user.save();
+            return res
+              .status(400)
+              .json({ error: "Inappropriate comment detected" });
+          } else if (user.blacklistCount === 2) {
+            user.blacklistCount += 1;
+
+            user.flag = "suspended";
+            await user.save();
+            return res
+              .status(400)
+              .json({
+                error: "Inappropriate comment detected and account suspended",
+              });
+          }
+        }
+      } catch (error) {
+        console.error("Error updating user blacklist count:", error);
+      }
+    }
 
     await comment.save();
     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
@@ -135,8 +163,4 @@ export const makeReaction = async (req: Request, res: Response) => {
   }
 };
 
-
-
-//helperfunctions 
-
-
+//helperfunctions

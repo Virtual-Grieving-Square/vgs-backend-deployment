@@ -61,5 +61,7 @@ router.post("/Reactions", makeReaction);
 router.post("/createGroup", createGroup);
 router.post("/addGallery", uploadGallary.array("photos"), createGallery);
 router.get("/gallery/:groupId", getGalleryByGroupId);
+router.get("/group/writing", createGroup);
+router.get("/group/comment", createGroup);
 
 export default router;
