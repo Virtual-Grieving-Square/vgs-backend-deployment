@@ -15,9 +15,12 @@ import {
 import express from "express";
 import multer from "multer";
 import {
+  addComments,
+  addGroupMembers,
   createGallery,
   createGroup,
   getGalleryByGroupId,
+  groupWriting,
 } from "../controller/user/group.controller";
 
 // Set up multer storage
@@ -59,7 +62,10 @@ router.post("/Reactions", makeReaction);
 
 // interactive Group
 router.post("/createGroup", createGroup);
+router.post("/addGroupMember", addGroupMembers);
 router.post("/addGallery", uploadGallary.array("photos"), createGallery);
 router.get("/gallery/:groupId", getGalleryByGroupId);
+router.get("/group/writing", groupWriting);
+router.get("/group/comment", addComments);
 
 export default router;
