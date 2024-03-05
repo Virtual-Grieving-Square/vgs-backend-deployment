@@ -6,26 +6,31 @@ import jwt from 'jsonwebtoken';
 
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-       
-        const { name, lastName, email, password } = req.body;
 
-       
-        const existingUser = await UserModel.findOne({ email });
+        const { firstName, lastName, username, email, phoneNumber, password } = req.body.data;
+        const verification = req.body.verification;
 
-        if (existingUser) {
-            return res.status(400).json({ message: "User with this email already exists" });
+        const existingUserByEmail = await UserModel.findOne({ email: email });
+        const existingUserByPhone = await UserModel.findOne({ phoneNumber: phoneNumber });
+
+        if (existingUserByEmail) {
+            console.error("User with this Email already exists");
+            return res.status(401).json({ message: "User with this email already exists" });
         }
 
-      
-        const hashedPassword = await bcrypt.hash(password, 10);
+        if (existingUserByPhone) {
+            console.error("User with this Phone Number already exists");
+            return res.status(402).json({ message: "User with this PhoneNumber already exists" });
+        }
 
-        
-        const newUser = new UserModel({ name, lastName, email, password: hashedPassword });
+        // const hashedPassword = await bcrypt.hash(password, 10);
 
-        
-        await newUser.save();
 
-        return res.status(201).json({ message: "User created successfully" });
+        // const newUser = new UserModel({ name, lastName, email, password: hashedPassword });
+
+        // await newUser.save();
+
+        // return res.status(201).json({ message: "User created successfully" });
     } catch (error) {
         console.error("Error signing up user:", error);
         return res.status(500).json({ message: "Internal server error" });
@@ -69,14 +74,14 @@ export const requestPasswordReset: RequestHandler = async (req: Request, res: Re
     try {
         const { email } = req.body;
 
-       
+
         const user = await UserModel.findOne({ email });
 
         if (!user) {
             return res.status(404).json({ message: "User not found." });
         }
 
-      
+
         const token = jwt.sign(
             { userId: user._id },
             process.env.JWT_RESET_SECRET || 'default_reset_secret', // You should use a secure secret in production
