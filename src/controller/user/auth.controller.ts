@@ -262,6 +262,15 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
             user.username,
             user.phoneNumber);
 
+        await UserModel.updateOne(
+            { email: email },
+            {
+                $set: {
+                    accessToken: accessToken
+                },
+            }
+        );
+
         return res.status(200).json({
             accessToken: accessToken,
             message: "Authentication successful",

@@ -14,6 +14,7 @@ const userSchema: Schema = new Schema({
   blacklistCount: { type: Number, default: 0 },
   flag: { type: String, default: "Active" },
   password: { type: String, required: true },
+  accessToekn: { type: String, required: false },
 });
 
 export interface User extends Document {
@@ -30,6 +31,7 @@ export interface User extends Document {
   blacklistCount: number;
   flag: string;
   password: string;
+  accessToken: string;
 }
 
 export const UserModel = mongoose.model<User>("User", userSchema);
