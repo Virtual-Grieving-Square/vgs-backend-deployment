@@ -23,6 +23,7 @@ import {
   getGalleryByGroupId,
   groupWriting,
 } from "../controller/user/group.controller";
+import { createPetMemorial } from "../controller/user/pet.controller";
 
 // Set up multer storage
 const storage = multer.diskStorage({
@@ -69,5 +70,9 @@ router.post("/addGallery", uploadGallary.array("photos"), createGallery);
 router.get("/gallery/:groupId", getGalleryByGroupId);
 router.get("/group/writing", groupWriting);
 router.get("/group/comment", addComments);
+
+// pet memorials 
+router.post("/createPetMemorial", createPetMemorial);
+
 
 export default router;
