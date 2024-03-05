@@ -237,10 +237,12 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
 
 export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, password } = req.body;
-
+        const { email, password } = req.body.data;
+        console.log(req.body)
         // Find user by email
-        const user = await UserModel.findOne({ email });
+        const user = await UserModel.findOne({
+            email: email
+        });
 
         if (!user) {
             return res.status(401).json({ message: "Authentication failed. User not found." });
@@ -250,17 +252,20 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
-            return res.status(401).json({ message: "Authentication failed. Invalid password." });
+            return res.status(402).json({ message: "Authentication failed. Invalid password." });
         }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { userId: user._id, email: user.email },
-            process.env.JWT_SECRET || 'default_secret', // You should use a secure secret in production
-            { expiresIn: '24h' } // Token expiration time
-        );
+        const accessToken = generateUserAccessToken(
+            user._id,
+            user.firstName,
+            user.lastName,
+            user.username,
+            user.phoneNumber);
 
-        return res.status(200).json({ message: "Authentication successful", token });
+        return res.status(200).json({
+            accessToken: accessToken,
+            message: "Authentication successful",
+        });
     } catch (error) {
         console.error("Error logging in:", error);
         return res.status(500).json({ message: "Internal server error" });
