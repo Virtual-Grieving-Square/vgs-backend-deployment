@@ -3,15 +3,25 @@ import { UserModel } from "../../model/user";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import path from 'path';
+import fs from 'fs';
+import ejs from 'ejs';
+
+import { verificationCodeGenerator } from "../../util/verificationCodeGenerator";
+import { TempUserModel } from "../../model/tempUser";
+import { generateUserAccessToken } from "../../util/generateUserAccessToken";
+
 
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const env = process.env;
 
         const { firstName, lastName, username, email, phoneNumber, password } = req.body.data;
         const verification = req.body.verification;
-
         const existingUserByEmail = await UserModel.findOne({ email: email });
         const existingUserByPhone = await UserModel.findOne({ phoneNumber: phoneNumber });
+        const verificationCode = verificationCodeGenerator(6);
 
         if (existingUserByEmail) {
             console.error("User with this Email already exists");
@@ -23,20 +33,207 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
             return res.status(402).json({ message: "User with this PhoneNumber already exists" });
         }
 
-        // const hashedPassword = await bcrypt.hash(password, 10);
+        if (verification == 'phone') {
+            const accountSid = 'ACf82578cfbc9c0f0c997db5bf896f4d22';
+            const authToken = '97da9c183b6e14dd69c237abe194c489';
+            const client = require('twilio')(accountSid, authToken);
+            const verificationMessage = `Your verification code is ${verificationCode}`;
+
+            console.log(verificationMessage);
+
+            // client.messages
+            //     .create({
+            //         body: verificationMessage,
+            //         from: '+18664601237',
+            //         to: '+18777804236'
+            //     })
+            //     .then((message: any) => {
+            //         console.log(message.sid);
+            //     })
+            //     .done();
+
+            const checkTempUser = await TempUserModel.findOne({
+                email: email,
+            });
+
+            if (checkTempUser) {
+
+                await TempUserModel.updateOne(
+                    { email: email },
+                    {
+                        $set: {
+                            firstName: firstName,
+                            lastName: lastName,
+                            username: username,
+                            email: email,
+                            phoneNumber: phoneNumber,
+                            otp: verificationCode,
+                            password: password
+                        }
+                    });
+
+            } else {
+                const tempUser = new TempUserModel({
+                    firstName: firstName,
+                    lastName: lastName,
+                    username: username,
+                    email: email,
+                    phoneNumber: phoneNumber,
+                    otp: verificationCode,
+                    password: password
+                });
+
+                await tempUser.save();
+            }
+            res.status(200).json({
+                type: "phone",
+                phoneNumber: phoneNumber,
+                message: "Verification code sent successfully"
+            });
+        } else if (verification == 'email') {
+            console.log("Verification Email");
+
+            const checkTempUser = await TempUserModel.findOne({
+                phoneNumber: phoneNumber,
+            });
+
+            if (checkTempUser) {
+                await TempUserModel.updateOne(
+                    { phoneNumber: phoneNumber },
+                    {
+                        $set: {
+                            firstName: firstName,
+                            lastName: lastName,
+                            username: username,
+                            email: email,
+                            phoneNumber: phoneNumber,
+                            otp: verificationCode,
+                            password: password
+                        }
+                    });
+            } else {
+                const tempUser = new TempUserModel({
+                    firstName: firstName,
+                    lastName: lastName,
+                    username: username,
+                    email: email,
+                    phoneNumber: phoneNumber,
+                    otp: verificationCode,
+                    password: password
+                });
+
+                await tempUser.save();
+            }
+
+            const ejsTemplatePath = path.join(env.FILE_PATH!, '/src/pages/auth/signup.ejs');
+            const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+            const renderHtml = ejs.render(ejsTemplate, { name: `${firstName} ${lastName}`, code: verificationCode });
 
 
-        // const newUser = new UserModel({ name, lastName, email, password: hashedPassword });
+            const transporter = nodemailer.createTransport({
+                host: "virtualgrievingsquare.com",
+                port: 465,
+                secure: true,
+                auth: {
+                    user: "twilioapidev@virtualgrievingsquare.com",
+                    pass: "id9Bgl&yKc!0n34",
+                },
+            });
 
-        // await newUser.save();
+            const info = await transporter.sendMail({
+                from: '"Virtual Grieving Square" <twilioapidev@virtualgrievingsquare.com>',
+                to: email,
+                subject: "Virtual Grieving Square Verification",
+                html: renderHtml,
+            });
 
-        // return res.status(201).json({ message: "User created successfully" });
+            console.log("Message sent: %s", info.messageId);
+
+            res.status(200).json({
+                type: "email",
+                email: email,
+                message: "Verification code sent successfully"
+            });
+        }
+
     } catch (error) {
         console.error("Error signing up user:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
 
+export const verify: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, phoneNumber, otp, type } = req.body;
+        console.log(phoneNumber)
+
+        if (type == 'email') {
+            const tempUser = await TempUserModel.findOne({ email: email, otp: otp });
+            if (tempUser) {
+                const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+                const user = new UserModel({
+                    firstName: tempUser.firstName,
+                    lastName: tempUser.lastName,
+                    username: tempUser.username,
+                    email: tempUser.email,
+                    phoneNumber: tempUser.phoneNumber,
+                    password: hashedPassword
+                });
+
+                await user.save();
+
+                const accessToken = generateUserAccessToken(
+                    user._id,
+                    user.firstName,
+                    user.lastName,
+                    user.username,
+                    user.phoneNumber);
+
+                res.status(200).json({
+                    accessToken: accessToken,
+                    message: "User created successfully"
+                });
+
+            } else {
+                res.status(401).json({ msg: "Invalid OTP" });
+            }
+
+        } else if (type == 'phone') {
+            const tempUser = await TempUserModel.findOne({ phoneNumber: phoneNumber, otp: otp });
+
+            if (tempUser) {
+                const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+                const user = new UserModel({
+                    firstName: tempUser.firstName,
+                    lastName: tempUser.lastName,
+                    username: tempUser.username,
+                    email: tempUser.email,
+                    phoneNumber: tempUser.phoneNumber,
+                    password: hashedPassword
+                });
+                await user.save();
+
+                const accessToken = generateUserAccessToken(
+                    user._id,
+                    user.firstName,
+                    user.lastName,
+                    user.username,
+                    user.phoneNumber);
+
+                res.status(200).json({
+                    accessToken: accessToken,
+                    message: "User created successfully"
+                });
+
+            } else {
+                res.status(401).json({ msg: "Invalid OTP" });
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {

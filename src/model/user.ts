@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 const userSchema: Schema = new Schema({
-  firstname: { type: String, required: true },
-  username: { type: String, required: false },
+  firstName: { type: String, required: true },
   lastName: { type: String, required: true },
+  username: { type: String, required: false },
   email: { type: String, required: false, unique: true },
   phoneNumber: { type: String, required: false, unique: true },
   subscribed: { type: Boolean, required: true, default: false },
@@ -17,9 +17,9 @@ const userSchema: Schema = new Schema({
 });
 
 export interface User extends Document {
-  name: string;
-  username: string;
+  firstName: string;
   lastName: string;
+  username: string;
   email: string;
   phoneNumber: string;
   subscribed: boolean;

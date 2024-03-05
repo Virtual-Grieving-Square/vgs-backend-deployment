@@ -4,6 +4,7 @@ import {
   requestPasswordReset,
   resetPassword,
   signup,
+  verify,
 } from "../controller/user/auth.controller";
 import {
   createComment,
@@ -48,6 +49,7 @@ const uploadGallary = multer({ storage: secondStorage });
 const router = express.Router();
 
 router.post("/signup", signup);
+router.post("/verify", verify);
 router.post("/login", login);
 router.post("/resetPassword", resetPassword);
 router.post("/recoverPassword", requestPasswordReset);
