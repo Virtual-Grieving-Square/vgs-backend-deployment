@@ -187,7 +187,9 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     user.firstName,
                     user.lastName,
                     user.username,
-                    user.phoneNumber);
+                    user.phoneNumber,
+                    user.email
+                );
 
                 res.status(200).json({
                     accessToken: accessToken,
@@ -203,6 +205,7 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
 
             if (tempUser) {
                 const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
                 const user = new UserModel({
                     firstName: tempUser.firstName,
                     lastName: tempUser.lastName,
@@ -218,7 +221,8 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     user.firstName,
                     user.lastName,
                     user.username,
-                    user.phoneNumber);
+                    user.phoneNumber,
+                    user.email);
 
                 res.status(200).json({
                     accessToken: accessToken,
@@ -260,7 +264,8 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
             user.firstName,
             user.lastName,
             user.username,
-            user.phoneNumber);
+            user.phoneNumber,
+            user.email);
 
         await UserModel.updateOne(
             { email: email },

@@ -7,13 +7,15 @@ export const generateUserAccessToken = (
   lname: string,
   username: string,
   phoneNumber: string,
+  email: string,
 ) => {
   const data = {
     id: id,
-    firstName: fname,
-    lastName: lname,
+    fname: fname,
+    lname: lname,
     username: username,
-    phoneNumber: phoneNumber,
+    phonenumber: phoneNumber,
+    email: email,
   };
 
   return jwt.sign(data, process.env.JWT_SECRET as string);
