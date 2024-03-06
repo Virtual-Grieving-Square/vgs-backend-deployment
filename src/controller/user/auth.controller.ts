@@ -131,17 +131,17 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
 
 
             const transporter = nodemailer.createTransport({
-                host: "virtualgrievingsquare.com",
+                host: "smtp.titan.email",
                 port: 465,
                 secure: true,
                 auth: {
-                    user: "twilioapidev@virtualgrievingsquare.com",
-                    pass: "id9Bgl&yKc!0n34",
+                    user: "verification@virtualgrievingsquare.com",
+                    pass: "8-yKf~NGAwn?*dF",
                 },
             });
 
             const info = await transporter.sendMail({
-                from: '"Virtual Grieving Square" <twilioapidev@virtualgrievingsquare.com>',
+                from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
                 to: email,
                 subject: "Virtual Grieving Square Verification",
                 html: renderHtml,
@@ -165,12 +165,14 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
 export const verify: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, phoneNumber, otp, type } = req.body;
-        console.log(phoneNumber)
+        console.log(req.body);
 
         if (type == 'email') {
             const tempUser = await TempUserModel.findOne({ email: email, otp: otp });
+
             if (tempUser) {
                 const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
                 const user = new UserModel({
                     firstName: tempUser.firstName,
                     lastName: tempUser.lastName,
@@ -195,7 +197,6 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     accessToken: accessToken,
                     message: "User created successfully"
                 });
-
             } else {
                 res.status(401).json({ msg: "Invalid OTP" });
             }
