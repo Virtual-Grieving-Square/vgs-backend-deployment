@@ -19,7 +19,6 @@ export const getDetails = async (req: Request, res: Response) => {
 }
 
 
-
 export const uploadProfileImage = async (req: Request, res: Response) => {
   try {
     if (req.file) {

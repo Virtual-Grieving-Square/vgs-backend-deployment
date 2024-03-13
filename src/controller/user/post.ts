@@ -8,9 +8,11 @@ import {
   checkComment,
   checkCommentUsingSapling,
 } from "../../util/commentFilter";
+
 import Filter from "bad-words";
 
 const filter = new Filter();
+
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, userId } = req.body;

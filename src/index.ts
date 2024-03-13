@@ -9,9 +9,9 @@ import firebase from 'firebase-admin';
 dotenv.config();
 
 // Routes
-import users from "./routes/user.route";
-import admins from "./routes/admin.router";
-import index from "./routes/index.router";
+import users from "./routes/user";
+import admins from "./routes/admin";
+import index from "./routes";
 import wallet from "./routes/wallet";
 
 

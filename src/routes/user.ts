@@ -5,14 +5,14 @@ import {
   resetPassword,
   signup,
   verify,
-} from "../controller/user/auth.controller";
+} from "../controller/user/auth";
 import {
   createComment,
   createPost,
   deletePost,
   getPostsWithImages,
   makeReaction,
-} from "../controller/user/post.controller";
+} from "../controller/user/post";
 import express from "express";
 import multer from "multer";
 import {
@@ -22,14 +22,14 @@ import {
   createGroup,
   getGalleryByGroupId,
   groupWriting,
-} from "../controller/user/group.controller";
+} from "../controller/user/group";
 
-import { createPetMemorial } from "../controller/user/pet.controller";
+import { createPetMemorial } from "../controller/user/pet";
 
 import {
   getDetails,
   uploadProfileImage
-} from "../controller/user/user.controller";
+} from "../controller/user/user";
 
 // Set up multer storage
 const storage = multer.diskStorage({
