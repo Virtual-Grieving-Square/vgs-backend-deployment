@@ -12,6 +12,9 @@ dotenv.config();
 import users from "./routes/user.route";
 import admins from "./routes/admin.router";
 import index from "./routes/index.router";
+import wallet from "./routes/wallet";
+
+
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
 
@@ -43,6 +46,7 @@ connectDB();
 app.use('/', index);
 app.use('/user', users);
 app.use('/admin', admins);
+app.use('/wallet', wallet);
 
 server.listen(PORT, () => {
   console.log(`R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`)
