@@ -40,7 +40,6 @@ app.use(cors({
 
 app.use(apiAuthMiddleware);
 
-
 connectDB();
 
 app.use('/', index);
