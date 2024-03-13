@@ -3,6 +3,8 @@ import cors from 'cors';
 import http from 'http';
 import dotenv from 'dotenv';
 import { connectDB } from './database/db';
+import { initializeApp } from 'firebase/app';
+import firebase from 'firebase-admin';
 
 dotenv.config();
 
@@ -13,9 +15,15 @@ import index from "./routes/index.router";
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
 
+var serviceAccount = require('../serviceAccountKey.json');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
+
+firebase.initializeApp({
+  credential: firebase.credential.cert(serviceAccount),
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
