@@ -10,6 +10,7 @@ import {
   createComment,
   createPost,
   deletePost,
+  getPostImage,
   getPostsWithImages,
   makeReaction,
 } from "../controller/user/post";
@@ -34,7 +35,7 @@ import {
 // Set up multer storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, "uploads/image/post/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -43,7 +44,7 @@ const storage = multer.diskStorage({
 
 const secondStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/gallary");
+    cb(null, "uploads/image/post");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -80,6 +81,7 @@ router.post("/uploadProfileImage", uploadProfile.array("photo"), uploadProfileIm
 // Media Post Api
 router.post("/createPost", upload.array("photos"), createPost);
 router.get("/getallPost", getPostsWithImages);
+router.get("/post/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
 router.post("/comments", createComment);
 router.post("/Reactions", makeReaction);

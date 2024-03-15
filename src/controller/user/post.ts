@@ -165,4 +165,17 @@ export const makeReaction = async (req: Request, res: Response) => {
   }
 };
 
+export const getPostImage = async (req: Request, res: Response) => {
+  try {
+    const name = req.query.name;
+    const location = process.env.FILE_PATH + "/";
+    console.log("Here");
+
+    res.sendFile(location + name);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 //helperfunctions

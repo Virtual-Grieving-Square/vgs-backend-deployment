@@ -11,7 +11,8 @@ export function apiAuthMiddleware(req: Request, res: Response, next: NextFunctio
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   const allowedPaths = [
-    'asdf'
+    'asdf',
+    '/getImage',
   ];
 
   if (
