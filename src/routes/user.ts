@@ -27,10 +27,9 @@ import {
 
 import { createPetMemorial } from "../controller/user/pet";
 
-import {
-  getDetails,
-  uploadProfileImage
-} from "../controller/user/user";
+import { getDetails, uploadProfileImage } from "../controller/user/user";
+import { contactUs } from "../controller/user/contactus";
+import { addSubscription, handleStripeWebhook } from "../controller/user/subscription";
 
 // Set up multer storage
 const storage = multer.diskStorage({
@@ -49,7 +48,7 @@ const secondStorage = multer.diskStorage({
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
   },
-})
+});
 
 const profileImageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -73,10 +72,13 @@ router.post("/login", login);
 router.post("/resetPassword", resetPassword);
 router.post("/recoverPassword", requestPasswordReset);
 
-// User 
-router.get('/getDetails/:id', getDetails);
-router.post("/uploadProfileImage", uploadProfile.array("photo"), uploadProfileImage);
-
+// User
+router.get("/getDetails/:id", getDetails);
+router.post(
+  "/uploadProfileImage",
+  uploadProfile.array("photo"),
+  uploadProfileImage
+);
 
 // Media Post Api
 router.post("/createPost", upload.array("photos"), createPost);
@@ -94,7 +96,15 @@ router.get("/gallery/:groupId", getGalleryByGroupId);
 router.get("/group/writing", groupWriting);
 router.get("/group/comment", addComments);
 
-// Pet memorials 
+// Pet memorials
 router.post("/createPetMemorial", createPetMemorial);
+
+// contact page API
+
+router.post("/contactus", contactUs);
+
+// price and subscription payment API
+router.post("addSubscription", addSubscription);
+router.post("/webhooks/stripe", handleStripeWebhook);
 
 export default router;
