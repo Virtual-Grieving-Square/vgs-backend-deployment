@@ -30,6 +30,7 @@ import { createPetMemorial } from "../controller/user/pet";
 import { getDetails, uploadProfileImage } from "../controller/user/user";
 import { contactUs } from "../controller/user/contactus";
 import { addSubscription, handleStripeWebhook } from "../controller/user/subscription";
+import { startStreaming, stopStreamin, streamingStatus } from "../controller/user/streaming";
 
 // Set up multer storage
 const storage = multer.diskStorage({
@@ -106,5 +107,10 @@ router.post("/contactus", contactUs);
 // price and subscription payment API
 router.post("addSubscription", addSubscription);
 router.post("/webhooks/stripe", handleStripeWebhook);
+
+// live streaming 
+router.post("startStreamin", startStreaming);
+router.post("addSubscription/:broadcastId", stopStreamin);
+router.post("addSubscription/:broadcastId", streamingStatus);
 
 export default router;
