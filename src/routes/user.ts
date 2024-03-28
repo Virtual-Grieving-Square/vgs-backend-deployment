@@ -3,6 +3,7 @@ import {
   login,
   requestPasswordReset,
   resetPassword,
+  signInWithGoogle,
   signup,
   verify,
 } from "../controller/user/auth";
@@ -72,6 +73,9 @@ router.post("/verify", verify);
 router.post("/login", login);
 router.post("/resetPassword", resetPassword);
 router.post("/recoverPassword", requestPasswordReset);
+
+// Signin with Google
+router.post('/google', signInWithGoogle);
 
 // User
 router.get("/getDetails/:id", getDetails);

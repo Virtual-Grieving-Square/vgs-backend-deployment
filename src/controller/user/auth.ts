@@ -287,6 +287,55 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
     }
 };
 
+export const signInWithGoogle: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            username,
+            profileImage,
+            accessToken,
+            refreshToken
+        } = req.body;
+
+        const existingUser = await UserModel.findOne({ email: email });
+
+        if (!existingUser) {
+            const user = new UserModel({
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                phoneNumber: phoneNumber || "",
+                username: username,
+                profileImage: profileImage,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                signInMethod: "Google"
+            });
+
+            await user.save();
+
+            return res.status(200).json({ message: "User created successfully" });
+        }
+
+        const user = await UserModel.findOne({ email: email });
+
+        const accessToken1 = generateUserAccessToken(
+            user!._id,
+            user!.firstName,
+            user!.lastName,
+            user!.username,
+            user!.phoneNumber,
+            user!.email);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 export const requestPasswordReset: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body;

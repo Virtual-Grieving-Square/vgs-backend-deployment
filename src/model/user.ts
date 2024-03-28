@@ -14,8 +14,10 @@ const userSchema: Schema = new Schema({
   groups: [{ type: Schema.Types.ObjectId, ref: "Group" }],
   blacklistCount: { type: Number, default: 0 },
   flag: { type: String, default: "Active" },
+  signInMethod: { type: String, required: false },
   password: { type: String, required: true },
   accessToekn: { type: String, required: false },
+  refreshToken: { type: String, required: false },
 });
 
 export interface User extends Document {
@@ -32,8 +34,10 @@ export interface User extends Document {
   groups: mongoose.Types.ObjectId[];
   blacklistCount: number;
   flag: string;
+  signInMethod: string;
   password: string;
   accessToken: string;
+  refreshToken: string;
 }
 
 export const UserModel = mongoose.model<User>("User", userSchema);
