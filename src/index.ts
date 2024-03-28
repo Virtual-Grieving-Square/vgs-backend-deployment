@@ -13,6 +13,7 @@ import users from "./routes/user";
 import admins from "./routes/admin";
 import index from "./routes";
 import wallet from "./routes/wallet";
+import email from "./routes/email";
 
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
@@ -46,6 +47,7 @@ app.use('/', index);
 app.use('/user', users);
 app.use('/admin', admins);
 app.use('/wallet', wallet);
+app.use('/email', email);
 
 server.listen(PORT, () => {
   console.log(`R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`)
