@@ -8,11 +8,13 @@ import path from 'path';
 import fs from 'fs';
 import ejs from 'ejs';
 
+// Functions
 import { verificationCodeGenerator } from "../../util/verificationCodeGenerator";
 import { TempUserModel } from "../../model/tempUser";
 import { generateUserAccessToken } from "../../util/generateUserAccessToken";
+import { RecoverPasswordModel } from "../../model/recoverPassword";
 
-
+// Sign up
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const env = process.env;
@@ -240,6 +242,7 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
     }
 }
 
+// Login
 export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body.data;
@@ -287,6 +290,7 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
     }
 };
 
+// Google Authentication
 export const signInWithGoogle: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {
@@ -317,18 +321,144 @@ export const signInWithGoogle: RequestHandler = async (req: Request, res: Respon
 
             await user.save();
 
-            return res.status(200).json({ message: "User created successfully" });
+            const accessTokenToken = generateUserAccessToken(
+                user._id,
+                user.firstName,
+                user.lastName,
+                user.username,
+                user.phoneNumber,
+                user.email
+            );
+
+            return res.status(200).json({
+                accessToken: accessTokenToken,
+                account: "new",
+                message: "User created successfully"
+            });
+
+        } else {
+
+            const user = await UserModel.findOne({ email: email });
+
+            const accessToken1 = generateUserAccessToken(
+                user!._id,
+                user!.firstName,
+                user!.lastName,
+                user!.username,
+                user!.phoneNumber,
+                user!.email
+            );
+
+            return res.status(200).json({
+                accessToken: accessToken1,
+                account: "existing",
+                message: "User created successfully"
+            });
+
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+// Password Reset
+
+export const sendOTP: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email } = req.body;
+        const env = process.env;
+
+        const user = await UserModel.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
         }
 
-        const user = await UserModel.findOne({ email: email });
+        const verificationCode = verificationCodeGenerator(6);
 
-        const accessToken1 = generateUserAccessToken(
-            user!._id,
-            user!.firstName,
-            user!.lastName,
-            user!.username,
-            user!.phoneNumber,
-            user!.email);
+        const checkTry = await RecoverPasswordModel.findOne({ email: email });
+
+        if (checkTry) {
+            await RecoverPasswordModel.updateOne(
+                { email: email },
+                {
+                    $set: {
+                        email: email,
+                        code: verificationCode
+                    }
+                });
+        } else {
+            const recoverPassword = new RecoverPasswordModel({
+                email: email,
+                code: verificationCode
+            });
+
+            await recoverPassword.save();
+        }
+
+        const ejsTemplatePath = path.join(env.FILE_PATH!, 'src/pages/auth/recoverPassword.ejs');
+        const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+        const renderHtml = ejs.render(ejsTemplate, { name: `${user.firstName} ${user.lastName}`, code: verificationCode });
+
+        const transporter = await nodemailer.createTransport({
+            host: "smtp.titan.email",
+            port: 465,
+            secure: true,
+            auth: {
+                user: "verification@virtualgrievingsquare.com",
+                pass: "8-yKf~NGAwn?*dF",
+            },
+        });
+
+        const info = await transporter.sendMail({
+            from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
+            to: email,
+            subject: "Virtual Grieving Square Verification",
+            html: renderHtml,
+        });
+
+        console.log("Message sent: %s", info.messageId);
+
+        return res.status(200).json({ message: "Verification code sent successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const verifyOTP: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, code } = req.body;
+
+        const checkTry = await RecoverPasswordModel.findOne({ email: email, code: code });
+
+        if (checkTry) {
+            return res.status(200).json({ message: "Verification successful" });
+        } else {
+            return res.status(401).json({ message: "Invalid OTP" });
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const changePassword: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password } = req.body;
+
+        await UserModel.updateOne({
+            email: email
+        }, {
+            $set: {
+                password: password
+            }
+        });
+
+        return res.status(200).json({ message: "Password changed successfully" });
 
     } catch (error) {
         console.error(error);
@@ -339,7 +469,6 @@ export const signInWithGoogle: RequestHandler = async (req: Request, res: Respon
 export const requestPasswordReset: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body;
-
 
         const user = await UserModel.findOne({ email });
 
@@ -393,3 +522,4 @@ export const resetPassword: RequestHandler = async (req: Request, res: Response,
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+

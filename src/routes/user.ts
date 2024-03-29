@@ -1,11 +1,14 @@
 import { Recoverable } from "repl";
 import {
+  changePassword,
   login,
   requestPasswordReset,
   resetPassword,
+  sendOTP,
   signInWithGoogle,
   signup,
   verify,
+  verifyOTP,
 } from "../controller/user/auth";
 import {
   createComment,
@@ -71,6 +74,13 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/verify", verify);
 router.post("/login", login);
+
+// Reset Password
+router.put('/forgot-password/sendOtp', sendOTP);
+router.put('/forgot-password/verifyOtp', verifyOTP);
+router.put('/forgot-password/resetPassword', changePassword);
+
+
 router.post("/resetPassword", resetPassword);
 router.post("/recoverPassword", requestPasswordReset);
 
