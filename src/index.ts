@@ -6,8 +6,7 @@ import { connectDB } from './database/db';
 import firebase from 'firebase-admin';
 
 // Scoket.io
-import { initialize } from "./util/socket.io";
-import { getIO } from "./util/socket.io";
+import { getIO, initialize } from "./util/socket.io";
 
 dotenv.config();
 
@@ -75,7 +74,9 @@ const io = getIO();
 io.on('connection', (socket: any) => {
   console.log("A User Connected");
 
-
+  io.on("client_like_update", (data: any) => {
+    console.log("client_like_update", data);
+  })
 
   socket.on('disconnect', () => {
     console.log('A User Disconnected');
