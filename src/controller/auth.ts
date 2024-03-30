@@ -55,13 +55,13 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
             //     .done();
 
             const checkTempUser = await TempUserModel.findOne({
-                email: email,
+                phoneNumber: phoneNumber,
             });
 
             if (checkTempUser) {
 
                 await TempUserModel.updateOne(
-                    { email: email },
+                    { phoneNumber: phoneNumber },
                     {
                         $set: {
                             firstName: firstName,
@@ -96,12 +96,12 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
             console.log("Verification Email");
 
             const checkTempUser = await TempUserModel.findOne({
-                phoneNumber: phoneNumber,
+                email: email
             });
 
             if (checkTempUser) {
                 await TempUserModel.updateOne(
-                    { phoneNumber: phoneNumber },
+                    { email: email },
                     {
                         $set: {
                             firstName: firstName,

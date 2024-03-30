@@ -164,22 +164,14 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const createComment = async (req: Request, res: Response) => {
   try {
-    const { authorId, content, postId } = req.body;
-
-    // Check if the comment contains bad words from library
-    // const response: any = filter.isProfane(content);
-    // console.log(response)
-    // if (filter.isProfane(content)) {
-    //   return res.status(400).json({ error: "Inappropriate comment detected" });
-    // }
+    const { authorId, content, postId, userId } = req.body;
 
     const comment = new CommentModel({
-      authorId,
-      content,
-      postId,
+      authorId: authorId,
+      content: content,
+      postId: postId,
+      userId: userId,
     });
-
-    //  const isCommentInappropriate = await checkComment(content);
 
     const isCommentInappropriate = await checkCommentUsingSapling(content);
 
