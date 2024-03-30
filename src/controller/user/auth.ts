@@ -181,7 +181,8 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     username: tempUser.username,
                     email: tempUser.email,
                     phoneNumber: tempUser.phoneNumber,
-                    password: hashedPassword
+                    password: hashedPassword,
+                    signInMethod: "Email"
                 });
 
                 await user.save();
@@ -215,7 +216,8 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     username: tempUser.username,
                     email: tempUser.email,
                     phoneNumber: tempUser.phoneNumber,
-                    password: hashedPassword
+                    password: hashedPassword,
+                    signInMethod: "Phone",
                 });
                 await user.save();
 
