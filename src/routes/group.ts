@@ -9,7 +9,7 @@ import {
   createGroup,
   getGalleryByGroupId,
   groupWriting,
-} from '../controller/user/group';
+} from '../controller/group';
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { UserModel } from "../../model/user";
+import { UserModel } from "../model/user";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -9,10 +9,10 @@ import fs from 'fs';
 import ejs from 'ejs';
 
 // Functions
-import { verificationCodeGenerator } from "../../util/verificationCodeGenerator";
-import { TempUserModel } from "../../model/tempUser";
-import { generateUserAccessToken } from "../../util/generateUserAccessToken";
-import { RecoverPasswordModel } from "../../model/recoverPassword";
+import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
+import { TempUserModel } from "../model/tempUser";
+import { generateUserAccessToken } from "../util/generateUserAccessToken";
+import { RecoverPasswordModel } from "../model/recoverPassword";
 
 // Sign up
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {

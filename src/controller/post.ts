@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import PostModel, { IPost } from "../../model/Post";
-import { UserModel } from "../../model/user";
-import ReactionModel from "../../model/reaction";
-import CommentModel from "../../model/comment";
+import PostModel, { IPost } from "../model/Post";
+import { UserModel } from "../model/user";
+import ReactionModel from "../model/reaction";
+import CommentModel from "../model/comment";
 import { Multer } from "multer";
 
 import {
   checkComment,
   checkCommentUsingSapling,
-} from "../../util/commentFilter";
+} from "../util/commentFilter";
 
 import Filter from "bad-words";
 

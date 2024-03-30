@@ -11,7 +11,7 @@ import {
   signup,
   verify,
   verifyOTP,
-} from '../controller/user/auth';
+} from '../controller/auth';
 
 const router = express.Router();
 

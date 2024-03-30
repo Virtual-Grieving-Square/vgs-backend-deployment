@@ -3,7 +3,7 @@ import express from 'express';
 // Controller
 import {
   createPetMemorial
-} from '../controller/user/pet';
+} from '../controller/pet';
 
 const router = express.Router();
 

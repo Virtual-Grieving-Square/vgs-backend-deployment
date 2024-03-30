@@ -5,7 +5,7 @@ import multer from "multer";
 import {
   getDetails,
   uploadProfileImage
-} from "../controller/user/user";
+} from "../controller/user";
 
 // Multer
 const storage = multer.diskStorage({

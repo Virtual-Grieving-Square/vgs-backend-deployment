@@ -5,7 +5,7 @@ import {
   startStreaming,
   stopStreamin,
   streamingStatus,
-} from '../controller/user/streaming';
+} from '../controller/streaming';
 
 const router = express.Router();
 

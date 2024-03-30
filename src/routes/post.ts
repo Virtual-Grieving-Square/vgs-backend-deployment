@@ -9,7 +9,7 @@ import {
   getPostImage,
   getPostsWithImages,
   makeReaction,
-} from '../controller/user/post';
+} from '../controller/post';
 
 // Multer
 const storage = multer.diskStorage({

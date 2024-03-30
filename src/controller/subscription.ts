@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import SubscriptionModel from "../../model/Subscription"; // Assuming you have a Subscription model
-import { UserModel, User } from '../../model/user';
+import SubscriptionModel from "../model/Subscription"; // Assuming you have a Subscription model
+import { UserModel, User } from '../model/user';
 import stripe from 'stripe'; // Import Stripe SDK
 
 export const addSubscription = async (req: Request, res: Response) => {

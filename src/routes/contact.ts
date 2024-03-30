@@ -3,7 +3,7 @@ import express from 'express';
 // Controller
 import {
   contactUs
-} from '../controller/user/contactus';
+} from '../controller/contact';
 
 const router = express.Router();
 

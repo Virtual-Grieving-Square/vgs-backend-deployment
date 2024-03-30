@@ -4,7 +4,7 @@ import express from 'express';
 import {
   addSubscription,
   handleStripeWebhook,
-} from '../controller/user/subscription';
+} from '../controller/subscription';
 
 const router = express.Router();
 

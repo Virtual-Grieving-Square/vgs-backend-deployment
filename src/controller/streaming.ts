@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import SubscriptionModel from "../../model/Subscription";
-import { UserModel, User } from "../../model/user";
+import SubscriptionModel from "../model/Subscription";
+import { UserModel, User } from "../model/user";
 import { google } from "googleapis";
 
 const auth = new google.auth.GoogleAuth({
@@ -54,17 +54,17 @@ export const stopStreamin = async (req: Request, res: Response) => {
 };
 
 export const streamingStatus = async (req: Request, res: Response) => {
-//   const { broadcastId } = req.params;
+  //   const { broadcastId } = req.params;
 
-//   try {
-//     const response = await youtube.liveBroadcasts.list({
-//         part: ['id', 'status'],
-//         id: broadcastId
-//     });
+  //   try {
+  //     const response = await youtube.liveBroadcasts.list({
+  //         part: ['id', 'status'],
+  //         id: broadcastId
+  //     });
 
-//     res.json(response.data);
-//   } catch (error) {
-//     console.error("Error getting broadcast status:", error);
-//     res.status(500).json({ error: "Failed to get stream status" });
-//   }
+  //     res.json(response.data);
+  //   } catch (error) {
+  //     console.error("Error getting broadcast status:", error);
+  //     res.status(500).json({ error: "Failed to get stream status" });
+  //   }
 };
