@@ -72,7 +72,7 @@ app.use("/email", email);
 const io = getIO();
 
 io.on('connection', (socket: any) => {
-  console.log("A User Connected");
+  console.log("A User Connected", socket.id);
 
   io.on("client_like_update", (data: any) => {
     console.log("client_like_update", data);

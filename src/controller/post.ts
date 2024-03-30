@@ -12,6 +12,7 @@ import {
 
 import Filter from "bad-words";
 import LikeModel from "../model/like";
+import { getIO } from "../util/socket.io";
 
 const filter = new Filter();
 
@@ -84,6 +85,7 @@ export const checkLike = async (req: Request, res: Response) => {
 export const likePost = async (req: Request, res: Response) => {
   try {
     const { postId, likerId } = req.body;
+    const io = getIO();
 
     const likes = await LikeModel.find({
       postId: postId,
@@ -97,6 +99,7 @@ export const likePost = async (req: Request, res: Response) => {
         likerId: likerId
       });
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+      io.emit("server_update_like", { postId, likes: -1 });
       return res.status(200).json({ message: "Post unliked successfully" });
     } else {
       const like = new LikeModel({
@@ -106,6 +109,7 @@ export const likePost = async (req: Request, res: Response) => {
 
       await like.save();
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+      io.emit("server_update_like", { postId, likes: -1 });
 
       return res.status(200).json({ message: "Post liked successfully" });
     }
