@@ -162,9 +162,25 @@ export const deletePost = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllComments = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const comments = await CommentModel.find({
+      postId: id,
+    });
+
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 export const createComment = async (req: Request, res: Response) => {
   try {
     const { authorId, content, postId, userId } = req.body;
+    console.log(req.body);
 
     const comment = new CommentModel({
       authorId: authorId,
@@ -173,40 +189,48 @@ export const createComment = async (req: Request, res: Response) => {
       userId: userId,
     });
 
-    const isCommentInappropriate = await checkCommentUsingSapling(content);
-
-    if (isCommentInappropriate) {
-      try {
-        const user = await UserModel.findById(authorId);
-
-        if (user) {
-          if (user.blacklistCount < 2) {
-            user.blacklistCount += 1;
-            await user.save();
-            return res
-              .status(400)
-              .json({ error: "Inappropriate comment detected" });
-          } else if (user.blacklistCount === 2) {
-            user.blacklistCount += 1;
-
-            user.flag = "suspended";
-            await user.save();
-            return res
-              .status(400)
-              .json({
-                error: "Inappropriate comment detected and account suspended",
-              });
-          }
-        }
-      } catch (error) {
-        console.error("Error updating user blacklist count:", error);
-      }
+    // Check if the comment contains bad words from library
+    const response: any = filter.isProfane(content);
+    console.log(response)
+    if (filter.isProfane(content)) {
+      return res.status(400).json({ error: "Inappropriate comment detected" });
     }
+
+    // const isCommentInappropriate = await checkCommentUsingSapling(content);
+
+    // console.log(isCommentInappropriate)
+    // if (isCommentInappropriate) {
+    //   try {
+    //     const user = await UserModel.findById(authorId);
+
+    //     if (user) {
+    //       if (user.blacklistCount < 2) {
+    //         user.blacklistCount += 1;
+    //         await user.save();
+    //         return res
+    //           .status(400)
+    //           .json({ error: "Inappropriate comment detected" });
+    //       } else if (user.blacklistCount === 2) {
+    //         user.blacklistCount += 1;
+
+    //         user.flag = "suspended";
+    //         await user.save();
+    //         return res
+    //           .status(400)
+    //           .json({
+    //             error: "Inappropriate comment detected and account suspended",
+    //           });
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error("Error updating user blacklist count:", error);
+    //   }
+    // }
 
     await comment.save();
     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
 
-    res.status(201).json({ message: "Comment created successfully", comment });
+    res.status(200).json({ message: "Comment created successfully", comment });
   } catch (error) {
     console.error("Error creating comment:", error);
     res.status(500).json({ error: "Internal server error" });

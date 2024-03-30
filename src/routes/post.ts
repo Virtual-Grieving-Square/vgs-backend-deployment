@@ -8,6 +8,7 @@ import {
   createComment,
   createPost,
   deletePost,
+  getAllComments,
   getPostImage,
   getPostsWithImages,
   likePost,
@@ -31,16 +32,20 @@ const router = express.Router();
 
 // Post
 router.post("/create", upload.array("photos"), createPost);
+router.get("/getallPost", getPostsWithImages);
+
 
 // Like, Comment, Share
 router.put('/like', likePost);
 router.get('/like/count/:id', countLike);
 router.get('/checkLike/:id/:userId', checkLike);
 
-router.get("/getallPost", getPostsWithImages);
+// Comment
+router.get("/comment/:id", getAllComments);
+router.post("/comment/add", createComment);
+
 router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
-router.post("/comments", createComment);
 router.post("/Reactions", makeReaction);
 
 export default router;
