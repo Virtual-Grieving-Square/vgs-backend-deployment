@@ -11,6 +11,7 @@ import {
 } from "../util/commentFilter";
 
 import Filter from "bad-words";
+import LikeModel from "../model/like";
 
 const filter = new Filter();
 
@@ -43,6 +44,78 @@ export const createPost = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const countLike = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const likes = await LikeModel.find({
+      postId: id
+    });
+
+    res.status(200).json({ likes: likes.length });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export const checkLike = async (req: Request, res: Response) => {
+  try {
+    const { id, userId } = req.params;
+
+    const likes = await LikeModel.find({
+      postId: id,
+      likerId: userId
+    });
+
+    if (likes.length > 0) {
+      return res.status(200).json({ liked: true });
+    } else {
+      return res.status(200).json({ liked: false });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export const likePost = async (req: Request, res: Response) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId
+    });
+
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId
+      });
+      await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+      return res.status(200).json({ message: "Post unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        likerId: likerId
+      });
+
+      await like.save();
+      await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+
+      return res.status(200).json({ message: "Post liked successfully" });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 
 export const getPostsWithImages = async (req: Request, res: Response) => {
   try {
@@ -144,6 +217,7 @@ export const createComment = async (req: Request, res: Response) => {
   }
 };
 
+
 export const makeReaction = async (req: Request, res: Response) => {
   try {
     const { postId, reactionType, userId } = req.body;
@@ -170,11 +244,10 @@ export const getPostImage = async (req: Request, res: Response) => {
   try {
     const name = req.query.name;
     const location = process.env.FILE_PATH + "/";
-    console.log("Here");
 
     res.sendFile(location + name);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 }

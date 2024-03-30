@@ -3,11 +3,14 @@ import multer from "multer";
 
 // Controller
 import {
+  checkLike,
+  countLike,
   createComment,
   createPost,
   deletePost,
   getPostImage,
   getPostsWithImages,
+  likePost,
   makeReaction,
 } from '../controller/post';
 
@@ -26,7 +29,14 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
+// Post
 router.post("/create", upload.array("photos"), createPost);
+
+// Like, Comment, Share
+router.put('/like', likePost);
+router.get('/like/count/:id', countLike);
+router.get('/checkLike/:id/:userId', checkLike);
+
 router.get("/getallPost", getPostsWithImages);
 router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
