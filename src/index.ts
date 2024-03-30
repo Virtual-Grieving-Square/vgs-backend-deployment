@@ -9,9 +9,14 @@ import firebase from 'firebase-admin';
 dotenv.config();
 
 // Routes
-import users from "./routes/user";
-import admins from "./routes/admin";
 import index from "./routes";
+import auth from "./routes/auth";
+import users from "./routes/user";
+import post from "./routes/post";
+import admins from "./routes/admin";
+import streaming from "./routes/streaming";
+import subsciption from "./routes/subscription";
+import group from "./routes/group";
 import wallet from "./routes/wallet";
 import email from "./routes/email";
 
@@ -43,11 +48,17 @@ app.use(apiAuthMiddleware);
 
 connectDB();
 
-app.use('/', index);
-app.use('/user', users);
-app.use('/admin', admins);
-app.use('/wallet', wallet);
-app.use('/email', email);
+// Routes
+app.use("/", index);
+app.use("/auth", auth);
+app.use("/user", users);
+app.use("/post", post);
+app.use("/streaming", streaming);
+app.use("/subscription", subsciption);
+app.use("/group", group);
+app.use("/admin", admins);
+app.use("/wallet", wallet);
+app.use("/email", email);
 
 server.listen(PORT, () => {
   console.log(`R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`)
