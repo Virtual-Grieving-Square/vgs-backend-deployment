@@ -98,7 +98,9 @@ export const likePost = async (req: Request, res: Response) => {
         postId: postId,
         likerId: likerId
       });
+
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+
       io.emit("server_update_like", { postId, likes: -1 });
       return res.status(200).json({ message: "Post unliked successfully" });
     } else {
@@ -108,7 +110,9 @@ export const likePost = async (req: Request, res: Response) => {
       });
 
       await like.save();
+
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+
       io.emit("server_update_like", { postId, likes: -1 });
 
       return res.status(200).json({ message: "Post liked successfully" });
@@ -180,7 +184,7 @@ export const getAllComments = async (req: Request, res: Response) => {
 export const createComment = async (req: Request, res: Response) => {
   try {
     const { authorId, content, postId, userId } = req.body;
-    console.log(req.body);
+    const io = getIO();
 
     const comment = new CommentModel({
       authorId: authorId,
@@ -192,6 +196,7 @@ export const createComment = async (req: Request, res: Response) => {
     // Check if the comment contains bad words from library
     const response: any = filter.isProfane(content);
     console.log(response)
+
     if (filter.isProfane(content)) {
       return res.status(400).json({ error: "Inappropriate comment detected" });
     }
@@ -229,6 +234,8 @@ export const createComment = async (req: Request, res: Response) => {
 
     await comment.save();
     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
+
+    io.emit("server_update_comment");
 
     res.status(200).json({ message: "Comment created successfully", comment });
   } catch (error) {
