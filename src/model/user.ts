@@ -15,7 +15,7 @@ const userSchema: Schema = new Schema({
   blacklistCount: { type: Number, default: 0 },
   flag: { type: String, default: "Active" },
   signInMethod: { type: String, required: false },
-  password: { type: String, required: true },
+  password: { type: String, required: false },
   accessToekn: { type: String, required: false },
   refreshToken: { type: String, required: false },
 });

@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { UserModel } from "../../model/user";
+import { UserModel } from "../model/user";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -9,10 +9,10 @@ import fs from 'fs';
 import ejs from 'ejs';
 
 // Functions
-import { verificationCodeGenerator } from "../../util/verificationCodeGenerator";
-import { TempUserModel } from "../../model/tempUser";
-import { generateUserAccessToken } from "../../util/generateUserAccessToken";
-import { RecoverPasswordModel } from "../../model/recoverPassword";
+import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
+import { TempUserModel } from "../model/tempUser";
+import { generateUserAccessToken } from "../util/generateUserAccessToken";
+import { RecoverPasswordModel } from "../model/recoverPassword";
 
 // Sign up
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -36,32 +36,15 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
         }
 
         if (verification == 'phone') {
-            const accountSid = 'ACf82578cfbc9c0f0c997db5bf896f4d22';
-            const authToken = '97da9c183b6e14dd69c237abe194c489';
-            const client = require('twilio')(accountSid, authToken);
-            const verificationMessage = `Your verification code is ${verificationCode}`;
-
-            console.log(verificationMessage);
-
-            // client.messages
-            //     .create({
-            //         body: verificationMessage,
-            //         from: '+18664601237',
-            //         to: '+18777804236'
-            //     })
-            //     .then((message: any) => {
-            //         console.log(message.sid);
-            //     })
-            //     .done();
 
             const checkTempUser = await TempUserModel.findOne({
-                email: email,
+                phoneNumber: phoneNumber,
             });
 
             if (checkTempUser) {
 
                 await TempUserModel.updateOne(
-                    { email: email },
+                    { phoneNumber: phoneNumber },
                     {
                         $set: {
                             firstName: firstName,
@@ -96,12 +79,12 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
             console.log("Verification Email");
 
             const checkTempUser = await TempUserModel.findOne({
-                phoneNumber: phoneNumber,
+                email: email
             });
 
             if (checkTempUser) {
                 await TempUserModel.updateOne(
-                    { phoneNumber: phoneNumber },
+                    { email: email },
                     {
                         $set: {
                             firstName: firstName,
@@ -181,7 +164,8 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     username: tempUser.username,
                     email: tempUser.email,
                     phoneNumber: tempUser.phoneNumber,
-                    password: hashedPassword
+                    password: hashedPassword,
+                    signInMethod: "Email"
                 });
 
                 await user.save();
@@ -215,7 +199,8 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     username: tempUser.username,
                     email: tempUser.email,
                     phoneNumber: tempUser.phoneNumber,
-                    password: hashedPassword
+                    password: hashedPassword,
+                    signInMethod: "Phone",
                 });
                 await user.save();
 

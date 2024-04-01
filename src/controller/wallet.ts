@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { UserModel } from "../../model/user";
+import { UserModel } from "../model/user";
 
 export const wallet = async (req: Request, res: Response) => {
   try {

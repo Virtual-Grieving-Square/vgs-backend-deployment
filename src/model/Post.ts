@@ -5,9 +5,10 @@ export interface IPost extends Document {
   title: string;
   content: string;
   createdAt: Date;
+  likes: number;
   reacts: number;
   comments: number;
-  author: string; 
+  author: string;
   photos: { url: string }[];
 }
 
@@ -16,10 +17,11 @@ const PostSchema: Schema = new Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
+  likes: { type: Number, default: 0 },
   reacts: { type: Number, default: 0 },
   comments: { type: Number, default: 0 },
-  author: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
-  photos: [{ url: { type: String, required: true } }] 
+  author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  photos: [{ url: { type: String, required: true } }]
 });
 
 

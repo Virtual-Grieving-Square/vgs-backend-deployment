@@ -1,26 +1,26 @@
 import { Request, Response } from "express";
-import { PetMemorial } from "../../model/petMemorial";
-import { checkCommentUsingSapling } from "../../util/commentFilter";
-import { UserModel } from "../../model/user";
+import { PetMemorial } from "../model/petMemorial";
+import { checkCommentUsingSapling } from "../util/commentFilter";
+import { UserModel } from "../model/user";
 
 export const createPetMemorial = async (req: Request, res: Response) => {
   try {
     const { name, age, type, DOB, DOD, owner, coverImage } = req.body;
 
-    if (!name || !age || !type || !DOB ||  !DOD || !owner || !coverImage) {
+    if (!name || !age || !type || !DOB || !DOD || !owner || !coverImage) {
       return res
         .status(400)
         .json({ message: "All fields are required" });
     }
 
     const petMemorial = new PetMemorial({
-        name,
-        age,
-        type,
-        DOB,
-        DOD,
-        owner,
-        coverImage
+      name,
+      age,
+      type,
+      DOB,
+      DOD,
+      owner,
+      coverImage
     });
 
     await petMemorial.save();

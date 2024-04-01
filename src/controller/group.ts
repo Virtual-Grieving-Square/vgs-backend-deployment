@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { GroupModel } from "../../model/group";
-import { GroupWriting } from "../../model/groupWriting";
+import { GroupModel } from "../model/group";
+import { GroupWriting } from "../model/groupWriting";
 import { responseEncoding } from "axios";
-import { GroupComment } from "../../model/groupComments";
-import { checkCommentUsingSapling } from "../../util/commentFilter";
-import { UserModel } from "../../model/user";
+import { GroupComment } from "../model/groupComments";
+import { checkCommentUsingSapling } from "../util/commentFilter";
+import { UserModel } from "../model/user";
 
 export const createGroup = async (req: Request, res: Response) => {
   try {

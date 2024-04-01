@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateWallet, wallet } from "../controller/user/wallet";
+import { updateWallet, wallet } from "../controller/wallet";
 
 const router = express.Router();
 
