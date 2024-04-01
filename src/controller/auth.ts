@@ -36,23 +36,6 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
         }
 
         if (verification == 'phone') {
-            const accountSid = 'ACf82578cfbc9c0f0c997db5bf896f4d22';
-            const authToken = '97da9c183b6e14dd69c237abe194c489';
-            const client = require('twilio')(accountSid, authToken);
-            const verificationMessage = `Your verification code is ${verificationCode}`;
-
-            console.log(verificationMessage);
-
-            // client.messages
-            //     .create({
-            //         body: verificationMessage,
-            //         from: '+18664601237',
-            //         to: '+18777804236'
-            //     })
-            //     .then((message: any) => {
-            //         console.log(message.sid);
-            //     })
-            //     .done();
 
             const checkTempUser = await TempUserModel.findOne({
                 phoneNumber: phoneNumber,
