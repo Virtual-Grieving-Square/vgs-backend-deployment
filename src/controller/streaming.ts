@@ -3,6 +3,13 @@ import SubscriptionModel from "../model/Subscription";
 import { UserModel, User } from "../model/user";
 import { google } from "googleapis";
 
+const accountSid = "AC85c0958b9233dd8246253e535b117ded";
+const authToken = "b99fae6f3005ab9782b64eccb719b322";
+
+const client = require('twilio')(accountSid, authToken);
+
+const videoGrant = client.VideoGrant;
+
 const auth = new google.auth.GoogleAuth({
   keyFile: "credentials.json",
   scopes: ["https://www.googleapis.com/auth/youtube.force-ssl"],
@@ -68,3 +75,16 @@ export const streamingStatus = async (req: Request, res: Response) => {
   //     res.status(500).json({ error: "Failed to get stream status" });
   //   }
 };
+
+export const twilioStreaming = async (req: Request, res: Response) => {
+  try {
+    client.video.v1.rooms.create({ type: 'go', uniqueName: 'My First Video Room' })
+      .then((room: any) => console.log(room.sid));
+
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to get stream status" });
+  }
+}

@@ -7,6 +7,7 @@ const tempUserSchema: Schema = new Schema({
   email: { type: String, required: false, unique: true },
   phoneNumber: { type: String, required: false, unique: true },
   otp: { type: String, required: false },
+  subscriptionType: { type: String, required: false },
   password: { type: String, required: true },
 });
 
@@ -17,6 +18,7 @@ export interface TempUser extends Document {
   email: string;
   phoneNumber: string;
   otp: string;
+  subscriptionType: string;
   password: string;
 }
 

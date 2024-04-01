@@ -7,6 +7,6 @@ import {
 
 const router = express.Router();
 
-router.post("/contact", contactUs);
+router.post("/", contactUs);
 
 export default router; 

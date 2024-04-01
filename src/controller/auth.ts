@@ -19,7 +19,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
     try {
         const env = process.env;
 
-        const { firstName, lastName, username, email, phoneNumber, password } = req.body.data;
+        const { firstName, lastName, username, email, phoneNumber, password, subscriptionType } = req.body.data;
         const verification = req.body.verification;
         const existingUserByEmail = await UserModel.findOne({ email: email });
         const existingUserByPhone = await UserModel.findOne({ phoneNumber: phoneNumber });
@@ -53,6 +53,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                             email: email,
                             phoneNumber: phoneNumber,
                             otp: verificationCode,
+                            subscriptionType: subscriptionType,
                             password: password
                         }
                     });
@@ -65,6 +66,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                     email: email,
                     phoneNumber: phoneNumber,
                     otp: verificationCode,
+                    subscriptionType: subscriptionType,
                     password: password
                 });
 
@@ -93,6 +95,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                             email: email,
                             phoneNumber: phoneNumber,
                             otp: verificationCode,
+                            subscriptionType: subscriptionType,
                             password: password
                         }
                     });
@@ -104,6 +107,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                     email: email,
                     phoneNumber: phoneNumber,
                     otp: verificationCode,
+                    subscriptionType: subscriptionType,
                     password: password
                 });
 
@@ -133,6 +137,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
             });
 
             console.log("Message sent: %s", info.messageId);
+            console.log("Code", verificationCode);
 
             res.status(200).json({
                 type: "email",
@@ -165,6 +170,7 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     email: tempUser.email,
                     phoneNumber: tempUser.phoneNumber,
                     password: hashedPassword,
+                    subscriptionType: tempUser.subscriptionType,
                     signInMethod: "Email"
                 });
 

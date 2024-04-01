@@ -21,6 +21,7 @@ import subsciption from "./routes/subscription";
 import group from "./routes/group";
 import wallet from "./routes/wallet";
 import email from "./routes/email";
+import contact from "./routes/contact";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -66,6 +67,7 @@ app.use("/group", group);
 app.use("/admin", admins);
 app.use("/wallet", wallet);
 app.use("/email", email);
+app.use("/contact", contact);
 
 
 // Socket.io Connect

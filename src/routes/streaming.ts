@@ -5,6 +5,7 @@ import {
   startStreaming,
   stopStreamin,
   streamingStatus,
+  twilioStreaming,
 } from '../controller/streaming';
 
 const router = express.Router();
@@ -13,5 +14,6 @@ const router = express.Router();
 router.post("/startStreamin", startStreaming);
 router.post("/addSubscription/:broadcastId", stopStreamin);
 router.post("/addSubscription/:broadcastId", streamingStatus);
+router.post("/twilioStreaming", twilioStreaming);
 
 export default router;

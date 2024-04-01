@@ -3,37 +3,37 @@ import nodemailer from 'nodemailer';
 
 export const contactUs = async (req: Request, res: Response) => {
   try {
-    const { name, email, message } = req.body;
-
+    const { name, email, phone, message } = req.body;
+    console.log(req.body)
     if (!name || !email || !message) {
       return res
         .status(400)
         .json({ message: "Please fill in all required fields." });
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: 465,
-        secure: true,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD,
-        },
+    const transporter = await nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
     });
 
-    
+
     const mailOptions = {
-      from: '"VGS" <verification@virtualgrievingsquare.com>', 
-      to: "verification@virtualgrievingsquare.com", 
+      from: '"VGS" <verification@virtualgrievingsquare.com>',
+      to: "verification@virtualgrievingsquare.com",
       subject: `Contact Form Submission: ${name}`,
       text: `
         Name: ${name}
         Email: ${email}
+        Phone Number: ${phone}
         Message: ${message}
       `,
     };
 
-  
     const info = await transporter.sendMail(mailOptions);
 
     res

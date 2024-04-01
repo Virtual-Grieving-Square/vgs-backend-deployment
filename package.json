@@ -46,7 +46,8 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.11",
     "socket.io": "^4.7.5",
-    "stripe": "^14.22.0",
-    "twilio": "^4.23.0"
+    "stripe": "^14.23.0",
+    "twilio": "^4.23.0",
+    "twilio-video": "^2.28.1"
   }
 }
