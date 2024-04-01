@@ -29,7 +29,7 @@ export const addSubscription = async (req: Request, res: Response) => {
 };
 
 
-const stripeClient = require('stripe')('', {
+const stripeClient = require('stripe')('sk_test_4eC39HqLyjWDarjtT1zdp7dc', {
   apiVersion: '2023-10-16',
 });
 
