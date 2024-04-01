@@ -237,7 +237,7 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
 export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body.data;
-        console.log(req.body)
+        // console.log(req.body)
         // Find user by email
         const user = await UserModel.findOne({
             email: email

@@ -4,19 +4,19 @@ import multer from "multer";
 // Controller
 import {
   getDetails,
+  updateDetails,
   uploadProfileImage
 } from "../controller/user";
 
 // Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/image/profileImage");
+    cb(null, "uploads/image/profileImage/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
   },
 });
-
 
 const upload = multer({ storage: storage });
 
@@ -24,12 +24,7 @@ const router = express.Router();
 
 // User
 router.get("/getDetails/:id", getDetails);
-
-// Update Profile 
-router.post("/uploadProfileImage", upload.array("photo"), uploadProfileImage);
-
-
-
-
+router.put('/update/:id', updateDetails);
+router.post("/uploadProfileImage/:id", upload.array("image"), uploadProfileImage);
 
 export default router;
