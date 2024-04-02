@@ -3,34 +3,37 @@ import { DonationModel } from "../model/donation";
 import { UserModel } from "../model/user";
 
 export const makeDonation = async (req: Request, res: Response) => {
-  const { from, to, amount, productId, desc } = req.body;
+  const { from, to, amount, productId, description } = req.body;
+
+  console.log(req.body);
 
   if (!from || !to || !amount || !productId) {
-    res.status(200).send({ msg: "required field missing" });
-  }
+    res.status(403).send({ msg: "required field missing" });
+  } else {
 
-  try {
+    try {
 
-    const user = await UserModel.findOne({ email: to });
+      const user = await UserModel.findOne({ email: to });
 
-    if (!user) {
-      res.status(402).send({ msg: "User not found" });
-    } else {
+      if (!user) {
+        res.status(402).send({ msg: "User not found" });
+      } else {
 
-      const donate = new DonationModel({
-        from: from,
-        to: user!._id,
-        amount: amount,
-        product: productId,
-        description: desc,
-      });
+        const donate = new DonationModel({
+          from: from,
+          to: user!._id,
+          amount: amount,
+          product: productId,
+          description: description,
+        });
 
-      await donate.save();
-      res.status(201).json({ message: "Donated successfully", donate });
+        await donate.save();
+        res.status(200).json({ message: "Donated successfully", donate });
+      }
+    } catch (error) {
+      console.error("Error making Donation", error);
+      res.status(500).json({ error: "Internal server error" });
     }
-  } catch (error) {
-    console.error("Error making Donation", error);
-    res.status(500).json({ error: "Internal server error" });
   }
 };
 
