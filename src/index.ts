@@ -1,9 +1,9 @@
 import express from "express";
-import cors from 'cors';
-import http from 'http';
-import dotenv from 'dotenv';
-import { connectDB } from './database/db';
-import firebase from 'firebase-admin';
+import cors from "cors";
+import http from "http";
+import dotenv from "dotenv";
+import { connectDB } from "./database/db";
+import firebase from "firebase-admin";
 
 // Scoket.io
 import { getIO, initialize } from "./util/socket.io";
@@ -22,11 +22,12 @@ import group from "./routes/group";
 import wallet from "./routes/wallet";
 import email from "./routes/email";
 import contact from "./routes/contact";
+import donation from "./routes/donation";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
 
-var serviceAccount = require('../serviceAccountKey.json');
+var serviceAccount = require("../serviceAccountKey.json");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,19 +40,21 @@ firebase.initializeApp({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  origin: urlList,
-  optionsSuccessStatus: 200,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-}));
+app.use(
+  cors({
+    origin: urlList,
+    optionsSuccessStatus: 200,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 
 app.use(apiAuthMiddleware);
 
 // Socket.io
 initialize(server, {
   origin: urlList,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ["GET", "POST", "PUT", "DELETE"],
 });
 
 connectDB();
@@ -68,24 +71,25 @@ app.use("/admin", admins);
 app.use("/wallet", wallet);
 app.use("/email", email);
 app.use("/contact", contact);
-
+app.use("/donation", donation);
 
 // Socket.io Connect
 const io = getIO();
 
-io.on('connection', (socket: any) => {
+io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
 
   io.on("client_like_update", (data: any) => {
     console.log("client_like_update", data);
-  })
+  });
 
-  socket.on('disconnect', () => {
-    console.log('A User Disconnected');
+  socket.on("disconnect", () => {
+    console.log("A User Disconnected");
   });
 });
 
-
 server.listen(PORT, () => {
-  console.log(`R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`)
-})
+  console.log(
+    `R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`
+  );
+});
