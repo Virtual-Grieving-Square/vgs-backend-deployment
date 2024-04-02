@@ -14,18 +14,20 @@ export const makeDonation = async (req: Request, res: Response) => {
 
     if (!user) {
       res.status(402).send({ msg: "User not found" });
+    } else {
+
+      const donate = new DonationModel({
+        from: from,
+        to: user!._id,
+        amount: amount,
+        product: productId,
+        description: desc,
+      });
+
+      await donate.save();
+      res.status(201).json({ message: "Donated successfully", donate });
+
     }
-
-    const donate = new DonationModel({
-      from: from,
-      to: user!._id,
-      amount: amount,
-      product: productId,
-      description: desc,
-    });
-
-    await donate.save();
-    res.status(201).json({ message: "Donated successfully", donate });
 
   } catch (error) {
     console.error("Error making Donation", error);
