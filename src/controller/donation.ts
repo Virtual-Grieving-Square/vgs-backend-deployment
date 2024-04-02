@@ -18,7 +18,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
     const donate = new DonationModel({
       from: from,
-      to: to,
+      to: user!._id,
       amount: amount,
       product: productId,
       description: desc,
