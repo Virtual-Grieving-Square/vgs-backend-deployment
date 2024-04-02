@@ -24,7 +24,7 @@ export const makeDonation = async (req: Request, res: Response) => {
           to: user!._id,
           amount: amount,
           product: productId,
-          description: desc,
+          description: description,
         });
 
         await donate.save();
