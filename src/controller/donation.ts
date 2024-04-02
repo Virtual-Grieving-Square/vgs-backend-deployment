@@ -3,11 +3,19 @@ import { DonationModel } from "../model/donation";
 
 export const makeDonation = async (req: Request, res: Response) => {
   const { from, to, amount, productId, desc } = req.body;
+
   if (!from || !to || !amount || !productId) {
     res.status(200).send({ msg: "required field missing" });
   }
 
   try {
+
+    const user = await DonationModel.findOne({ _id: to });
+
+    if (!user) {
+      res.status(402).send({ msg: "User not found" });
+    }
+
     const donate = new DonationModel({
       from: from,
       to: to,
@@ -18,6 +26,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
     await donate.save();
     res.status(201).json({ message: "Donated successfully", donate });
+
   } catch (error) {
     console.error("Error making Donation", error);
     res.status(500).json({ error: "Internal server error" });
@@ -28,7 +37,6 @@ async function fetchDonationHistory(userId: string) {
   try {
     const donationHistory = await DonationModel.find({ to: userId });
 
-   
     const populatedDonationHistory = await DonationModel.populate(
       donationHistory,
       { path: "products", model: "Product" }
@@ -43,15 +51,18 @@ async function fetchDonationHistory(userId: string) {
 
 export const donationHistory = async (req: Request, res: Response) => {
   const { userId } = req.body;
+
   if (!userId) {
     res.status(200).send({ msg: "User Id Missing" });
   }
 
   try {
     const donationHistory = await fetchDonationHistory(userId);
+
     res.status(201).json({ donationHistory });
   } catch (error) {
     console.error("Error making Donation", error);
     res.status(500).json({ error: "Internal server error" });
   }
+
 };
