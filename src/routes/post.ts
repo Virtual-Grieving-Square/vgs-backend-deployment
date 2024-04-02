@@ -11,9 +11,11 @@ import {
   getAllComments,
   getPostImage,
   getPostsWithImages,
+  getUserPost,
   likePost,
   makeReaction,
 } from '../controller/post';
+import { removeSpaces } from '../util/removeSpace';
 
 // Multer
 const storage = multer.diskStorage({
@@ -21,9 +23,11 @@ const storage = multer.diskStorage({
     cb(null, "uploads/image/post/");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
+    cb(null, Date.now() + "-" + removeSpaces(file.originalname));
   },
 });
+
+
 
 // Post Upload Location
 const upload = multer({ storage: storage });
@@ -33,7 +37,7 @@ const router = express.Router();
 // Post
 router.post("/create", upload.array("photos"), createPost);
 router.get("/getallPost", getPostsWithImages);
-
+router.get("/getUserPost/:id", getUserPost);
 
 // Like, Comment, Share
 router.put('/like', likePost);
