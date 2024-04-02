@@ -43,7 +43,6 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-
     const photos = (req.files as Express.Multer.File[]).map(
       (file: Express.Multer.File) => ({
         url: file.path,
@@ -68,10 +67,12 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
 
 export const getProfileImage = async (req: Request, res: Response) => {
   try {
-    const { name } = req.params;
-    const location
+    const { name } = req.query;
+    const location = process.env.FILE_PATH + "/";
 
-    res.sendFile(name, { root: "uploads/image/profileImage/" });
+    console.log(location + name);
+
+    res.sendFile(location + name);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

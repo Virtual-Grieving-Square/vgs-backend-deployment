@@ -4,6 +4,7 @@ import multer from "multer";
 // Controller
 import {
   getDetails,
+  getProfileImage,
   updateDetails,
   uploadProfileImage
 } from "../controller/user";
@@ -26,5 +27,6 @@ const router = express.Router();
 router.get("/getDetails/:id", getDetails);
 router.put('/update/:id', updateDetails);
 router.post("/uploadProfileImage/:id", upload.array("image"), uploadProfileImage);
+router.get('/getImage', getProfileImage);
 
 export default router;
