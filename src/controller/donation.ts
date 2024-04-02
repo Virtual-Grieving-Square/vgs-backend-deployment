@@ -23,7 +23,7 @@ export const makeDonation = async (req: Request, res: Response) => {
           from: from,
           to: user!._id,
           amount: amount,
-          product: productId,
+          product: "660c2759fd9d921b6498ca26",
           description: description,
         });
 
@@ -54,14 +54,14 @@ async function fetchDonationHistory(userId: string) {
 }
 
 export const donationHistory = async (req: Request, res: Response) => {
-  const { userId } = req.body;
-
-  if (!userId) {
-    res.status(200).send({ msg: "User Id Missing" });
-  }
-
   try {
+    const { userId } = req.body;
     const donationHistory = await fetchDonationHistory(userId);
+
+    if (!userId) {
+      res.status(200).send({ msg: "User Id Missing" });
+    }
+
 
     res.status(201).json({ donationHistory });
   } catch (error) {
