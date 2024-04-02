@@ -24,7 +24,7 @@ export const makeDonation = async (req: Request, res: Response) => {
           to: user!._id,
           amount: amount,
           product: productId,
-          description: description,
+          description: desc,
         });
 
         await donate.save();
@@ -68,5 +68,4 @@ export const donationHistory = async (req: Request, res: Response) => {
     console.error("Error making Donation", error);
     res.status(500).json({ error: "Internal server error" });
   }
-
 };
