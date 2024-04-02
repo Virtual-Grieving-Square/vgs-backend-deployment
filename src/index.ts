@@ -23,6 +23,7 @@ import wallet from "./routes/wallet";
 import email from "./routes/email";
 import contact from "./routes/contact";
 import donation from "./routes/donation";
+import product from "./routes/product";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -72,6 +73,7 @@ app.use("/wallet", wallet);
 app.use("/email", email);
 app.use("/contact", contact);
 app.use("/donation", donation);
+app.use("/product", product);
 
 // Socket.io Connect
 const io = getIO();

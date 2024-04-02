@@ -10,13 +10,12 @@ export const makeDonation = async (req: Request, res: Response) => {
   }
 
   try {
-
     const user = await UserModel.findOne({ email: to });
+    console.log(user);
 
     if (!user) {
       res.status(402).send({ msg: "User not found" });
     } else {
-
       const donate = new DonationModel({
         from: from,
         to: user!._id,
@@ -65,5 +64,4 @@ export const donationHistory = async (req: Request, res: Response) => {
     console.error("Error making Donation", error);
     res.status(500).json({ error: "Internal server error" });
   }
-
 };
