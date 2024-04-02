@@ -1,5 +1,6 @@
 import { Response, Request } from "express";
 import { DonationModel } from "../model/donation";
+import { UserModel } from "../model/user";
 
 export const makeDonation = async (req: Request, res: Response) => {
   const { from, to, amount, productId, desc } = req.body;
@@ -10,7 +11,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
   try {
 
-    const user = await DonationModel.findOne({ _id: to });
+    const user = await UserModel.findOne({ email: to });
 
     if (!user) {
       res.status(402).send({ msg: "User not found" });
@@ -26,9 +27,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
       await donate.save();
       res.status(201).json({ message: "Donated successfully", donate });
-
     }
-
   } catch (error) {
     console.error("Error making Donation", error);
     res.status(500).json({ error: "Internal server error" });
