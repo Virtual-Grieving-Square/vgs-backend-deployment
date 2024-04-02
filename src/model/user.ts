@@ -19,6 +19,8 @@ const userSchema: Schema = new Schema({
   password: { type: String, required: false },
   accessToekn: { type: String, required: false },
   refreshToken: { type: String, required: false },
+  donetions: [{ type: Schema.Types.ObjectId, ref: "donation" }],
+
 });
 
 export interface User extends Document {
