@@ -124,7 +124,6 @@ export const likePost = async (req: Request, res: Response) => {
   }
 }
 
-
 export const getPostsWithImages = async (req: Request, res: Response) => {
   try {
     const posts: IPost[] = await PostModel.find().exec();
@@ -244,7 +243,6 @@ export const createComment = async (req: Request, res: Response) => {
   }
 };
 
-
 export const makeReaction = async (req: Request, res: Response) => {
   try {
     const { postId, reactionType, userId } = req.body;
@@ -279,4 +277,17 @@ export const getPostImage = async (req: Request, res: Response) => {
   }
 }
 
-//helperfunctions
+export const getUserPost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const posts = await PostModel.find({
+      author: id,
+    });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
