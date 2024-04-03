@@ -126,7 +126,7 @@ export const likePost = async (req: Request, res: Response) => {
 
 export const getPostsWithImages = async (req: Request, res: Response) => {
   try {
-    const posts: IPost[] = await PostModel.find().exec();
+    const posts: IPost[] = await PostModel.find().sort({ createdAt: -1 }).exec();
 
     const postsWithImages = posts.map((post) => {
       return {
@@ -200,36 +200,38 @@ export const createComment = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Inappropriate comment detected" });
     }
 
+
+
     // const isCommentInappropriate = await checkCommentUsingSapling(content);
 
     // console.log(isCommentInappropriate)
-    // if (isCommentInappropriate) {
-    //   try {
-    //     const user = await UserModel.findById(authorId);
+    if (filter.isProfane(content)) {
+      try {
+        const user = await UserModel.findById(authorId);
 
-    //     if (user) {
-    //       if (user.blacklistCount < 2) {
-    //         user.blacklistCount += 1;
-    //         await user.save();
-    //         return res
-    //           .status(400)
-    //           .json({ error: "Inappropriate comment detected" });
-    //       } else if (user.blacklistCount === 2) {
-    //         user.blacklistCount += 1;
+        if (user) {
+          if (user.blacklistCount < 2) {
+            user.blacklistCount += 1;
+            await user.save();
+            return res
+              .status(400)
+              .json({ error: "Inappropriate comment detected" });
+          } else if (user.blacklistCount === 2) {
+            user.blacklistCount += 1;
 
-    //         user.flag = "suspended";
-    //         await user.save();
-    //         return res
-    //           .status(400)
-    //           .json({
-    //             error: "Inappropriate comment detected and account suspended",
-    //           });
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error("Error updating user blacklist count:", error);
-    //   }
-    // }
+            user.flag = "suspended";
+            await user.save();
+            return res
+              .status(400)
+              .json({
+                error: "Inappropriate comment detected and account suspended",
+              });
+          }
+        }
+      } catch (error) {
+        console.error("Error updating user blacklist count:", error);
+      }
+    }
 
     await comment.save();
     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
@@ -283,7 +285,7 @@ export const getUserPost = async (req: Request, res: Response) => {
 
     const posts = await PostModel.find({
       author: id,
-    });
+    }).sort({ createdAt: -1 });
 
     res.status(200).json(posts);
   } catch (error) {

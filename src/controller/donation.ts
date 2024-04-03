@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 import { DonationModel } from "../model/donation";
 import { UserModel } from "../model/user";
+import { ProductModel } from "../model/Product";
 
 export const makeDonation = async (req: Request, res: Response) => {
   const { from, to, amount, productId, description } = req.body;
@@ -37,13 +38,12 @@ export const makeDonation = async (req: Request, res: Response) => {
 async function fetchDonationHistory(userId: string) {
   try {
     const donationHistory = await DonationModel.find({ to: userId });
-    console.log(donationHistory);
-    const populatedDonationHistory = await DonationModel.populate(
-      donationHistory,
-      { path: "product", model: "Product" }
-    );
-    console.log(populatedDonationHistory);
 
+
+    const populatedDonationHistory = await DonationModel.populate(donationHistory, {
+      path: "product",
+      model: ProductModel, 
+    });
     return populatedDonationHistory;
   } catch (error) {
     console.error("Error fetching donation history:", error);
