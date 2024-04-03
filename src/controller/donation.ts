@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 import { DonationModel } from "../model/donation";
 import { UserModel } from "../model/user";
+import { ProductModel } from "../model/Product";
 
 export const makeDonation = async (req: Request, res: Response) => {
   const { from, to, amount, productId, description } = req.body;
@@ -10,15 +11,12 @@ export const makeDonation = async (req: Request, res: Response) => {
   if (!from || !to || !amount || !productId) {
     res.status(403).send({ msg: "required field missing" });
   } else {
-
     try {
-
       const user = await UserModel.findOne({ email: to });
 
       if (!user) {
         res.status(402).send({ msg: "User not found" });
       } else {
-
         const donate = new DonationModel({
           from: from,
           to: user!._id,
@@ -41,11 +39,11 @@ async function fetchDonationHistory(userId: string) {
   try {
     const donationHistory = await DonationModel.find({ to: userId });
 
-    const populatedDonationHistory = await DonationModel.populate(
-      donationHistory,
-      { path: "products", model: "Product" }
-    );
 
+    const populatedDonationHistory = await DonationModel.populate(donationHistory, {
+      path: "product",
+      model: ProductModel, 
+    });
     return populatedDonationHistory;
   } catch (error) {
     console.error("Error fetching donation history:", error);
@@ -61,7 +59,6 @@ export const donationHistory = async (req: Request, res: Response) => {
     if (!userId) {
       res.status(200).send({ msg: "User Id Missing" });
     }
-
 
     res.status(201).json({ donationHistory });
   } catch (error) {

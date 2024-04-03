@@ -13,7 +13,7 @@ const donationSchema: Schema = new Schema({
   from: { type: Schema.Types.ObjectId, ref: "User", required: true },
   to: { type: Schema.Types.ObjectId, ref: "User", required: true },
   amount: { type: Number, required: true },
-  product: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+  product: [{ type: Schema.Types.ObjectId, ref: "products" }],
   description: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
