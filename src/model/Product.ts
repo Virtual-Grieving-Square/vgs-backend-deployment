@@ -4,7 +4,6 @@ export interface Product extends Document {
   name: string;
   type: string;
   price: number;
-  product: mongoose.Types.ObjectId[];
   description: string;
   createdAt: Date;
 }

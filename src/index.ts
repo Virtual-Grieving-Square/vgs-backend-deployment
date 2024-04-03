@@ -24,6 +24,8 @@ import email from "./routes/email";
 import contact from "./routes/contact";
 import donation from "./routes/donation";
 import product from "./routes/product";
+import pet from "./routes/pet";
+import Human from "./routes/humanMemorial";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -74,7 +76,8 @@ app.use("/email", email);
 app.use("/contact", contact);
 app.use("/donation", donation);
 app.use("/product", product);
-
+app.use("/pet", pet);
+app.use("/human", Human);
 // Socket.io Connect
 const io = getIO();
 
