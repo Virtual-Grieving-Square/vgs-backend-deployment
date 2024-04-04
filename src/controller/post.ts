@@ -197,10 +197,8 @@ export const createComment = async (req: Request, res: Response) => {
     console.log(response)
 
     if (filter.isProfane(content)) {
-      return res.status(400).json({ error: "Inappropriate comment detected" });
+      return res.status(401).json({ error: "Inappropriate comment detected" });
     }
-
-
 
     const isCommentInappropriate = await checkCommentUsingSapling(content);
 
@@ -214,7 +212,7 @@ export const createComment = async (req: Request, res: Response) => {
             user.blacklistCount += 1;
             await user.save();
             return res
-              .status(400)
+              .status(405)
               .json({ error: "Inappropriate comment detected" });
           } else if (user.blacklistCount === 2) {
             user.blacklistCount += 1;
@@ -222,7 +220,7 @@ export const createComment = async (req: Request, res: Response) => {
             user.flag = "suspended";
             await user.save();
             return res
-              .status(400)
+              .status(406)
               .json({
                 error: "Inappropriate comment detected and account suspended",
               });
