@@ -1,6 +1,8 @@
 import { google } from "googleapis";
 import config from "../config";
 import axios from "axios";
+import Filter from "bad-words";
+import { profaneModel } from "../model/profanewords";
 
 interface ToneResult {
   score: number;
@@ -39,7 +41,6 @@ export const checkComment = async (comment: string): Promise<boolean> => {
       DISCOVERY_URL
     )) as PerspectiveAPIClient;
 
-   
     const analyzeRequest = {
       comment: {
         text: comment,
@@ -49,17 +50,14 @@ export const checkComment = async (comment: string): Promise<boolean> => {
       },
     };
 
-    
     const response = await client.comments.analyze({
       key: API_KEY,
       resource: analyzeRequest,
     });
 
-    
     const toxicityScore =
       response.data.attributeScores.TOXICITY.summaryScore.value;
 
-    
     const threshold = 0.6;
 
     console.log("score", toxicityScore);
@@ -108,3 +106,21 @@ export const checkCommentUsingSapling = async (
     return false;
   }
 };
+export const checkCommentUsingBadwords = async (
+  comment: string
+): Promise<boolean> => {
+  const filter = new Filter();
+
+  const additionalProfaneWords = await profaneModel.find({}, 'word');
+
+
+  additionalProfaneWords.forEach(({ word }) => filter.addWords(word));
+
+  if (filter.isProfane(comment)) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+

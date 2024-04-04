@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { HumanMemorial } from "../model/humanMemorial";
 import { checkCommentUsingSapling } from "../util/commentFilter";
 import { UserModel } from "../model/user";
+import path, { dirname } from "path";
 
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
@@ -43,5 +44,21 @@ export const fetchHumanMemorial = async (req: Request, res: Response) => {
     res.status(201).json(allhumanMemorials);
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
+  }
+};
+
+export const getImages = async (req: Request, res: Response) => {
+  const image = req.query.name as string | undefined;
+
+  if (!image) {
+    return res.status(400).send("Image name is not provided");
+  }
+
+  try {
+    const location = path.join(__dirname, "../../", image);
+
+    res.sendFile(location);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching pet memorial ", error });
   }
 };

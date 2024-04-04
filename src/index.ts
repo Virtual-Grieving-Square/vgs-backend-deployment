@@ -26,6 +26,7 @@ import donation from "./routes/donation";
 import product from "./routes/product";
 import pet from "./routes/pet";
 import Human from "./routes/humanMemorial";
+import wordhub from './routes/wordhub'
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -78,6 +79,7 @@ app.use("/donation", donation);
 app.use("/product", product);
 app.use("/pet", pet);
 app.use("/human", Human);
+app.use("/words", wordhub);
 // Socket.io Connect
 const io = getIO();
 

@@ -1,9 +1,8 @@
 import express from "express";
 import {
-  createPetMemorial,
-  fetchpetImage,
-  fetchpetMemorial,
-} from "../controller/pet";
+  createHumanMemorial,
+  fetchHumanMemorial,
+} from "../controller/humanMemorial";
 import multer from "multer";
 import { removeSpaces } from "../util/removeSpace";
 
@@ -11,7 +10,7 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/image/pet/");
+    cb(null, "uploads/image/human/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
@@ -20,8 +19,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post("/create", upload.array("coverImage"), createPetMemorial);
-router.get("/fetchPet", fetchpetMemorial);
-router.get("/fetchPetImage", fetchpetImage);
+router.post(
+  "/createHumanMemrial",
+  upload.array("coverImage"),
+  createHumanMemorial
+);
+router.get("/fetchHumanMemorial", fetchHumanMemorial);
 
 export default router;
