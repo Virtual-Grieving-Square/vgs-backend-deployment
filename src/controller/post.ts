@@ -4,6 +4,7 @@ import { UserModel } from "../model/user";
 import ReactionModel from "../model/reaction";
 import CommentModel from "../model/comment";
 import { Multer } from "multer";
+const { Translate } = require("@google-cloud/translate").v2;
 
 import {
   checkComment,
@@ -16,6 +17,7 @@ import LikeModel from "../model/like";
 import { getIO } from "../util/socket.io";
 import path from "path";
 
+const translate = new Translate();
 const filter = new Filter();
 
 export const createPost = async (req: Request, res: Response) => {
@@ -208,7 +210,7 @@ export const createComment = async (req: Request, res: Response) => {
       var strike = user.blacklistCount;
 
       // console.log(isCommentInappropriate)
-      if (filter.isProfane(content) || response2 ) {
+      if (filter.isProfane(content) || response2) {
         try {
           if (strike < 2) {
             user.blacklistCount += 1;
@@ -252,6 +254,37 @@ export const createComment = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating comment:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const translateComment = async (req: Request, res: Response) => {
+  try {
+    const text = req.body.text;
+    const target = "en";
+
+    if (!text || !target) {
+      return res
+        .status(400)
+        .json({ error: "Text and target language are required." });
+    }
+
+    // Translates the text into the target language
+    let [translations] = await translate.translate(text, target);
+    translations = Array.isArray(translations) ? translations : [translations];
+
+    const translatedTexts = translations.map(
+      (translation: string, i: number) => ({
+        original: text[i],
+        translated: translation,
+      })
+    );
+
+    return res.json({ translations: translatedTexts });
+  } catch (error) {
+    console.error("Error during translation:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred during translation." });
   }
 };
 
