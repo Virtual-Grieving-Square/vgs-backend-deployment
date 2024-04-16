@@ -4,6 +4,7 @@ import http from "http";
 import dotenv from "dotenv";
 import { connectDB } from "./database/db";
 import firebase from "firebase-admin";
+import { Server as SocketIOServer } from "socket.io";
 
 // Scoket.io
 import { getIO, initialize } from "./util/socket.io";
@@ -26,7 +27,8 @@ import donation from "./routes/donation";
 import product from "./routes/product";
 import pet from "./routes/pet";
 import Human from "./routes/humanMemorial";
-import wordhub from './routes/wordhub'
+import wordhub from "./routes/wordhub";
+import liveStreaming from "./routes/liveStreaming";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -36,6 +38,7 @@ var serviceAccount = require("../serviceAccountKey.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
+// const ios = new SocketIOServer(server);
 
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
@@ -53,7 +56,9 @@ app.use(
   })
 );
 
-app.use(apiAuthMiddleware);
+// app.use(apiAuthMiddleware);
+app.set("view engine", "ejs");
+app.use(express.static("public"));
 
 // Socket.io
 initialize(server, {
@@ -80,19 +85,27 @@ app.use("/product", product);
 app.use("/pet", pet);
 app.use("/human", Human);
 app.use("/words", wordhub);
+app.use("/live-streaming", liveStreaming);
 // Socket.io Connect
 const io = getIO();
 
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
 
+  socket.on("Join-room", (roomId: any, userId: any) => {
+    console.log(roomId);
+    socket.join(roomId);
+    // socket.to(roomId).broadcast.emit("user-connected", userId);
+    io.to(roomId).emit("user-connected", userId);
+  });
+
   io.on("client_like_update", (data: any) => {
     console.log("client_like_update", data);
   });
 
-  socket.on("disconnect", () => {
-    console.log("A User Disconnected");
-  });
+  // socket.on("disconnect", () => {
+  //   console.log("A User Disconnected");
+  // });
 });
 
 server.listen(PORT, () => {
