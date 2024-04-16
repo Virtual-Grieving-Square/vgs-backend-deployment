@@ -4,6 +4,7 @@ import { UserModel } from "../model/user";
 import ReactionModel from "../model/reaction";
 import CommentModel from "../model/comment";
 import { Multer } from "multer";
+import config from "../config";
 const { Translate } = require("@google-cloud/translate").v2;
 
 import {
@@ -16,8 +17,8 @@ import Filter from "bad-words";
 import LikeModel from "../model/like";
 import { getIO } from "../util/socket.io";
 import path from "path";
+import axios from "axios";
 
-const translate = new Translate();
 const filter = new Filter();
 
 export const createPost = async (req: Request, res: Response) => {
@@ -258,34 +259,24 @@ export const createComment = async (req: Request, res: Response) => {
 };
 
 export const translateComment = async (req: Request, res: Response) => {
-  try {
-    const text = req.body.text;
-    const target = "en";
+  const text = req.body.text;
+  const targetLanguage: string = "fr"; // French
 
-    if (!text || !target) {
-      return res
-        .status(400)
-        .json({ error: "Text and target language are required." });
-    }
+  const apiKey = config.Google_translate;
 
-    // Translates the text into the target language
-    let [translations] = await translate.translate(text, target);
-    translations = Array.isArray(translations) ? translations : [translations];
+  const apiUrl: string = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=${encodeURIComponent(
+    text
+  )}&target=${targetLanguage}`;
 
-    const translatedTexts = translations.map(
-      (translation: string, i: number) => ({
-        original: text[i],
-        translated: translation,
-      })
-    );
-
-    return res.json({ translations: translatedTexts });
-  } catch (error) {
-    console.error("Error during translation:", error);
-    return res
-      .status(500)
-      .json({ error: "An error occurred during translation." });
-  }
+  // Make the HTTP request
+  axios
+    .post(apiUrl)
+    .then((response) => {
+      console.log(response.data.data.translations[0].translatedText);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 };
 
 export const makeReaction = async (req: Request, res: Response) => {
