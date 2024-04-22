@@ -4,15 +4,20 @@ import { UserModel } from "../model/user";
 import ReactionModel from "../model/reaction";
 import CommentModel from "../model/comment";
 import { Multer } from "multer";
+import config from "../config";
+const { Translate } = require("@google-cloud/translate").v2;
 
 import {
   checkComment,
   checkCommentUsingSapling,
+  checkCommentUsingBadwords,
 } from "../util/commentFilter";
 
 import Filter from "bad-words";
 import LikeModel from "../model/like";
 import { getIO } from "../util/socket.io";
+import path from "path";
+import axios from "axios";
 
 const filter = new Filter();
 
@@ -51,7 +56,7 @@ export const countLike = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const likes = await LikeModel.find({
-      postId: id
+      postId: id,
     });
 
     res.status(200).json({ likes: likes.length });
@@ -59,7 +64,7 @@ export const countLike = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const checkLike = async (req: Request, res: Response) => {
   try {
@@ -67,7 +72,7 @@ export const checkLike = async (req: Request, res: Response) => {
 
     const likes = await LikeModel.find({
       postId: id,
-      likerId: userId
+      likerId: userId,
     });
 
     if (likes.length > 0) {
@@ -75,12 +80,11 @@ export const checkLike = async (req: Request, res: Response) => {
     } else {
       return res.status(200).json({ liked: false });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const likePost = async (req: Request, res: Response) => {
   try {
@@ -89,14 +93,13 @@ export const likePost = async (req: Request, res: Response) => {
 
     const likes = await LikeModel.find({
       postId: postId,
-      likerId: likerId
+      likerId: likerId,
     });
-
 
     if (likes.length > 0) {
       await LikeModel.deleteMany({
         postId: postId,
-        likerId: likerId
+        likerId: likerId,
       });
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
@@ -106,7 +109,7 @@ export const likePost = async (req: Request, res: Response) => {
     } else {
       const like = new LikeModel({
         postId: postId,
-        likerId: likerId
+        likerId: likerId,
       });
 
       await like.save();
@@ -117,16 +120,17 @@ export const likePost = async (req: Request, res: Response) => {
 
       return res.status(200).json({ message: "Post liked successfully" });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const getPostsWithImages = async (req: Request, res: Response) => {
   try {
-    const posts: IPost[] = await PostModel.find().sort({ createdAt: -1 }).exec();
+    const posts: IPost[] = await PostModel.find()
+      .sort({ createdAt: -1 })
+      .exec();
 
     const postsWithImages = posts.map((post) => {
       return {
@@ -178,7 +182,7 @@ export const getAllComments = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const createComment = async (req: Request, res: Response) => {
   try {
@@ -194,53 +198,85 @@ export const createComment = async (req: Request, res: Response) => {
 
     // Check if the comment contains bad words from library
     const response: any = filter.isProfane(content);
-    console.log(response)
+    const response2: any = await checkCommentUsingBadwords(content);
+    console.log(response);
 
-    if (filter.isProfane(content)) {
-      return res.status(401).json({ error: "Inappropriate comment detected" });
-    }
+    // if (filter.isProfane(content)) {
+    //   return res.status(400).json({ error: "Inappropriate comment detected" });
+    // }
 
-    const isCommentInappropriate = await checkCommentUsingSapling(content);
+    // const isCommentInappropriate = await checkCommentUsingSapling(content);
+    let user = await UserModel.findById(authorId);
+    if (user) {
+      var strike = user.blacklistCount;
 
-    console.log(isCommentInappropriate)
-    if (isCommentInappropriate) {
-      try {
-        const user = await UserModel.findById(authorId);
-
-        if (user) {
-          if (user.blacklistCount < 2) {
+      // console.log(isCommentInappropriate)
+      if (filter.isProfane(content) || response2) {
+        try {
+          if (strike < 2) {
             user.blacklistCount += 1;
             await user.save();
             return res
               .status(405)
               .json({ error: "Inappropriate comment detected" });
-          } else if (user.blacklistCount === 2) {
+          } else if (strike === 2) {
             user.blacklistCount += 1;
 
             user.flag = "suspended";
             await user.save();
-            return res
-              .status(406)
-              .json({
-                error: "Inappropriate comment detected and account suspended",
-              });
+            return res.status(400).json({
+              error: "Inappropriate comment detected and account suspended",
+            });
+          } else if (strike > 2) {
+            return res.status(400).json({
+              error: "Account Suspended",
+            });
           }
+        } catch (error) {
+          console.error("Error updating user blacklist count:", error);
         }
-      } catch (error) {
-        console.error("Error updating user blacklist count:", error);
+      }
+
+      if (strike > 2) {
+        return res.status(400).json({
+          error: "Account Suspended",
+        });
+      } else {
+        await comment.save();
+        await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
+
+        io.emit("server_update_comment");
+
+        res
+          .status(200)
+          .json({ message: "Comment created successfully", comment });
       }
     }
-
-    await comment.save();
-    await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
-
-    io.emit("server_update_comment");
-
-    res.status(200).json({ message: "Comment created successfully", comment });
   } catch (error) {
     console.error("Error creating comment:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+export const translateComment = async (req: Request, res: Response) => {
+  const text = req.body.text;
+  const targetLanguage: string = "fr"; // French
+
+  const apiKey = config.Google_translate;
+
+  const apiUrl: string = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=${encodeURIComponent(
+    text
+  )}&target=${targetLanguage}`;
+
+  // Make the HTTP request
+  axios
+    .post(apiUrl)
+    .then((response) => {
+      console.log(response.data.data.translations[0].translatedText);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 };
 
 export const makeReaction = async (req: Request, res: Response) => {
@@ -267,15 +303,29 @@ export const makeReaction = async (req: Request, res: Response) => {
 
 export const getPostImage = async (req: Request, res: Response) => {
   try {
-    const name = req.query.name;
-    const location = process.env.FILE_PATH + "/";
+    const name = req.query.name as string | undefined;
+    if (!name) {
+      return res.status(400).send("Image name is not provided");
+    }
+    const location = path.join(__dirname, "../../", name);
 
-    res.sendFile(location + name);
+    res.sendFile(location);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
+
+export const profanityChecker = async (req: Request, res: Response) => {
+  try {
+    const { comment } = req.body;
+    const response = await checkCommentUsingBadwords(comment);
+    res.status(200).send(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 export const getUserPost = async (req: Request, res: Response) => {
   try {
@@ -290,4 +340,4 @@ export const getUserPost = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};

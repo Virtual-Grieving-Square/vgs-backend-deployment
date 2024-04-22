@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { UserModel } from "../model/user";
-
+import path from "path";
 
 export const getDetails = async (req: Request, res: Response) => {
   try {
@@ -16,7 +16,7 @@ export const getDetails = async (req: Request, res: Response) => {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const updateDetails = async (req: Request, res: Response) => {
   try {
@@ -37,7 +37,7 @@ export const updateDetails = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const uploadProfileImage = async (req: Request, res: Response) => {
   try {
@@ -50,7 +50,7 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
     );
 
     const user = await UserModel.findByIdAndUpdate(id, {
-      profileImage: photos[0].url
+      profileImage: photos[0].url,
     });
 
     if (!user) {
@@ -58,23 +58,24 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
     }
 
     res.status(200).json({ message: "Profile image uploaded successfully" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const getProfileImage = async (req: Request, res: Response) => {
+  const image = req.query.name as string | undefined;
+
+  if (!image) {
+    return res.status(400).send("Image name is not provided");
+  }
   try {
-    const { name } = req.query;
-    const location = process.env.FILE_PATH + "/";
+    const location = path.join(__dirname, "../../", image);
 
-    console.log(location + name);
-
-    res.sendFile(location + name);
+    res.sendFile(location);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};

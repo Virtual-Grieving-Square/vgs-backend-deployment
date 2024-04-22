@@ -14,6 +14,8 @@ import {
   getUserPost,
   likePost,
   makeReaction,
+  profanityChecker,
+  translateComment
 } from '../controller/post';
 import { removeSpaces } from '../util/removeSpace';
 
@@ -47,9 +49,10 @@ router.get('/checkLike/:id/:userId', checkLike);
 // Comment
 router.get("/comment/:id", getAllComments);
 router.post("/comment/add", createComment);
+router.post("/comment/translate", translateComment);
 
 router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
 router.post("/Reactions", makeReaction);
-
+router.post("/profanity", profanityChecker)
 export default router;

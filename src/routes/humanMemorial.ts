@@ -2,6 +2,7 @@ import express from "express";
 import {
   createHumanMemorial,
   fetchHumanMemorial,
+  getImages,
 } from "../controller/humanMemorial";
 import multer from "multer";
 import { removeSpaces } from "../util/removeSpace";
@@ -25,5 +26,6 @@ router.post(
   createHumanMemorial
 );
 router.get("/fetchHumanMemorial", fetchHumanMemorial);
+router.get("/getImageHuman", getImages);
 
 export default router;
