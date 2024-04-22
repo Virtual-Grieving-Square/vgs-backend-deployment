@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import ejs from 'ejs';
 
+
 // Functions
 import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import { TempUserModel } from "../model/tempUser";
@@ -113,6 +114,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
 
                 await tempUser.save();
             }
+        
 
             const ejsTemplatePath = path.join(env.FILE_PATH!, '/src/pages/auth/signup.ejs');
             const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");

@@ -4,6 +4,8 @@ import { UserModel } from "../model/user";
 import ReactionModel from "../model/reaction";
 import CommentModel from "../model/comment";
 import { Multer } from "multer";
+import config from "../config";
+const { Translate } = require("@google-cloud/translate").v2;
 
 import {
   checkComment,
@@ -15,6 +17,7 @@ import Filter from "bad-words";
 import LikeModel from "../model/like";
 import { getIO } from "../util/socket.io";
 import path from "path";
+import axios from "axios";
 
 const filter = new Filter();
 
@@ -208,7 +211,7 @@ export const createComment = async (req: Request, res: Response) => {
       var strike = user.blacklistCount;
 
       // console.log(isCommentInappropriate)
-      if (filter.isProfane(content) || response2 ) {
+      if (filter.isProfane(content) || response2) {
         try {
           if (strike < 2) {
             user.blacklistCount += 1;
@@ -253,6 +256,33 @@ export const createComment = async (req: Request, res: Response) => {
     console.error("Error creating comment:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+export const translateComment = async (req: Request, res: Response) => {
+  const text = req.body.text;
+  const targetLanguage: string = "en";
+
+  const apiKey = config.Google_translate;
+
+  const apiUrl: string = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=${encodeURIComponent(
+    text
+  )}&target=${targetLanguage}`;
+
+  axios
+    .post(apiUrl)
+    .then((response) => {
+      
+      res.status(200).json({
+        translate: response.data.data.translations[0].translatedText,
+        lan: "eng",
+      });
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      res.status(403).json({
+        error,
+      });
+    });
 };
 
 export const makeReaction = async (req: Request, res: Response) => {

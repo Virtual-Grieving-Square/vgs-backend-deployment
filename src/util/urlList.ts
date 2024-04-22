@@ -5,5 +5,5 @@ export const urlList = [
   "https://uione.virtualgrievingsquare.com",
   "http://192.168.0.108:3131",
   "https://5729-196-188-123-14.ngrok-free.app",
-  "http://192.168.0.104:4500"
+  "https://deoow05yxfsr.cloudfront.net/",
 ];

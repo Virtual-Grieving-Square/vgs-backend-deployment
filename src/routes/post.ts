@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from "multer";
 
-// Controller
+
 import {
   checkLike,
   countLike,
@@ -15,6 +15,7 @@ import {
   likePost,
   makeReaction,
   profanityChecker,
+  translateComment
 } from '../controller/post';
 import { removeSpaces } from '../util/removeSpace';
 
@@ -48,6 +49,7 @@ router.get('/checkLike/:id/:userId', checkLike);
 // Comment
 router.get("/comment/:id", getAllComments);
 router.post("/comment/add", createComment);
+router.post("/translate", translateComment);
 
 router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
