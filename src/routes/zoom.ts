@@ -119,31 +119,31 @@ router.get(
  * Delete meeting recordings
  * https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/recordingDelete
  */
-router.delete(
-  "/:meetingId/recordings",
-  async (req: CustomRequest, res: Response) => {
-    const { headerConfig, params, query } = req;
-    const { meetingId } = params;
-    const { action } = query;
+// router.delete(
+//   "/:meetingId/recordings",
+//   async (req: CustomRequest, res: Response) => {
+//     const { headerConfig, params, query } = req;
+//     const { meetingId } = params;
+//     const { action } = query;
 
-    try {
-      if (action!) {
-        return res.status(400).json({meg: "missing action"})
-      }
-      const params = new URLSearchParams({ action });
-      const request = await axios.delete(
-        `${ZOOM_API_BASE_URL}/meetings/${meetingId}/recordings?${params}`,
-        headerConfig
-      );
-      return res.json(request.data);
-    } catch (err) {
-      return errorHandler(
-        err,
-        res,
-        `Error deleting recordings for meeting: ${meetingId}`
-      );
-    }
-  }
-);
+//     try {
+//       if (action!) {
+//         return res.status(400).json({meg: "missing action"})
+//       }
+//       const params = new URLSearchParams({ action });
+//       const request = await axios.delete(
+//         `${ZOOM_API_BASE_URL}/meetings/${meetingId}/recordings?${params}`,
+//         headerConfig
+//       );
+//       return res.json(request.data);
+//     } catch (err) {
+//       return errorHandler(
+//         err,
+//         res,
+//         `Error deleting recordings for meeting: ${meetingId}`
+//       );
+//     }
+//   }
+// );
 
 export default router;
