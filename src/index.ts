@@ -6,7 +6,7 @@ import { connectDB } from "./database/db";
 import firebase from "firebase-admin";
 
 // Scoket.io
-import { getIO, initialize } from "./util/socket.io";
+import { Server } from 'socket.io';
 
 dotenv.config();
 
@@ -31,13 +31,19 @@ import zoom from './routes/zoom';
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
-import { tokenCheck  } from "./middleware/tokenCheckMiddleware";
+import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 
 var serviceAccount = require("../serviceAccountKey.json");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: urlList,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
 
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
@@ -58,10 +64,10 @@ app.use(
 app.use(apiAuthMiddleware);
 
 // Socket.io
-initialize(server, {
-  origin: urlList,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-});
+// initialize(server, {
+//   origin: urlList,
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+// });
 
 connectDB();
 
@@ -80,17 +86,20 @@ app.use("/contact", contact);
 app.use("/donation", donation);
 app.use("/product", product);
 app.use("/pet", pet);
-app.use("/human", Human);
+app.use("/memorial", Human);
 app.use("/words", wordhub);
 app.use('/meetings', tokenCheck, zoom);
-// Socket.io Connect
-const io = getIO();
 
+// Socket.io Connect
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
 
-  io.on("client_like_update", (data: any) => {
+  socket.on("client_like_update", (data: any) => {
     console.log("client_like_update", data);
+  });
+
+  socket.on("client_new_post", (data: any) => {
+    socket.emit("server_new_post");
   });
 
   socket.on("disconnect", () => {
@@ -100,6 +109,6 @@ io.on("connection", (socket: any) => {
 
 server.listen(PORT, () => {
   console.log(
-    `R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`
+    `R.I.P. Server is running on port http://localhost:${PORT} - ${new Date().toLocaleString()}`
   );
 });

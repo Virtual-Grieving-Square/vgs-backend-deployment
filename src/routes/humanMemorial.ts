@@ -11,7 +11,7 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/image/human/");
+    cb(null, "uploads/image/Memorial/HumanMemorial");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
@@ -22,7 +22,7 @@ const upload = multer({ storage: storage });
 
 router.post(
   "/createHumanMemrial",
-  upload.array("coverImage"),
+  upload.array("photos"),
   createHumanMemorial
 );
 router.get("/fetchHumanMemorial", fetchHumanMemorial);

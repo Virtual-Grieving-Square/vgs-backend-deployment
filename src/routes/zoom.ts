@@ -99,12 +99,12 @@ router.get(
     const { next_page_token } = query;
 
     try {
-      const params = new URLSearchParams({ next_page_token });
-      const request = await axios.get(
-        `${ZOOM_API_BASE_URL}/report/meetings/${meetingId}/participants?${params}`,
-        headerConfig
-      );
-      return res.json(request.data);
+      // const params = new URLSearchParams({ next_page_token });
+      // const request = await axios.get(
+      //   `${ZOOM_API_BASE_URL}/report/meetings/${meetingId}/participants?${params}`,
+      //   headerConfig
+      // );
+      // return res.json(request.data);
     } catch (err) {
       return errorHandler(
         err,

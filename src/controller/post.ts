@@ -44,7 +44,7 @@ export const createPost = async (req: Request, res: Response) => {
 
     await post.save();
 
-    res.status(201).json({ message: "Post created successfully", post });
+    res.status(200).json({ message: "Post created successfully", post });
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -311,7 +311,7 @@ export const getPostImage = async (req: Request, res: Response) => {
 
     res.sendFile(location);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

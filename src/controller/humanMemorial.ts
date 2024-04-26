@@ -14,7 +14,7 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
       })
     );
     if (!name || !age || !Description || !DOB || !DOD || !author) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(402).json({ message: "All fields are required" });
     }
     const url = coverImage[0].url;
     const humanMemorial = new HumanMemorial({
@@ -30,7 +30,7 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
     await humanMemorial.save();
 
     res
-      .status(201)
+      .status(200)
       .json({ message: "Human Memory created successfully", humanMemorial });
   } catch (error) {
     console.error("Error creating pet memorials:", error);
