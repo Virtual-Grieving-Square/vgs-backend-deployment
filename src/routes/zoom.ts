@@ -2,6 +2,10 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import { ZOOM_API_BASE_URL } from "../constants";
 import errorHandler from "../util/errorHandler";
+import {
+  getLivestreamingDataWithinLastHour,
+  saveStreaming,
+} from "../controller/zoomLivestreaming";
 
 const router = express.Router();
 
@@ -35,13 +39,14 @@ router.get("/:meetingId", async (req: CustomRequest, res: Response) => {
 router.post("/:userId", async (req: CustomRequest, res: Response) => {
   const { headerConfig, params, body } = req;
   const { userId } = params;
-
+  console.log(body);
   try {
     const request = await axios.post(
       `${ZOOM_API_BASE_URL}/users/${userId}/meetings`,
       body,
       headerConfig
     );
+    const dbresponse = saveStreaming(request.data, body);
     return res.json(request.data);
   } catch (err) {
     return errorHandler(err, res, `Error creating meeting for user: ${userId}`);
@@ -84,6 +89,43 @@ router.delete("/:meetingId", async (req: CustomRequest, res: Response) => {
     return res.json(request.data);
   } catch (err) {
     return errorHandler(err, res, `Error deleting meeting: ${meetingId}`);
+  }
+});
+
+/**
+ * Get a meeting
+ * https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meeting
+ */
+router.get(
+  "/getallMeeting/:userId",
+  async (req: CustomRequest, res: Response) => {
+    const { headerConfig, params, query } = req;
+    const { userId } = params;
+
+    try {
+      const request = await axios.get(
+        `${ZOOM_API_BASE_URL}/users/${userId}/meetings`,
+        headerConfig
+      );
+      return res.json(request.data);
+    } catch (err) {
+      return errorHandler(
+        err,
+        res,
+        `Error fetching meetings for user: ${userId}`
+      );
+    }
+  }
+);
+
+router.get("/db/getusersMeeting", async (req: CustomRequest, res: Response) => {
+  try {
+    const livestreamingDataBeforeTime =
+      await getLivestreamingDataWithinLastHour();
+    return res.json(livestreamingDataBeforeTime);
+  } catch (err) {
+    console.log(err);
+    return errorHandler(err, res, `Error fetching meetings live meeting`);
   }
 });
 

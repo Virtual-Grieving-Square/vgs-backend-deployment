@@ -5,6 +5,7 @@ import multer from "multer";
 import {
   getDetails,
   getProfileImage,
+  getProfileImagebyID,
   updateDetails,
   uploadProfileImage
 } from "../controller/user";
@@ -28,5 +29,6 @@ router.get("/getDetails/:id", getDetails);
 router.put('/update/:id', updateDetails);
 router.post("/uploadProfileImage/:id", upload.array("image"), uploadProfileImage);
 router.get('/getImage', getProfileImage);
+router.get('/getImageById', getProfileImagebyID);
 
 export default router;

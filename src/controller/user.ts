@@ -79,3 +79,29 @@ export const getProfileImage = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getProfileImagebyID = async (req: Request, res: Response) => {
+  const ID = req.query.ID as string ;
+
+  if (!ID) {
+    return res.status(400).send("Image name is not provided");
+  }
+  try {
+    const userData = await UserModel.findById(ID);
+   
+    if (!userData) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!userData.profileImage) {
+      return res.status(404).json({ message: "Profile image not found for the user" });
+    }
+    const image = userData.profileImage;
+    const location = path.join(__dirname, "../../", image);
+
+    res.sendFile(location);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
