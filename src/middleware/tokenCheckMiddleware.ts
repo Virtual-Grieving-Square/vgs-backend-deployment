@@ -5,14 +5,11 @@ interface CustomRequest extends Request {
   headerConfig?: { headers: { Authorization: string } };
 }
 
-/**
-  * Middleware that checks if a valid (not expired) token exists
-  * If invalid or expired, generate a new token and set it, then append to the HTTP request headers
-  */
+
 const tokenCheck = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
   let token: string | null = null;
 
-  // Check if a new token needs to be generated
+
   const { access_token, expires_in, error } = await getToken();
 
   if (error) {
