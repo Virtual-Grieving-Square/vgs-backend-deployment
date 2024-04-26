@@ -116,7 +116,9 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
             }
         
 
-            const ejsTemplatePath = path.join(env.FILE_PATH!, '/src/pages/auth/signup.ejs');
+            console.log("Here");
+
+            const ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/signup.ejs');
             const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
             const renderHtml = ejs.render(ejsTemplate, { name: `${firstName} ${lastName}`, code: verificationCode });
 
@@ -390,7 +392,7 @@ export const sendOTP: RequestHandler = async (req: Request, res: Response, next:
             await recoverPassword.save();
         }
 
-        const ejsTemplatePath = path.join(env.FILE_PATH!, 'src/pages/auth/recoverPassword.ejs');
+        const ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/recoverPassword.ejs');
         const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
         const renderHtml = ejs.render(ejsTemplate, { name: `${user.firstName} ${user.lastName}`, code: verificationCode });
 
