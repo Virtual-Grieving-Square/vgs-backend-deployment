@@ -2,6 +2,7 @@ import express from "express";
 import {
   createHumanMemorial,
   fetchHumanMemorial,
+  fetchMemorialsById,
   getImages,
 } from "../controller/humanMemorial";
 import multer from "multer";
@@ -22,10 +23,11 @@ const upload = multer({ storage: storage });
 
 router.post(
   "/createHumanMemrial",
-  upload.array("photos"),
+  upload.array("image"),
   createHumanMemorial
 );
-router.get("/fetchHumanMemorial", fetchHumanMemorial);
-router.get("/getImageHuman", getImages);
+router.get("/getAll", fetchHumanMemorial);
+router.get("/fetchMemorial/:id", fetchMemorialsById);
+router.get("/getImage/:name", getImages);
 
 export default router;

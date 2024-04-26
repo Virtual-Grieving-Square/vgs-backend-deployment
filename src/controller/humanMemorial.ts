@@ -6,25 +6,25 @@ import path, { dirname } from "path";
 
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, Description, DOB, DOD, author } = req.body;
-
+    const { name, age, description, dob, dod, author } = req.body;
+    console.log(req.body.description);
     const coverImage = (req.files as Express.Multer.File[]).map(
       (file: Express.Multer.File) => ({
         url: file.path,
       })
     );
-    if (!name || !age || !Description || !DOB || !DOD || !author) {
+    if (!name || !age || !description || !dob || !dod || !author) {
       return res.status(402).json({ message: "All fields are required" });
     }
     const url = coverImage[0].url;
     const humanMemorial = new HumanMemorial({
-      name,
-      age,
-      Description,
-      DOB,
-      DOD,
-      author,
-      coverImage: url,
+      name: name,
+      age: age,
+      description: description,
+      dob: dob,
+      dod: dod,
+      author: author,
+      image: url,
     });
 
     await humanMemorial.save();
@@ -41,14 +41,34 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
 export const fetchHumanMemorial = async (req: Request, res: Response) => {
   try {
     const allhumanMemorials = await HumanMemorial.find();
-    res.status(201).json(allhumanMemorials);
+    res.status(200).json(allhumanMemorials);
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
   }
 };
 
+export const fetchMemorialsById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const humanMemorial = await HumanMemorial.find({
+      author: id,
+    });
+
+    if (!humanMemorial) {
+      return res.status(404).json({ message: "Memorial not found" });
+    }
+
+    res.status(200).json(humanMemorial);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export const getImages = async (req: Request, res: Response) => {
-  const image = req.query.name as string | undefined;
+  const image = req.params.name;
+  console.log(image);
 
   if (!image) {
     return res.status(400).send("Image name is not provided");
