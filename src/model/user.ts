@@ -21,6 +21,9 @@ const userSchema: Schema = new Schema({
   refreshToken: { type: String, required: false },
   donetions: [{ type: Schema.Types.ObjectId, ref: "donation" }],
 
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface User extends Document {

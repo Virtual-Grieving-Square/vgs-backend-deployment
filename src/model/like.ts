@@ -10,7 +10,10 @@ export interface ILike extends Document {
 const LikeSchema: Schema = new Schema({
   likerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
-  createdAt: { type: Date, default: Date.now }
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 

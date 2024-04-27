@@ -6,7 +6,7 @@ import path, { dirname } from "path";
 
 export const getAllHumanMemorial = async (req: Request, res: Response) => {
   try {
-    const allhumanMemorials = await HumanMemorial.find();
+    const allhumanMemorials = await HumanMemorial.find().sort({ createdAt: -1 });
     res.status(200).json(allhumanMemorials);
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
@@ -61,7 +61,7 @@ export const getMemorialByUserId = async (req: Request, res: Response) => {
     const id = req.params.id;
     const humanMemorial = await HumanMemorial.find({
       author: id,
-    });
+    }).sort({ createdAt: -1 });
 
     if (!humanMemorial) {
       return res.status(404).json({ message: "Memorial not found" });

@@ -6,7 +6,10 @@ const memorialSchema: Schema = new Schema({
   coverImage: { type: String, required: false },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   comments: { type: Schema.Types.ObjectId, ref: "MemorialComment" },
+
+  //Timestamp
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface Memorial extends Document {

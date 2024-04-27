@@ -4,7 +4,10 @@ const newsFeedSchema: Schema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   image: { type: String, required: false },
+
+  //Timestamp
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface NewsFeed extends Document {

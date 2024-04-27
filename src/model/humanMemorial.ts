@@ -8,6 +8,10 @@ const humanMemorialSchema: Schema = new Schema({
   dod: { type: Date, required: true },
   author: { type: Schema.Types.ObjectId, ref: "User", required: true },
   image: { type: String, required: false },
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface humanMemorial extends Document {

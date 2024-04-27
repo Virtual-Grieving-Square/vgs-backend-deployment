@@ -9,7 +9,10 @@ export interface profane extends Document {
 const profaneSchema: Schema = new Schema({
   word: { type: String, required: true },
   level: { type: String, required: true },
+
+  //Timestamp
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export const profaneModel = mongoose.model<profane>("Profane", profaneSchema);

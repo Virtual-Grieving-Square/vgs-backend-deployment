@@ -9,6 +9,10 @@ const petMemorialSchema: Schema = new Schema({
   DOD: { type: Date, required: true },
   owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
   coverImage: { type: String, required: false },
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface PetMemorial extends Document {

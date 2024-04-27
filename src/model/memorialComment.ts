@@ -4,7 +4,10 @@ const memorialCommentSchema: Schema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   memorialId: { type: Schema.Types.ObjectId, ref: "Memorial", required: true },
   comment: { type: String, required: true },
+
+  //Timestamp
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface MemorialComment extends Document {

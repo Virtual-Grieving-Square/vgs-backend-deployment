@@ -100,6 +100,10 @@ io.on("connection", (socket: any) => {
     socket.emit("server_new_post");
   });
 
+  socket.on("client_new_memorial", () => {
+    socket.emit("server_new_memorial");
+  })
+
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
   });
