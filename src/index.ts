@@ -62,12 +62,6 @@ app.use(
 
 app.use(apiAuthMiddleware);
 
-// Socket.io
-// initialize(server, {
-//   origin: urlList,
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-// });
-
 connectDB();
 
 // Routes
