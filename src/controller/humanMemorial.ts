@@ -77,7 +77,6 @@ export const getMemorialByUserId = async (req: Request, res: Response) => {
 
 export const getImage = async (req: Request, res: Response) => {
   const image = req.query.name;
-  console.log(image);
 
   if (!image) {
     return res.status(403).send("Image name is not provided");
