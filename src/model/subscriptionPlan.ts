@@ -4,6 +4,7 @@ const subscriptionPlanSchema: Schema = new Schema({
   name: { type: String, required: true },
   price: { type: Number, required: true },
   description: { type: String, required: true },
+  label: { type: String, required: true },
   details: [
     {
       id: Number,
@@ -19,6 +20,7 @@ const subscriptionPlanSchema: Schema = new Schema({
 export interface SubscriptionPlan extends Document {
   name: string;
   price: number;
+  label: string;
   description: string;
   details: string[];
 }

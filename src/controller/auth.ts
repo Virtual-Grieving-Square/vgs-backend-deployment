@@ -14,15 +14,15 @@ import { TempUserModel } from "../model/tempUser";
 import { generateUserAccessToken } from "../util/generateUserAccessToken";
 import { RecoverPasswordModel } from "../model/recoverPassword";
 import { sendEmail } from "../util/email";
+import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 
 // Sign up
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
-        const env = process.env;
-
-        const { firstName, lastName, username, email, phoneNumber, password, subscriptionType } = req.body.data;
+        const { firstName, lastName, username, email, phoneNumber, password } = req.body.data;
         const verification = req.body.verification;
+        const subscriptionType = req.body.subscriptionType;
         const existingUserByEmail = await UserModel.findOne({ email: email });
         const existingUserByPhone = await UserModel.findOne({ phoneNumber: phoneNumber });
         const verificationCode = verificationCodeGenerator(6);
@@ -35,6 +35,11 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
         if (existingUserByPhone) {
             console.error("User with this Phone Number already exists");
             return res.status(402).json({ message: "User with this PhoneNumber already exists" });
+        }
+
+        if (subscriptionType != "free") {
+            const newSubscriptionPlan = await SubscriptionPlanModel.find({ id: subscriptionType })
+            console.log("Subscription Plan", newSubscriptionPlan);
         }
 
         if (verification == 'phone') {
@@ -116,30 +121,6 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                 await tempUser.save();
             }
 
-            // const ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/signup.ejs');
-            // const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
-            // const renderHtml = ejs.render(ejsTemplate, { name: `${firstName} ${lastName}`, code: verificationCode });
-
-
-            // const transporter = nodemailer.createTransport({
-            //     host: "smtp.titan.email",
-            //     port: 465,
-            //     secure: true,
-            //     auth: {
-            //         user: "verification@virtualgrievingsquare.com",
-            //         pass: "8-yKf~NGAwn?*dF",
-            //     },
-            // });
-
-            // const info = await transporter.sendMail({
-            //     from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
-            //     to: email,
-            //     subject: "Virtual Grieving Square Verification",
-            //     html: renderHtml,
-            // });
-
-            // console.log("Message sent: %s", info.messageId);
-            // console.log("Code", verificationCode);
             sendEmail("signup", { firstName: firstName, lastName: lastName, email: email, verificationCode: verificationCode })
                 .then((response) => {
                     if (response == true) {
@@ -152,8 +133,6 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                         res.status(408).json({ message: "Unable to send Email at the Moment" });
                     }
                 })
-
-
         }
 
     } catch (error) {
@@ -192,7 +171,9 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     user.lastName,
                     user.username,
                     user.phoneNumber,
-                    user.email
+                    user.email,
+                    user.subscriptionType,
+                    user.firstTimePaid
                 );
 
                 res.status(200).json({
@@ -226,7 +207,10 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
                     user.lastName,
                     user.username,
                     user.phoneNumber,
-                    user.email);
+                    user.email,
+                    user.subscriptionType,
+                    user.firstTimePaid,
+                );
 
                 res.status(200).json({
                     accessToken: accessToken,
@@ -270,7 +254,10 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
             user.lastName,
             user.username,
             user.phoneNumber,
-            user.email);
+            user.email,
+            user.subscriptionType,
+            user.firstTimePaid,
+        );
 
         await UserModel.updateOne(
             { email: email },
@@ -328,7 +315,9 @@ export const signInWithGoogle: RequestHandler = async (req: Request, res: Respon
                 user.lastName,
                 user.username,
                 user.phoneNumber,
-                user.email
+                user.email,
+                user.subscriptionType,
+                user.firstTimePaid
             );
 
             return res.status(200).json({
@@ -347,7 +336,9 @@ export const signInWithGoogle: RequestHandler = async (req: Request, res: Respon
                 user!.lastName,
                 user!.username,
                 user!.phoneNumber,
-                user!.email
+                user!.email,
+                user!.subscriptionType,
+                user!.firstTimePaid
             );
 
             return res.status(200).json({
