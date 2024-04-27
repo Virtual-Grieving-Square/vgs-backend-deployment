@@ -24,8 +24,7 @@ import email from "./routes/email";
 import contact from "./routes/contact";
 import donation from "./routes/donation";
 import product from "./routes/product";
-import pet from "./routes/pet";
-import Human from "./routes/humanMemorial";
+import Memorial from "./routes/memorial";
 import wordhub from './routes/wordhub';
 import zoom from './routes/zoom';
 
@@ -85,8 +84,7 @@ app.use("/email", email);
 app.use("/contact", contact);
 app.use("/donation", donation);
 app.use("/product", product);
-app.use("/pet", pet);
-app.use("/memorial", Human);
+app.use("/memorial", Memorial);
 app.use("/words", wordhub);
 app.use('/meetings', tokenCheck, zoom);
 

@@ -3,6 +3,7 @@ import multer from "multer";
 
 // Controller
 import {
+  getAll,
   getDetails,
   getProfileImage,
   updateDetails,
@@ -24,6 +25,7 @@ const upload = multer({ storage: storage });
 const router = express.Router();
 
 // User
+router.get("/getAll", getAll);
 router.get("/getDetails/:id", getDetails);
 router.put('/update/:id', updateDetails);
 router.post("/uploadProfileImage/:id", upload.array("image"), uploadProfileImage);
