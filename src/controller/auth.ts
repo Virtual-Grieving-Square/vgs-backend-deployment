@@ -13,9 +13,11 @@ import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import { TempUserModel } from "../model/tempUser";
 import { generateUserAccessToken } from "../util/generateUserAccessToken";
 import { RecoverPasswordModel } from "../model/recoverPassword";
+import { sendEmail } from "../util/email";
 
 // Sign up
 export const signup: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+
     try {
         const env = process.env;
 
@@ -114,38 +116,44 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
                 await tempUser.save();
             }
 
-            console.log("Here");
-
-            const ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/signup.ejs');
-            const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
-            const renderHtml = ejs.render(ejsTemplate, { name: `${firstName} ${lastName}`, code: verificationCode });
+            // const ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/signup.ejs');
+            // const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+            // const renderHtml = ejs.render(ejsTemplate, { name: `${firstName} ${lastName}`, code: verificationCode });
 
 
-            const transporter = nodemailer.createTransport({
-                host: "smtp.titan.email",
-                port: 465,
-                secure: true,
-                auth: {
-                    user: "verification@virtualgrievingsquare.com",
-                    pass: "8-yKf~NGAwn?*dF",
-                },
-            });
+            // const transporter = nodemailer.createTransport({
+            //     host: "smtp.titan.email",
+            //     port: 465,
+            //     secure: true,
+            //     auth: {
+            //         user: "verification@virtualgrievingsquare.com",
+            //         pass: "8-yKf~NGAwn?*dF",
+            //     },
+            // });
 
-            const info = await transporter.sendMail({
-                from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
-                to: email,
-                subject: "Virtual Grieving Square Verification",
-                html: renderHtml,
-            });
+            // const info = await transporter.sendMail({
+            //     from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
+            //     to: email,
+            //     subject: "Virtual Grieving Square Verification",
+            //     html: renderHtml,
+            // });
 
-            console.log("Message sent: %s", info.messageId);
-            console.log("Code", verificationCode);
+            // console.log("Message sent: %s", info.messageId);
+            // console.log("Code", verificationCode);
+            sendEmail("signup", { firstName: firstName, lastName: lastName, email: email, verificationCode: verificationCode })
+                .then((response) => {
+                    if (response == true) {
+                        res.status(200).json({
+                            type: "email",
+                            email: email,
+                            message: "Verification code sent successfully"
+                        });
+                    } else {
+                        res.status(408).json({ message: "Unable to send Email at the Moment" });
+                    }
+                })
 
-            res.status(200).json({
-                type: "email",
-                email: email,
-                message: "Verification code sent successfully"
-            });
+
         }
 
     } catch (error) {
