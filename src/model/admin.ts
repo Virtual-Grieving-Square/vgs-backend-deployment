@@ -8,6 +8,10 @@ const adminSchema: Schema = new Schema({
   role: { type: String, required: true },
   token: { type: String, required: false },
   password: { type: String, required: true },
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface Admin extends Document {

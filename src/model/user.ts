@@ -19,8 +19,12 @@ const userSchema: Schema = new Schema({
   password: { type: String, required: false },
   accessToekn: { type: String, required: false },
   refreshToken: { type: String, required: false },
-  donetions: [{ type: Schema.Types.ObjectId, ref: "donation" }],
+  firstTimePaid: { type: Boolean, default: false },
+  donations: [{ type: Schema.Types.ObjectId, ref: "donation" }],
 
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface User extends Document {
@@ -36,6 +40,7 @@ export interface User extends Document {
   balance: number;
   groups: mongoose.Types.ObjectId[];
   blacklistCount: number;
+  firstTimePaid: boolean;
   flag: string;
   paid: boolean;
   signInMethod: string;

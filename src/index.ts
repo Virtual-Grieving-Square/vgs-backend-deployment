@@ -7,7 +7,7 @@ import firebase from "firebase-admin";
 // import { Server as SocketIOServer } from "socket.io";
 
 // Scoket.io
-import { getIO, initialize } from "./util/socket.io";
+import { Server } from 'socket.io';
 
 dotenv.config();
 
@@ -25,13 +25,13 @@ import email from "./routes/email";
 import contact from "./routes/contact";
 import donation from "./routes/donation";
 import product from "./routes/product";
-import pet from "./routes/pet";
-import Human from "./routes/humanMemorial";
-import wordhub from "./routes/wordhub";
-import zoom from "./routes/zoom";
+import Memorial from "./routes/memorial";
+import wordhub from './routes/wordhub';
+import zoom from './routes/zoom';
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
+import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 
 var serviceAccount = require("../serviceAccountKey.json");
@@ -39,7 +39,12 @@ var serviceAccount = require("../serviceAccountKey.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
-
+const io = new Server(server, {
+  cors: {
+    origin: urlList,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
 
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
@@ -83,19 +88,24 @@ app.use("/email", email);
 app.use("/contact", contact);
 app.use("/donation", donation);
 app.use("/product", product);
-app.use("/pet", pet);
-app.use("/human", Human);
+app.use("/memorial", Memorial);
 app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
 // Socket.io Connect
-const io = getIO();
-
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
 
-  io.on("client_like_update", (data: any) => {
+  socket.on("client_like_update", (data: any) => {
     console.log("client_like_update", data);
   });
+
+  socket.on("client_new_post", (data: any) => {
+    socket.emit("server_new_post");
+  });
+
+  socket.on("client_new_memorial", () => {
+    socket.emit("server_new_memorial");
+  })
 
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
@@ -104,6 +114,6 @@ io.on("connection", (socket: any) => {
 
 server.listen(PORT, () => {
   console.log(
-    `R.I.P. Server is running on port ${PORT}! - ${new Date().toLocaleString()}`
+    `R.I.P. Server is running on port http://localhost:${PORT} - ${new Date().toLocaleString()}`
   );
 });

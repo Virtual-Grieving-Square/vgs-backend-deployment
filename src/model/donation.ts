@@ -15,7 +15,10 @@ const donationSchema: Schema = new Schema({
   amount: { type: Number, required: true },
   product: [{ type: Schema.Types.ObjectId, ref: "products" }],
   description: { type: String },
-  createdAt: { type: Date, default: Date.now }
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export const DonationModel = mongoose.model<Donation>(

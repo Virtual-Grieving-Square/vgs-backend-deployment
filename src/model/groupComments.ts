@@ -17,7 +17,10 @@ const CommentSchema: Schema = new Schema({
   },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   content: { type: String, required: true },
+
+  //Timestamp
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export const GroupComment = mongoose.model<IComment>(

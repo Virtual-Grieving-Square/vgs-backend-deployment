@@ -9,6 +9,10 @@ const tempUserSchema: Schema = new Schema({
   otp: { type: String, required: false },
   subscriptionType: { type: String, required: false },
   password: { type: String, required: true },
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export interface TempUser extends Document {

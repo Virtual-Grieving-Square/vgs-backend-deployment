@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createHumanMemorial,
-  fetchHumanMemorial,
+  getAllHumanMemorial,
 } from "../controller/humanMemorial";
 import multer from "multer";
 import { removeSpaces } from "../util/removeSpace";
@@ -24,6 +24,6 @@ router.post(
   upload.array("coverImage"),
   createHumanMemorial
 );
-router.get("/fetchHumanMemorial", fetchHumanMemorial);
+router.get("/fetchHumanMemorial", getAllHumanMemorial);
 
 export default router;
