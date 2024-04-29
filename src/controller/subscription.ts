@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import { UserModel } from "../model/user";
 import PaymentListModel from "../model/paymentList";
+import DepositListModel from "../model/depositList";
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
 
@@ -144,16 +145,6 @@ export const pay = async (req: Request, res: Response) => {
         client_secret: session.client_secret
       });
     }
-    // await PaymentListModel.create({
-    //   paymentId: session.id,
-    //   userId: id,
-    //   amount: session.amount_total
-    // });
-
-
-
-
-
 
   } catch (error) {
     console.error(error);
@@ -164,6 +155,55 @@ export const pay = async (req: Request, res: Response) => {
   }
 }
 
+export const deposit = async (req: Request, res: Response) => {
+  try {
+    const { id, amount } = req.body;
+
+    const depostList = [
+      { id: 1, amount: 5 },
+      { id: 2, amount: 10 },
+      { id: 3, amount: 15 },
+      { id: 4, amount: 20 },
+    ];
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Deposit',
+            },
+            unit_amount: depostList[amount - 1].amount * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${YOUR_DOMAIN}/account?success=true`,
+      cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
+      automatic_tax: { enabled: true },
+    });
+
+    await DepositListModel.create({
+      paymentId: session.id,
+      userId: id,
+      amount: depostList[amount - 1].amount
+    }).then(() => {
+      res.status(200).json({
+        request: "success",
+        session: session
+      });
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
+  }
+}
 const endpointSecret = "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
 
 export const stripe_webhook = async (req: Request, res: Response) => {
@@ -180,26 +220,8 @@ export const stripe_webhook = async (req: Request, res: Response) => {
     } catch (err: any) {
       console.error(err);
 
-      // res.status(405).send(`Webhook Error: ${err.message}`);
       return;
     }
-
-    // // Handle the event
-    // switch (event.type)  {
-    //   case 'payment_intent.succeeded':
-    //     const paymentIntentSucceeded = event.data.object;
-    //     // Then define and call a function to handle the event payment_intent.succeeded
-    //     console.log("Payment Was Successful")
-    //     break;
-    //   // ... handle other event types
-    //   default:
-    //     console.log(`Unhandled event type ${event.type}`);
-    // }
-
-    // res.status(200).json({
-    //   msg: "Webhook Received"
-    // });
-
 
   } catch (error) {
     console.error(error);

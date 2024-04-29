@@ -13,6 +13,22 @@ export const getAllHumanMemorial = async (req: Request, res: Response) => {
   }
 };
 
+export const getHumanMemorialById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const humanMemorial = await HumanMemorial.findById(id);
+
+    if (!humanMemorial) {
+      return res.status(408).json({ message: "Memorial not found" });
+    }
+
+    res.status(200).json(humanMemorial);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
     const { name, age, description, dob, dod, author } = req.body;
@@ -90,3 +106,17 @@ export const getImage = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching pet memorial ", error });
   }
 };
+
+export const getObituaries = async (req: Request, res: Response) => {
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const obituaries = await HumanMemorial.find({ dod: { $lt: sixMonthsAgo } });
+
+    res.status(200).json(obituaries);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

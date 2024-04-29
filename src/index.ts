@@ -38,6 +38,7 @@ import { urlList } from "./util/urlList";
 import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 import PaymentListModel from "./model/paymentList";
 import { UserModel } from "./model/user";
+import DepositListModel from "./model/depositList";
 
 var serviceAccount = require("../serviceAccountKey.json");
 
@@ -90,25 +91,61 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req: expr
       console.log("Payment Status: ", paymentStatus)
       if (paymentStatus === "paid") {
 
-        const paidd = await PaymentListModel.updateOne({
-          paymentId: checkOutId
-        }, {
-          paid: true
-        });
-
-        const user = await PaymentListModel.findOne({
+        const checkPaymentType1 = await PaymentListModel.findOne({
           paymentId: checkOutId
         });
 
-        await UserModel.updateOne({
-          _id: user!.userId
-        }, {
-          paid: true
+        if (checkPaymentType1) {
+          const paidd = await PaymentListModel.updateOne({
+            paymentId: checkOutId
+          }, {
+            paid: true
+          });
+
+          const user = await PaymentListModel.findOne({
+            paymentId: checkOutId
+          });
+
+          await UserModel.updateOne({
+            _id: user!.userId
+          }, {
+            paid: true,
+            firstTimePaid: true,
+          });
+
+          console.log("Paid: ", paidd);
+        }
+
+        const checkPaymentType2 = await DepositListModel.findOne({
+          paymentId: checkOutId
         });
 
-        console.log("Paid: ", paidd);
+        if (checkPaymentType2) {
+          console.log("Balance Update");
+
+          const doubleCheck = await DepositListModel.findOne({
+            paymentId: checkOutId
+          });
+
+          if (doubleCheck?.paid) {
+            console.log("Already Paid");
+          } else {
+            const paidd = await DepositListModel.updateOne({
+              paymentId: checkOutId
+            }, {
+              paid: true
+            });
+
+            await UserModel.updateOne({
+              _id: checkPaymentType2.userId
+            }, {
+              $inc: {
+                balance: checkPaymentType2.amount
+              }
+            });
+          }
+        }
       }
-
       fs.writeFileSync('event.json', JSON.stringify(event.data.object, null, 2));
       break;
   }

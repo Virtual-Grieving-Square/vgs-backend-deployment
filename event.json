@@ -1,10 +1,10 @@
 {
-  "id": "cs_test_a1KhFlO1O5y9fMws7wyq13Jzy3eTaoKdDYQmITsaQyaqIU6o3OxO2M2nsC",
+  "id": "cs_test_a1PRgPO1YkcJkxRnqARknsRdBTB2A8ZKsFcN4Tpmc66CVyXB8boH5dEbVW",
   "object": "checkout.session",
   "after_expiration": null,
   "allow_promotion_codes": null,
-  "amount_subtotal": 999,
-  "amount_total": 999,
+  "amount_subtotal": 2000,
+  "amount_total": 2000,
   "automatic_tax": {
     "enabled": true,
     "liability": {
@@ -13,12 +13,12 @@
     "status": "complete"
   },
   "billing_address_collection": null,
-  "cancel_url": "http://localhost:3131?payment=canceled?id=662f476a5713ca9dbe0ad4d1",
+  "cancel_url": "http://localhost:3131/account?canceled=true",
   "client_reference_id": null,
   "client_secret": null,
   "consent": null,
   "consent_collection": null,
-  "created": 1714374507,
+  "created": 1714391165,
   "currency": "usd",
   "currency_conversion": null,
   "custom_fields": [],
@@ -28,8 +28,8 @@
     "submit": null,
     "terms_of_service_acceptance": null
   },
-  "customer": "cus_Q0q0E5cWQERMOq",
-  "customer_creation": "always",
+  "customer": null,
+  "customer_creation": "if_required",
   "customer_details": {
     "address": {
       "city": null,
@@ -39,23 +39,34 @@
       "postal_code": null,
       "state": null
     },
-    "email": "nattynengeda@gmail.com",
-    "name": "Natnael Engeda",
+    "email": "aklilegetachew@gmail.com",
+    "name": "Aklile Getachew",
     "phone": null,
     "tax_exempt": "none",
     "tax_ids": []
   },
   "customer_email": null,
-  "expires_at": 1714460907,
-  "invoice": "in_1PAoKiFEZ2nUxcULojvP3VTY",
-  "invoice_creation": null,
+  "expires_at": 1714477565,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
   "livemode": false,
   "locale": null,
   "metadata": {},
-  "mode": "subscription",
-  "payment_intent": null,
+  "mode": "payment",
+  "payment_intent": "pi_3PAsf3FEZ2nUxcUL1TrDtulq",
   "payment_link": null,
-  "payment_method_collection": "always",
+  "payment_method_collection": "if_required",
   "payment_method_configuration_details": {
     "id": "pmc_1PAVUtFEZ2nUxcULWkRD7Kmm",
     "parent": null
@@ -67,6 +78,7 @@
   },
   "payment_method_types": [
     "card",
+    "klarna",
     "link",
     "cashapp"
   ],
@@ -75,12 +87,7 @@
     "enabled": false
   },
   "recovered_from": null,
-  "saved_payment_method_options": {
-    "allow_redisplay_filters": [
-      "always"
-    ],
-    "payment_method_save": null
-  },
+  "saved_payment_method_options": null,
   "setup_intent": null,
   "shipping_address_collection": null,
   "shipping_cost": null,
@@ -88,8 +95,8 @@
   "shipping_options": [],
   "status": "complete",
   "submit_type": null,
-  "subscription": "sub_1PAoKiFEZ2nUxcULlLrGz5QJ",
-  "success_url": "http://localhost:3131?payment=success?id=662f476a5713ca9dbe0ad4d1",
+  "subscription": null,
+  "success_url": "http://localhost:3131/account?success=true",
   "total_details": {
     "amount_discount": 0,
     "amount_shipping": 0,

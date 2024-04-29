@@ -1,27 +1,25 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface Donation extends Document {
+export interface FlowerDonation extends Document {
   from: string;
   to: string;
   amount: number;
-  // product: mongoose.Types.ObjectId[];
   description: string;
   createdAt: Date;
 }
 
-const donationSchema: Schema = new Schema({
+const FlowerDonationSchema: Schema = new Schema({
   from: { type: Schema.Types.ObjectId, ref: "User", required: true },
   to: { type: Schema.Types.ObjectId, ref: "HumanMemorial", required: true },
   amount: { type: Number, required: true },
-  // product: [{ type: Schema.Types.ObjectId, ref: "products" }],
-  description: { type: String },
+  id: { type: String, required: true },
 
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
 
-export const DonationModel = mongoose.model<Donation>(
-  "Donation",
-  donationSchema
+export const FlowerDonationModel = mongoose.model<FlowerDonation>(
+  "FlowerDonation",
+  FlowerDonationSchema
 );

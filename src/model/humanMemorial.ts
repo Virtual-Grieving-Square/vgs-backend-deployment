@@ -7,6 +7,7 @@ const humanMemorialSchema: Schema = new Schema({
   dob: { type: Date, required: true },
   dod: { type: Date, required: true },
   author: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  donations: [{ type: Schema.Types.ObjectId, ref: "Donation" }],
   image: { type: String, required: false },
 
   //Timestamp

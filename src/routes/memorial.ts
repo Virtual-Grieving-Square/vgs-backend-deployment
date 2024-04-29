@@ -6,6 +6,8 @@ import {
   getAllHumanMemorial,
   getMemorialByUserId,
   getImage,
+  getObituaries,
+  getHumanMemorialById,
 } from "../controller/humanMemorial";
 // Pet Memorial
 
@@ -51,6 +53,7 @@ const paetMemorialUpload = multer({ storage: PetMemorialStorage });
 router.get("/human/getAll", getAllHumanMemorial);
 router.post("/human/create", humanMemorialUpload.array("image"), createHumanMemorial);
 router.get("/human/get/userId/:id", getMemorialByUserId);
+router.get("/human/getById/:id", getHumanMemorialById);
 router.get("/human/getImage", getImage);
 
 // Pet Memorial
@@ -58,6 +61,9 @@ router.get('/pet/getAll', getAllPetMemorial);
 router.post("/pet/create", paetMemorialUpload.array("image"), createPetMemorial);
 router.get("/pet/get/userId/:id", getPetMemorialByUserId);
 router.get("/pet/getImage", fetchpetImage);
+
+// Get Obituaries 
+router.get("/obituaries", getObituaries);
 
 
 export default router;
