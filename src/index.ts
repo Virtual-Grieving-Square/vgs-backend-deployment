@@ -29,6 +29,7 @@ import pet from "./routes/pet";
 import Human from "./routes/humanMemorial";
 import wordhub from "./routes/wordhub";
 import zoom from "./routes/zoom";
+import zoomAuth from "./routes/authZoom";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -87,6 +88,7 @@ app.use("/pet", pet);
 app.use("/human", Human);
 app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
+app.use('/zoom-auth/', zoomAuth)
 // Socket.io Connect
 const io = getIO();
 
