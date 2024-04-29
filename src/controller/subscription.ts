@@ -88,6 +88,8 @@ export const pay = async (req: Request, res: Response) => {
     if (user) {
       if (user.subscriptionType == "silver") {
         price = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+      } else if (user.subscriptionType == "gold") {
+        price = "price_1PABvTFEZ2nUxcULGaj999zd";
       }
     }
 

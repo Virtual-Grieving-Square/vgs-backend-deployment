@@ -1,10 +1,10 @@
 {
-  "id": "cs_test_a1wsRS2XaFSCmjZePhbcN7KMJX2PQytp6Gt1WEj7EXl9e350Xc9YvyJKr7",
+  "id": "cs_test_a1KhFlO1O5y9fMws7wyq13Jzy3eTaoKdDYQmITsaQyaqIU6o3OxO2M2nsC",
   "object": "checkout.session",
   "after_expiration": null,
   "allow_promotion_codes": null,
-  "amount_subtotal": 500,
-  "amount_total": 500,
+  "amount_subtotal": 999,
+  "amount_total": 999,
   "automatic_tax": {
     "enabled": true,
     "liability": {
@@ -13,12 +13,12 @@
     "status": "complete"
   },
   "billing_address_collection": null,
-  "cancel_url": "http://localhost:3131",
+  "cancel_url": "http://localhost:3131?payment=canceled?id=662f476a5713ca9dbe0ad4d1",
   "client_reference_id": null,
   "client_secret": null,
   "consent": null,
   "consent_collection": null,
-  "created": 1714361688,
+  "created": 1714374507,
   "currency": "usd",
   "currency_conversion": null,
   "custom_fields": [],
@@ -28,7 +28,7 @@
     "submit": null,
     "terms_of_service_acceptance": null
   },
-  "customer": "cus_Q0mYGDfB5e7Qom",
+  "customer": "cus_Q0q0E5cWQERMOq",
   "customer_creation": "always",
   "customer_details": {
     "address": {
@@ -46,8 +46,8 @@
     "tax_ids": []
   },
   "customer_email": null,
-  "expires_at": 1714448088,
-  "invoice": "in_1PAkzfFEZ2nUxcUL03Vo6Zjt",
+  "expires_at": 1714460907,
+  "invoice": "in_1PAoKiFEZ2nUxcULojvP3VTY",
   "invoice_creation": null,
   "livemode": false,
   "locale": null,
@@ -88,8 +88,8 @@
   "shipping_options": [],
   "status": "complete",
   "submit_type": null,
-  "subscription": "sub_1PAkzfFEZ2nUxcULdctO8JqJ",
-  "success_url": "http://localhost:3131",
+  "subscription": "sub_1PAoKiFEZ2nUxcULlLrGz5QJ",
+  "success_url": "http://localhost:3131?payment=success?id=662f476a5713ca9dbe0ad4d1",
   "total_details": {
     "amount_discount": 0,
     "amount_shipping": 0,

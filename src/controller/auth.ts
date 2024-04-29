@@ -121,7 +121,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
 
                 await tempUser.save();
             }
-        
+
 
             sendEmail("signup", { firstName: firstName, lastName: lastName, email: email, verificationCode: verificationCode })
                 .then((response) => {
@@ -357,7 +357,6 @@ export const signInWithGoogle: RequestHandler = async (req: Request, res: Respon
 }
 
 // Password Reset
-
 export const sendOTP: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body;
@@ -517,3 +516,18 @@ export const resetPassword: RequestHandler = async (req: Request, res: Response,
     }
 };
 
+export const checkUser: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        const user = await UserModel.findById(id);
+
+        if (!user) {
+            return res.status(201).json({ message: "User not found." });
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}

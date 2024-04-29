@@ -37,6 +37,7 @@ import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
 import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 import PaymentListModel from "./model/paymentList";
+import { UserModel } from "./model/user";
 
 var serviceAccount = require("../serviceAccountKey.json");
 
@@ -91,6 +92,16 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req: expr
 
         const paidd = await PaymentListModel.updateOne({
           paymentId: checkOutId
+        }, {
+          paid: true
+        });
+
+        const user = await PaymentListModel.findOne({
+          paymentId: checkOutId
+        });
+
+        await UserModel.updateOne({
+          _id: user!.userId
         }, {
           paid: true
         });
