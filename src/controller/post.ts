@@ -15,7 +15,6 @@ import {
 
 import Filter from "bad-words";
 import LikeModel from "../model/like";
-import { getIO } from "../util/socket.io";
 import path from "path";
 import axios from "axios";
 
@@ -44,7 +43,7 @@ export const createPost = async (req: Request, res: Response) => {
 
     await post.save();
 
-    res.status(201).json({ message: "Post created successfully", post });
+    res.status(200).json({ message: "Post created successfully", post });
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -89,7 +88,6 @@ export const checkLike = async (req: Request, res: Response) => {
 export const likePost = async (req: Request, res: Response) => {
   try {
     const { postId, likerId } = req.body;
-    const io = getIO();
 
     const likes = await LikeModel.find({
       postId: postId,
@@ -104,7 +102,6 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
 
-      io.emit("server_update_like", { postId, likes: -1 });
       return res.status(200).json({ message: "Post unliked successfully" });
     } else {
       const like = new LikeModel({
@@ -115,8 +112,6 @@ export const likePost = async (req: Request, res: Response) => {
       await like.save();
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
-
-      io.emit("server_update_like", { postId, likes: -1 });
 
       return res.status(200).json({ message: "Post liked successfully" });
     }
@@ -187,7 +182,6 @@ export const getAllComments = async (req: Request, res: Response) => {
 export const createComment = async (req: Request, res: Response) => {
   try {
     const { authorId, content, postId, userId } = req.body;
-    const io = getIO();
 
     const comment = new CommentModel({
       authorId: authorId,
@@ -217,7 +211,7 @@ export const createComment = async (req: Request, res: Response) => {
             user.blacklistCount += 1;
             await user.save();
             return res
-              .status(400)
+              .status(405)
               .json({ error: "Inappropriate comment detected" });
           } else if (strike === 2) {
             user.blacklistCount += 1;
@@ -244,8 +238,6 @@ export const createComment = async (req: Request, res: Response) => {
       } else {
         await comment.save();
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
-
-        io.emit("server_update_comment");
 
         res
           .status(200)
@@ -316,7 +308,7 @@ export const getPostImage = async (req: Request, res: Response) => {
 
     res.sendFile(location);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
