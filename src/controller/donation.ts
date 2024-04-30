@@ -19,10 +19,10 @@ export const makeDonation = async (req: Request, res: Response) => {
       } else {
 
         const checkUser = await HumanMemorial.findOne({
-          author: from
+          _id: to
         });
 
-        if (checkUser) {
+        if (checkUser!.author == from) {
           res.status(402).send({ msg: "You can't donate to yourself" });
         } else {
 

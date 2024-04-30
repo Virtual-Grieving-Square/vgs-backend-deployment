@@ -198,7 +198,7 @@ io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
 
   socket.on("client_like_update", (data: any) => {
-    console.log("client_like_update", data);
+    socket.emit("server_update_like", data);
   });
 
   socket.on("client_new_post", (data: any) => {
@@ -207,6 +207,10 @@ io.on("connection", (socket: any) => {
 
   socket.on("client_new_memorial", () => {
     socket.emit("server_new_memorial");
+  })
+
+  socket.on("client_comment_update", () => {
+    socket.emit("server_comment_update");
   })
 
   socket.on("disconnect", () => {

@@ -1,7 +1,6 @@
 import express from 'express';
 import multer from "multer";
 
-
 import {
   checkLike,
   countLike,
@@ -17,6 +16,7 @@ import {
   profanityChecker,
   translateComment
 } from '../controller/post';
+
 import { removeSpaces } from '../util/removeSpace';
 
 // Multer

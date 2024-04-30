@@ -24,7 +24,7 @@ export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, userId } = req.body;
     const currentDate = new Date();
-    
+
     const photos = (req.files as Express.Multer.File[]).map(
       (file: Express.Multer.File) => ({
         url: file.path,
@@ -260,7 +260,7 @@ export const translateComment = async (req: Request, res: Response) => {
     text
   )}&target=${targetLanguage}`;
 
-  axios
+  await axios
     .post(apiUrl)
     .then((response) => {
       res.status(200).json({
