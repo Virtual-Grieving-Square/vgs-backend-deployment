@@ -3,6 +3,7 @@ import express from 'express';
 // Controller
 import {
   changePassword,
+  checkUser,
   login,
   requestPasswordReset,
   resetPassword,
@@ -31,5 +32,8 @@ router.post('/google', signInWithGoogle);
 // Other
 router.post("/resetPassword", resetPassword);
 router.post("/recoverPassword", requestPasswordReset);
+
+// CheckUser 
+router.get('/checkUser/:id', checkUser);
 
 export default router;

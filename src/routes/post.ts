@@ -22,13 +22,12 @@ import { removeSpaces } from '../util/removeSpace';
 // Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/image/post/");
+    cb(null, "uploads/image/Post/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
   },
 });
-
 
 
 // Post Upload Location
@@ -51,6 +50,7 @@ router.get("/comment/:id", getAllComments);
 router.post("/comment/add", createComment);
 router.post("/translate", translateComment);
 
+// Get Image
 router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
 router.post("/Reactions", makeReaction);

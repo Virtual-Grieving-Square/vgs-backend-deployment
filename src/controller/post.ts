@@ -15,9 +15,11 @@ import {
 
 import Filter from "bad-words";
 import LikeModel from "../model/like";
-import { getIO } from "../util/socket.io";
 import path from "path";
 import axios from "axios";
+import { s3Client } from "../util/awsAccess";
+import { removeSpaces } from "../util/removeSpace";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 const filter = new Filter();
 
@@ -25,11 +27,21 @@ export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, userId } = req.body;
     const currentDate = new Date();
-    
-    const photos = (req.files as Express.Multer.File[]).map(
-      (file: Express.Multer.File) => ({
-        url: file.path,
-      })
+
+    const photos = await Promise.all(
+      (req.files as Express.Multer.File[]).map(
+        async (file: Express.Multer.File) => {
+          const uploadParams = {
+            Bucket: "vgs-upload",
+            Key: `uploads/image/post/${Date.now()}-${removeSpaces(file.originalname)}`,
+            Body: file.buffer,
+          };
+
+          await s3Client.send(new PutObjectCommand(uploadParams));
+          const url = `https://vgs-upload.s3.amazonaws.com/${uploadParams.Key}`; // Adjust URL based on your S3 bucket configuration
+          return { url };
+        }
+      )
     );
 
     const post = new PostModel({
@@ -44,7 +56,7 @@ export const createPost = async (req: Request, res: Response) => {
 
     await post.save();
 
-    res.status(201).json({ message: "Post created successfully", post });
+    res.status(200).json({ message: "Post created successfully", post });
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -89,7 +101,6 @@ export const checkLike = async (req: Request, res: Response) => {
 export const likePost = async (req: Request, res: Response) => {
   try {
     const { postId, likerId } = req.body;
-    const io = getIO();
 
     const likes = await LikeModel.find({
       postId: postId,
@@ -104,7 +115,6 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
 
-      io.emit("server_update_like", { postId, likes: -1 });
       return res.status(200).json({ message: "Post unliked successfully" });
     } else {
       const like = new LikeModel({
@@ -115,8 +125,6 @@ export const likePost = async (req: Request, res: Response) => {
       await like.save();
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
-
-      io.emit("server_update_like", { postId, likes: -1 });
 
       return res.status(200).json({ message: "Post liked successfully" });
     }
@@ -187,7 +195,6 @@ export const getAllComments = async (req: Request, res: Response) => {
 export const createComment = async (req: Request, res: Response) => {
   try {
     const { authorId, content, postId, userId } = req.body;
-    const io = getIO();
 
     const comment = new CommentModel({
       authorId: authorId,
@@ -217,7 +224,7 @@ export const createComment = async (req: Request, res: Response) => {
             user.blacklistCount += 1;
             await user.save();
             return res
-              .status(400)
+              .status(405)
               .json({ error: "Inappropriate comment detected" });
           } else if (strike === 2) {
             user.blacklistCount += 1;
@@ -244,8 +251,6 @@ export const createComment = async (req: Request, res: Response) => {
       } else {
         await comment.save();
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
-
-        io.emit("server_update_comment");
 
         res
           .status(200)
@@ -306,15 +311,54 @@ export const makeReaction = async (req: Request, res: Response) => {
   }
 };
 
+// export const getPostImage = async (req: Request, res: Response) => {
+//   try {
+//     const name = req.query.name as string | undefined;
+//     if (!name) {
+//       return res.status(400).send("Image name is not provided");
+//     }
+//     const location = path.join(__dirname, "../../", name);
+
+//     res.sendFile(location);
+//   } catch (error) {
+//     // console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { Stream } from "stream";
+
 export const getPostImage = async (req: Request, res: Response) => {
   try {
     const name = req.query.name as string | undefined;
     if (!name) {
       return res.status(400).send("Image name is not provided");
     }
-    const location = path.join(__dirname, "../../", name);
 
-    res.sendFile(location);
+
+    const key = `uploads/image/post/${name}`;
+
+
+    const command = new GetObjectCommand({
+      Bucket: 'vgs-upload',
+      Key: key,
+    });
+
+ 
+    const { Body } = await s3Client.send(command);
+
+    
+    if (Body instanceof Stream) {
+      
+      res.set({
+        'Content-Type': 'image/jpg', 
+      });
+
+      
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

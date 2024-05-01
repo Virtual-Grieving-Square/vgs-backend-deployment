@@ -1,136 +1,233 @@
 import { Request, Response } from "express";
-import SubscriptionModel from "../model/Subscription"; // Assuming you have a Subscription model
-import { UserModel, User } from '../model/user';
+import { SubscriptionPlanModel } from "../model/subscriptionPlan";
+import { UserModel } from "../model/user";
+import PaymentListModel from "../model/paymentList";
+import DepositListModel from "../model/depositList";
+const express = require('express');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
 
-const stripe = require('stripe')('sk_test_51MKj9YAvSHLhFTy6HvITvBfNUCsaaZ0yhChK6fqf3tEC4Jtr5gyW80e50wdG9HqrdQIvmbsgl8ZV6z3qb2DTNLpI000edftruE');
+const YOUR_DOMAIN = process.env.DOMAIN!;
 
-export const addSubscription = async (req: Request, res: Response) => {
+export const getAll = async (req: Request, res: Response) => {
   try {
-    const { name, price, duration, description } = req.body;
+    const subscriptions = await SubscriptionPlanModel.find();
 
-    if (!name || !price) {
-      return res.status(400).json({ message: "Please provide name and price for the subscription." });
-    }
-
-    const subscription = new SubscriptionModel({
-      name,
-      price,
-      duration,
-      description
+    res.status(200).json({
+      msg: "All Subscription Plans",
+      subscription: subscriptions
     });
-
-
-    await subscription.save();
-
-    res.status(201).json({ message: "Subscription added successfully.", subscription });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "An error occurred while adding the subscription." });
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
   }
-};
+}
 
-
-
-export const purchaseSubscription = async (req: Request, res: Response) => {
+export const createSubscriptionPlan = async (req: Request, res: Response) => {
   try {
-    const { local } = req.params;
+    const { name, price, description, details } = req.body;
+    await SubscriptionPlanModel.create({
+      name: name,
+      price: price,
+      description: description,
+      details: details
+    });
 
-    var price = 'price_1P0lbeAvSHLhFTy68CUSmgCJ';
+    res.status(200).json({
+      msg: "Subscription Plan Created"
+    });
 
-    if (local == "PRO") price = 'price_1P0lbeAvSHLhFTy68CUSmgCJ';
-    else if (local == "PLUS") price = 'price_1P0lnEAvSHLhFTy6Pw0DhSPk';
-    else if (local == "SPECIAL") price = 'price_1P0lnwAvSHLhFTy6hCVvEOAo';
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
+  }
+}
+
+export const test = async (req: Request, res: Response) => {
+  try {
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
           // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+          price: 'price_1PA8MtFEZ2nUxcULpROyvFrW',
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${YOUR_DOMAIN}?success=true`,
+      cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+      automatic_tax: { enabled: true },
+    });
+
+    // res.redirect(303, session.url);
+    res.status(200).json({
+      request: "success",
+      session: session
+    })
+
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
+  }
+}
+
+export const pay = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body;
+    const user = await UserModel.findById(id);
+    var price = "";
+
+    if (user) {
+      if (user.subscriptionType == "silver") {
+        price = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+      } else if (user.subscriptionType == "gold") {
+        price = "price_1PABvTFEZ2nUxcULGaj999zd";
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
           price: price,
           quantity: 1,
         },
       ],
-      mode: 'payment',
-      success_url: `https://www.google.com/success.html`,
-      cancel_url: `http://www.google.com/cancel.html`,
+      mode: 'subscription',
+      success_url: `${YOUR_DOMAIN}?payment=success?id=${id}`,
+      cancel_url: `${YOUR_DOMAIN}?payment=canceled?id=${id}`,
+      automatic_tax: { enabled: true },
     });
 
-    res.json({ msg: session.url });
+
+    const checkUser = await PaymentListModel.findOne({
+      userId: id
+    });
+
+    if (checkUser) {
+      if (checkUser.paid == true) {
+        res.status(201).json({
+          request: "success",
+          msg: "User Already Paid"
+        });
+      } else {
+        await PaymentListModel.updateOne({
+          userId: id
+        }, {
+          paymentId: session.id,
+          amount: session.amount_total
+        });
+
+        res.status(200).json({
+          request: "success",
+          session: session,
+          client_secret: session.client_secret
+        });
+      }
+    } else {
+      await PaymentListModel.create({
+        paymentId: session.id,
+        userId: id,
+        amount: session.amount_total
+      });
+
+      res.status(200).json({
+        request: "success",
+        session: session,
+        client_secret: session.client_secret
+      });
+    }
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'An error occurred while processing the payment.' });
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
   }
-  // const { subscriptionId, userID } = req.body;
+}
 
-
-  // const subscription = await SubscriptionModel.findById(subscriptionId);
-
-
-  // if (!subscription) {
-  //   return res.status(404).json({ message: 'Subscription not found.' });
-  // }
-  // const userId = userID;
-
-
-  // const user: User | null = await UserModel.findById(userId);
-
-
-  // if (!user) {
-  //   return res.status(404).json({ message: 'User not found.' });
-  // }
-
-  // const paymentIntent = await stripeClient.paymentIntents.create({
-  //   amount: subscription.price * 100,
-  //   currency: 'usd',
-  //   description: `Subscription purchase: ${subscription.name}`,
-  //   metadata: {
-  //     userId: user._id.toString(),
-  //     subscriptionId: subscription._id.toString(),
-  //   },
-  // });
-
-
-  // res.status(200).json({ clientSecret: paymentIntent.client_secret });
-};
-
-
-export const handleStripeWebhook = async (req: Request, res: Response) => {
-  const sig = req.headers['stripe-signature'];
-
-  // let event: stripe.Event;
-
+export const deposit = async (req: Request, res: Response) => {
   try {
+    const { id, amount } = req.body;
 
-    const rawBody = (req as any).rawBody;
-    // event = stripeClient.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch (error: any) {
-    console.error(error.message);
-    return res.status(400).send(`Webhook Error: ${error.message}`);
+    const depostList = [
+      { id: 1, amount: 5 },
+      { id: 2, amount: 10 },
+      { id: 3, amount: 15 },
+      { id: 4, amount: 20 },
+    ];
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Deposit',
+            },
+            unit_amount: depostList[amount - 1].amount * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${YOUR_DOMAIN}/account?success=true`,
+      cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
+      automatic_tax: { enabled: true },
+    });
+
+    await DepositListModel.create({
+      paymentId: session.id,
+      userId: id,
+      amount: depostList[amount - 1].amount
+    }).then(() => {
+      res.status(200).json({
+        request: "success",
+        session: session
+      });
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
   }
+}
+const endpointSecret = "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
 
-  // switch (event.type) {
-  //   case 'payment_intent.succeeded':
-  //     const paymentIntent = event.data.object as stripe.PaymentIntent;
-  //     const userId = paymentIntent.metadata.userId;
-  //     const subscriptionId = paymentIntent.metadata.subscriptionId;
+export const stripe_webhook = async (req: Request, res: Response) => {
+  try {
+    const sig = req.headers['stripe-signature'];
 
-  //     const user: User | null = await UserModel.findById(userId);
+    console.log(sig)
+    let event;
 
-  //     if (!user) {
-  //       return res.status(404).json({ message: 'User not found.' });
-  //     }
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      console.log(event)
 
-  //     user.subscribed = true;
-  //     user.subscriptionType = subscriptionId;
-  //     user.subscribedDate = new Date();
+    } catch (err: any) {
+      console.error(err);
 
-  //     await user.save();
+      return;
+    }
 
-  //     console.log(`User ${userId} subscription updated successfully.`);
-  //     res.status(200).json({ message: 'User subscription updated successfully.' });
-  //     break;
-
-  //   default:
-  //     res.status(200).json({ received: true });
-  // }
-};
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error
+    });
+  }
+}

@@ -10,9 +10,12 @@ export interface IGroupWriting extends Document {
 
 const GroupWritingSchema: Schema = new Schema({
   groupId: { type: Schema.Types.ObjectId, ref: 'Group', required: true },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+
+  //Timestamp
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export const GroupWriting = mongoose.model<IGroupWriting>('GroupWriting', GroupWritingSchema);
