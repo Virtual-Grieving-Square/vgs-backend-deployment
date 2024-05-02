@@ -12,16 +12,20 @@ import {
 } from "../controller/user";
 
 // Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/image/profileImage/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/image/profileImage/");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + file.originalname);
+//   },
+// });
 
-const upload = multer({ storage: storage });
+const storage = multer.memoryStorage()
+const upload = multer({storage: storage})
+
+
+// const upload = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -29,7 +33,7 @@ const router = express.Router();
 router.get("/getAll", getAll);
 router.get("/getDetails/:id", getDetails);
 router.put('/update/:id', updateDetails);
-router.post("/uploadProfileImage/:id", upload.array("image"), uploadProfileImage);
+router.post("/uploadProfileImage", upload.single("image"), uploadProfileImage);
 router.get('/getImage', getProfileImage);
 router.get('/getImageById', getProfileImagebyID);
 

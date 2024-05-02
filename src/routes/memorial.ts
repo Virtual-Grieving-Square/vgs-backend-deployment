@@ -25,40 +25,41 @@ const router = express.Router();
 
 
 // Human Memorial Upload
-const HumanMemorialStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/image/Memorial/HumanMemorial");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + removeSpaces(file.originalname));
-  },
-});
+// const HumanMemorialStorage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/image/Memorial/HumanMemorial");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
+//   },
+// });
 
 // Pet Memorial Upload
-const PetMemorialStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/image/Memorial/PetMemorial");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + removeSpaces(file.originalname));
-  },
-});
+// const PetMemorialStorage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/image/Memorial/PetMemorial");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
+//   },
+// });
 
 
-const humanMemorialUpload = multer({ storage: HumanMemorialStorage });
-const paetMemorialUpload = multer({ storage: PetMemorialStorage });
+// const humanMemorialUpload = multer({ storage: HumanMemorialStorage });
+// const paetMemorialUpload = multer({ storage: PetMemorialStorage });
 
-
+const storage = multer.memoryStorage()
+const upload = multer({storage: storage})
 // Human Memorial
 router.get("/human/getAll", getAllHumanMemorial);
-router.post("/human/create", humanMemorialUpload.array("image"), createHumanMemorial);
+router.post("/human/create", upload.single("image"), createHumanMemorial);
 router.get("/human/get/userId/:id", getMemorialByUserId);
 router.get("/human/getById/:id", getHumanMemorialById);
 router.get("/human/getImage", getImage);
 
 // Pet Memorial
 router.get('/pet/getAll', getAllPetMemorial);
-router.post("/pet/create", paetMemorialUpload.array("image"), createPetMemorial);
+router.post("/pet/create", upload.single("image"), createPetMemorial);
 router.get("/pet/get/userId/:id", getPetMemorialByUserId);
 router.get("/pet/getImage", fetchpetImage);
 
