@@ -1,26 +1,33 @@
 import { Request, Response } from "express";
 import nodemailer from 'nodemailer';
+import ContactDetailModel from "../model/contact";
 
 export const contactUs = async (req: Request, res: Response) => {
   try {
     const { name, email, phone, message } = req.body;
-    console.log(req.body)
+
     if (!name || !email || !message) {
       return res
         .status(400)
         .json({ message: "Please fill in all required fields." });
     }
 
+    await ContactDetailModel.create({
+      name: name,
+      email: email,
+      phoneNumber: phone,
+      message: message
+    });
+
     const transporter = await nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
+      host: process.env.NODEMAILER_HOST,
       port: 465,
       secure: true,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
       },
     });
-
 
     const mailOptions = {
       from: '"VGS" <verification@virtualgrievingsquare.com>',

@@ -1,6 +1,5 @@
 import { Schema, model, Document } from 'mongoose';
 
-
 export interface IComment extends Document {
   authorId: string;
   postId: string;
