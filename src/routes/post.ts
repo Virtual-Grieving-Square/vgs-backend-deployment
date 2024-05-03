@@ -19,24 +19,15 @@ import {
 
 import { removeSpaces } from '../util/removeSpace';
 
-// Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/image/Post/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + removeSpaces(file.originalname));
-  },
-});
 
 
-// Post Upload Location
-const upload = multer({ storage: storage });
+const storage = multer.memoryStorage()
+const upload = multer({storage: storage})
 
 const router = express.Router();
 
 // Post
-router.post("/create", upload.array("photos"), createPost);
+router.post("/create", upload.single("photos"), createPost);
 router.get("/getallPost", getPostsWithImages);
 router.get("/getUserPost/:id", getUserPost);
 

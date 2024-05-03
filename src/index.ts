@@ -33,6 +33,7 @@ import Memorial from "./routes/memorial";
 import wordhub from './routes/wordhub';
 import zoom from './routes/zoom';
 import famous from './routes/famous';
+import zoomAuth from "./routes/authZoom";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -192,6 +193,7 @@ app.use("/memorial", Memorial);
 app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
 app.use("/famous", famous);
+app.use('/zoom-auth/', zoomAuth)
 
 // Use JSON parser for all non-webhook routes
 

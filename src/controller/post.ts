@@ -22,31 +22,41 @@ import path from "path";
 import axios from "axios";
 import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const filter = new Filter();
 
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, userId } = req.body;
+
+    // Validate request data
+    if (!title || !content || !userId) {
+      return res
+        .status(400)
+        .json({ error: "Title, content, and userId are required" });
+    }
+
     const currentDate = new Date();
+    const fileOrgnName = req.file?.originalname || "";
+    const fileName = `uploads/image/post/${Date.now()}-${removeSpaces(
+      fileOrgnName
+    )}`;
 
-    const photos = await Promise.all(
-      (req.files as Express.Multer.File[]).map(
-        async (file: Express.Multer.File) => {
-          const uploadParams = {
-            Bucket: "vgs-upload",
-            Key: `uploads/image/post/${Date.now()}-${removeSpaces(file.originalname)}`,
-            Body: file.buffer,
-          };
+    // Upload file to S3
+    const uploadParams = {
+      Bucket: "vgs-upload",
+      Key: fileName,
+      Body: req.file?.buffer,
+      ContentType: req.file?.mimetype,
+    };
 
-          await s3Client.send(new PutObjectCommand(uploadParams));
-          const url = `https://vgs-upload.s3.amazonaws.com/${uploadParams.Key}`; // Adjust URL based on your S3 bucket configuration
-          return { url };
-        }
-      )
-    );
+    const command = new PutObjectCommand(uploadParams);
+    await s3Client.send(command);
 
+    // Create post object
     const post = new PostModel({
       title,
       content,
@@ -54,9 +64,10 @@ export const createPost = async (req: Request, res: Response) => {
       reacts: 0,
       comments: 0,
       author: userId,
-      photos: photos,
+      photos: [{ url: fileName }],
     });
 
+    // Save post to database
     await post.save();
 
     res.status(200).json({ message: "Post created successfully", post });
@@ -347,6 +358,7 @@ export const getPostImage = async (req: Request, res: Response) => {
       Key: key,
     });
 
+
     const { Body } = await s3Client.send(command);
 
 
@@ -363,7 +375,8 @@ export const getPostImage = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+
+    res.status(500).json({ error: "Failed to get the signed URL" });
   }
 };
 

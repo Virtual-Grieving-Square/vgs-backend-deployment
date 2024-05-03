@@ -3,10 +3,16 @@ import { HumanMemorial } from "../model/humanMemorial";
 import { checkCommentUsingSapling } from "../util/commentFilter";
 import { UserModel } from "../model/user";
 import path, { dirname } from "path";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from "../util/awsAccess";
+import { removeSpaces } from "../util/removeSpace";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const getAllHumanMemorial = async (req: Request, res: Response) => {
   try {
-    const allhumanMemorials = await HumanMemorial.find().sort({ createdAt: -1 });
+    const allhumanMemorials = await HumanMemorial.find().sort({
+      createdAt: -1,
+    });
     res.status(200).json(allhumanMemorials);
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
@@ -27,7 +33,7 @@ export const getHumanMemorialById = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
@@ -36,19 +42,34 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
     console.log(req.files);
 
     if (req.files?.length === 0) {
-      return res.status(406).json({ message: "No image provided" })
-    }
-    else {
+      return res.status(406).json({ message: "No image provided" });
+    } else {
+      // const coverImage = (req.files as Express.Multer.File[]).map(
+      //   (file: Express.Multer.File) => ({
+      //     url: file.path,
+      //   })
+      // );
 
-      const coverImage = (req.files as Express.Multer.File[]).map(
-        (file: Express.Multer.File) => ({
-          url: file.path,
-        })
-      );
+      const fileOrgnName = req.file?.originalname || "";
+      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(
+        fileOrgnName
+      )}`;
+
+      // Upload file to S3
+      const uploadParams = {
+        Bucket: "vgs-upload",
+        Key: fileName,
+        Body: req.file?.buffer,
+        ContentType: req.file?.mimetype,
+      };
+
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
+
       if (!name || !age || !description || !dob || !dod || !author) {
         return res.status(402).json({ message: "All fields are required" });
       }
-      const url = coverImage[0].url;
+      // const url = coverImage[0].url;
       const humanMemorial = new HumanMemorial({
         name: name,
         age: age,
@@ -56,7 +77,7 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
         dob: dob,
         dod: dod,
         author: author,
-        image: url,
+        image: fileName,
       });
 
       await humanMemorial.save();
@@ -65,7 +86,6 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
         .status(200)
         .json({ message: "Human Memory created successfully", humanMemorial });
     }
-
   } catch (error) {
     console.error("Error Human Memorial:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -84,24 +104,29 @@ export const getMemorialByUserId = async (req: Request, res: Response) => {
     }
 
     res.status(200).json(humanMemorial);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const getImage = async (req: Request, res: Response) => {
-  const image = req.query.name;
-
-  if (!image) {
-    return res.status(403).send("Image name is not provided");
-  }
-
   try {
-    const location = path.join(__dirname, "../../", String(image));
+    const image = req.query.name as string | undefined;
 
-    res.sendFile(location);
+    if (!image) {
+      return res.status(403).send("Image name is not provided");
+    }
+
+    const getObjectParams = {
+      Bucket: "vgs-upload",
+      Key: image,
+    };
+    const command = new GetObjectCommand(getObjectParams);
+    const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+    res.status(200).json({ url });
+    // res.sendFile(location);
   } catch (error) {
     res.status(500).json({ message: "Error fetching pet memorial ", error });
   }
@@ -119,4 +144,4 @@ export const getObituaries = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
