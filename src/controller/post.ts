@@ -333,6 +333,7 @@ export const makeReaction = async (req: Request, res: Response) => {
 export const getPostImage = async (req: Request, res: Response) => {
   try {
     const name = req.query.name as string | undefined;
+
     if (!name) {
       return res.status(400).send("Image name is not provided");
     }
@@ -345,7 +346,6 @@ export const getPostImage = async (req: Request, res: Response) => {
       Bucket: 'vgs-upload',
       Key: key,
     });
-
 
     const { Body } = await s3Client.send(command);
 
