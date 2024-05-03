@@ -18,6 +18,9 @@ import Filter from "bad-words";
 import LikeModel from "../model/like";
 import path from "path";
 import axios from "axios";
+import { s3Client } from "../util/awsAccess";
+import { removeSpaces } from "../util/removeSpace";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 const filter = new Filter();
 
@@ -26,10 +29,20 @@ export const createPost = async (req: Request, res: Response) => {
     const { title, content, userId } = req.body;
     const currentDate = new Date();
 
-    const photos = (req.files as Express.Multer.File[]).map(
-      (file: Express.Multer.File) => ({
-        url: file.path,
-      })
+    const photos = await Promise.all(
+      (req.files as Express.Multer.File[]).map(
+        async (file: Express.Multer.File) => {
+          const uploadParams = {
+            Bucket: "vgs-upload",
+            Key: `uploads/image/post/${Date.now()}-${removeSpaces(file.originalname)}`,
+            Body: file.buffer,
+          };
+
+          await s3Client.send(new PutObjectCommand(uploadParams));
+          const url = `https://vgs-upload.s3.amazonaws.com/${uploadParams.Key}`; // Adjust URL based on your S3 bucket configuration
+          return { url };
+        }
+      )
     );
 
     const post = new PostModel({
@@ -299,17 +312,56 @@ export const makeReaction = async (req: Request, res: Response) => {
   }
 };
 
+// export const getPostImage = async (req: Request, res: Response) => {
+//   try {
+//     const name = req.query.name as string | undefined;
+//     if (!name) {
+//       return res.status(400).send("Image name is not provided");
+//     }
+//     const location = path.join(__dirname, "../../", name);
+
+//     res.sendFile(location);
+//   } catch (error) {
+//     // console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { Stream } from "stream";
+
 export const getPostImage = async (req: Request, res: Response) => {
   try {
     const name = req.query.name as string | undefined;
     if (!name) {
       return res.status(400).send("Image name is not provided");
     }
-    const location = path.join(__dirname, "../../", name);
 
-    res.sendFile(location);
+
+    const key = `uploads/image/post/${name}`;
+
+
+    const command = new GetObjectCommand({
+      Bucket: 'vgs-upload',
+      Key: key,
+    });
+
+
+    const { Body } = await s3Client.send(command);
+
+
+    if (Body instanceof Stream) {
+
+      res.set({
+        'Content-Type': 'image/jpg',
+      });
+
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
