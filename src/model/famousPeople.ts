@@ -6,6 +6,7 @@ export interface FamousPeopleInterface extends Document {
   dob: string;
   dod: string;
   image: string;
+  number: number;
 }
 
 const FamousPeopleSchema: Schema = new Schema({
@@ -13,6 +14,7 @@ const FamousPeopleSchema: Schema = new Schema({
   profession: { type: String, required: true },
   dob: { type: String, required: true },
   dod: { type: String, required: false },
+  number: { type: Number, required: true },
   image: { type: String, required: false },
 
   //Timestamp
