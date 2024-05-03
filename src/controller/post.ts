@@ -4,6 +4,8 @@ import { UserModel } from "../model/user";
 import ReactionModel from "../model/reaction";
 import CommentModel from "../model/comment";
 import { Multer } from "multer";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { Stream } from "stream";
 import config from "../config";
 
 const { Translate } = require("@google-cloud/translate").v2;
@@ -326,8 +328,7 @@ export const makeReaction = async (req: Request, res: Response) => {
 //     res.status(500).json({ error: "Internal server error" });
 //   }
 // };
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { Stream } from "stream";
+
 
 export const getPostImage = async (req: Request, res: Response) => {
   try {
