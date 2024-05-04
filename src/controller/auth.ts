@@ -229,7 +229,6 @@ export const verify: RequestHandler = async (req: Request, res: Response, next: 
     }
 }
 
-// Login
 export const login: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body.data;
@@ -280,7 +279,6 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
     }
 };
 
-// Google Authentication
 export const signInWithGoogle: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {
@@ -356,7 +354,6 @@ export const signInWithGoogle: RequestHandler = async (req: Request, res: Respon
     }
 }
 
-// Password Reset
 export const sendOTP: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body;

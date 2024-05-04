@@ -24,7 +24,7 @@ import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+// import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const filter = new Filter();
 
@@ -349,25 +349,19 @@ export const getPostImage = async (req: Request, res: Response) => {
       return res.status(400).send("Image name is not provided");
     }
 
-
     const key = `uploads/image/post/${name}`;
-
 
     const command = new GetObjectCommand({
       Bucket: 'vgs-upload',
       Key: key,
     });
 
-
     const { Body } = await s3Client.send(command);
 
-
     if (Body instanceof Stream) {
-
       res.set({
         'Content-Type': 'image/jpg',
       });
-
 
       Body.pipe(res);
     } else {

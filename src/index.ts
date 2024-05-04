@@ -17,6 +17,7 @@ dotenv.config();
 
 // Routes
 import index from "./routes";
+import admin from "./routes/admin";
 import auth from "./routes/auth";
 import users from "./routes/user";
 import post from "./routes/post";
@@ -177,6 +178,7 @@ connectDB();
 
 // Routes
 app.use("/", index);
+app.use("/admin", admin);
 app.use("/auth", auth);
 app.use("/user", users);
 app.use("/post", post);
