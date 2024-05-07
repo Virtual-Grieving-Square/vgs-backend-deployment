@@ -6,6 +6,7 @@ import { generateAdminAccessToken } from '../util/generateAdminAccessToken';
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body.data;
+    console.log("Here");
 
     if (!email || !password) {
       return res.status(403).json({ message: "Please fill all fields" });
@@ -15,6 +16,8 @@ export const login = async (req: Request, res: Response) => {
       email: email,
     });
 
+    console.log(admin);
+
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
@@ -22,7 +25,7 @@ export const login = async (req: Request, res: Response) => {
     const passwordMatch = await bcrypt.compare(password, admin.password);
 
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(402).json({ message: "Invalid credentials" });
     }
 
     const accessToken = generateAdminAccessToken(

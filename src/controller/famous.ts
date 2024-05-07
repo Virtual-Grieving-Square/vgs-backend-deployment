@@ -7,6 +7,7 @@ import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { Stream } from "nodemailer/lib/xoauth2";
 
+
 export const getAll = async (req: Request, res: Response) => {
   try {
     const famous = await FamousPeopleModel.find();
@@ -100,3 +101,39 @@ export const create = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const getImage = async (req: Request, res: Response) => {
+  try {
+    const { image } = req.query;
+
+    if (!image) {
+      return res.status(400).send("Image name is not provided");
+    }
+
+    const key = `${image}`;
+
+    const command = new GetObjectCommand({
+      Bucket: "vgs-upload",
+      Key: image,
+    });
+
+
+    const { Body } = await s3Client.send(command);
+
+    if (Body instanceof Stream) {
+      res.set({
+        "Content-Type": "image/jpg",
+      });
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
+
+
+    console.log(image)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}

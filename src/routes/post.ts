@@ -19,10 +19,8 @@ import {
 
 import { removeSpaces } from '../util/removeSpace';
 
-
-
 const storage = multer.memoryStorage()
-const upload = multer({storage: storage})
+const upload = multer({ storage: storage })
 
 const router = express.Router();
 
