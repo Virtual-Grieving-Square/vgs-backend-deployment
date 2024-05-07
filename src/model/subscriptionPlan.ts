@@ -5,10 +5,11 @@ const subscriptionPlanSchema: Schema = new Schema({
   price: { type: Number, required: true },
   description: { type: String, required: true },
   label: { type: String, required: true },
+  storagePerk: { type: Number, required: false, default: 0 },
   details: [
     {
       id: Number,
-      title: String
+      title: String,
     },
   ],
 
@@ -21,8 +22,12 @@ export interface SubscriptionPlan extends Document {
   name: string;
   price: number;
   label: string;
+  storagePerk: Number;
   description: string;
   details: string[];
 }
 
-export const SubscriptionPlanModel = mongoose.model<SubscriptionPlan>("SubscriptionPlan", subscriptionPlanSchema);
+export const SubscriptionPlanModel = mongoose.model<SubscriptionPlan>(
+  "SubscriptionPlan",
+  subscriptionPlanSchema
+);

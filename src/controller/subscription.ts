@@ -3,8 +3,8 @@ import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import { UserModel } from "../model/user";
 import PaymentListModel from "../model/paymentList";
 import DepositListModel from "../model/depositList";
-const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
+const express = require("express");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = process.env.DOMAIN!;
 
@@ -14,52 +14,51 @@ export const getAll = async (req: Request, res: Response) => {
 
     res.status(200).json({
       msg: "All Subscription Plans",
-      subscription: subscriptions
+      subscription: subscriptions,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
-      error: error
+      error: error,
     });
   }
-}
+};
 
 export const createSubscriptionPlan = async (req: Request, res: Response) => {
   try {
-    const { name, price, description, details } = req.body;
+    const { name, price, description, details, storagrPerk } = req.body;
     await SubscriptionPlanModel.create({
       name: name,
       price: price,
       description: description,
-      details: details
+      details: details,
+      storagrPerk: storagrPerk,
     });
 
     res.status(200).json({
-      msg: "Subscription Plan Created"
+      msg: "Subscription Plan Created",
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
-      error: error
+      error: error,
     });
   }
-}
+};
 
 export const test = async (req: Request, res: Response) => {
   try {
-
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
           // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: 'price_1PA8MtFEZ2nUxcULpROyvFrW',
+          price: "price_1PA8MtFEZ2nUxcULpROyvFrW",
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: "subscription",
       success_url: `${YOUR_DOMAIN}?success=true`,
       cancel_url: `${YOUR_DOMAIN}?canceled=true`,
       automatic_tax: { enabled: true },
@@ -68,17 +67,16 @@ export const test = async (req: Request, res: Response) => {
     // res.redirect(303, session.url);
     res.status(200).json({
       request: "success",
-      session: session
-    })
-
+      session: session,
+    });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
-      error: error
+      error: error,
     });
   }
-}
+};
 
 export const pay = async (req: Request, res: Response) => {
   try {
@@ -101,59 +99,60 @@ export const pay = async (req: Request, res: Response) => {
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: "subscription",
       success_url: `${YOUR_DOMAIN}?payment=success?id=${id}`,
       cancel_url: `${YOUR_DOMAIN}?payment=canceled?id=${id}`,
       automatic_tax: { enabled: true },
     });
 
-
     const checkUser = await PaymentListModel.findOne({
-      userId: id
+      userId: id,
     });
 
     if (checkUser) {
       if (checkUser.paid == true) {
         res.status(201).json({
           request: "success",
-          msg: "User Already Paid"
+          msg: "User Already Paid",
         });
       } else {
-        await PaymentListModel.updateOne({
-          userId: id
-        }, {
-          paymentId: session.id,
-          amount: session.amount_total
-        });
+        await PaymentListModel.updateOne(
+          {
+            userId: id,
+          },
+          {
+            paymentId: session.id,
+            amount: session.amount_total,
+          }
+        );
 
         res.status(200).json({
           request: "success",
           session: session,
-          client_secret: session.client_secret
+          client_secret: session.client_secret,
         });
       }
     } else {
       await PaymentListModel.create({
         paymentId: session.id,
         userId: id,
-        amount: session.amount_total
+        amount: session.amount_total,
       });
 
       res.status(200).json({
         request: "success",
         session: session,
-        client_secret: session.client_secret
+        client_secret: session.client_secret,
       });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
-      error: error
+      error: error,
     });
   }
-}
+};
 
 export const deposit = async (req: Request, res: Response) => {
   try {
@@ -170,16 +169,16 @@ export const deposit = async (req: Request, res: Response) => {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: "usd",
             product_data: {
-              name: 'Deposit',
+              name: "Deposit",
             },
             unit_amount: depostList[amount - 1].amount * 100,
           },
           quantity: 1,
         },
       ],
-      mode: 'payment',
+      mode: "payment",
       success_url: `${YOUR_DOMAIN}/account?success=true`,
       cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
       automatic_tax: { enabled: true },
@@ -188,46 +187,44 @@ export const deposit = async (req: Request, res: Response) => {
     await DepositListModel.create({
       paymentId: session.id,
       userId: id,
-      amount: depostList[amount - 1].amount
+      amount: depostList[amount - 1].amount,
     }).then(() => {
       res.status(200).json({
         request: "success",
-        session: session
+        session: session,
       });
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
-      error: error
+      error: error,
     });
   }
-}
-const endpointSecret = "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
+};
+const endpointSecret =
+  "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
 
 export const stripe_webhook = async (req: Request, res: Response) => {
   try {
-    const sig = req.headers['stripe-signature'];
+    const sig = req.headers["stripe-signature"];
 
-    console.log(sig)
+    console.log(sig);
     let event;
 
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-      console.log(event)
-
+      console.log(event);
     } catch (err: any) {
       console.error(err);
 
       return;
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
-      error: error
+      error: error,
     });
   }
-}
+};

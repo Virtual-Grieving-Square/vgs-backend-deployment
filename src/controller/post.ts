@@ -23,6 +23,12 @@ import axios from "axios";
 import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  checkuserStorageLimit,
+  getFileStats,
+  getUserStorage,
+  updateUserStorageOnPost,
+} from "../util/storageTracker";
 
 // import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -45,32 +51,43 @@ export const createPost = async (req: Request, res: Response) => {
       fileOrgnName
     )}`;
 
-    // Upload file to S3
-    const uploadParams = {
-      Bucket: "vgs-upload",
-      Key: fileName,
-      Body: req.file?.buffer,
-      ContentType: req.file?.mimetype,
-    };
+    const fileSize = await getFileStats(fileName);
+    const usersStorage = await getUserStorage(userId);
+    const { hasEnoughStorage, difference } = checkuserStorageLimit(
+      usersStorage,
+      fileSize
+    );
+    if (hasEnoughStorage) {
+      // Upload file to S3
+      const uploadParams = {
+        Bucket: "vgs-upload",
+        Key: fileName,
+        Body: req.file?.buffer,
+        ContentType: req.file?.mimetype,
+      };
 
-    const command = new PutObjectCommand(uploadParams);
-    await s3Client.send(command);
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
 
-    // Create post object
-    const post = new PostModel({
-      title,
-      content,
-      createdAt: currentDate,
-      reacts: 0,
-      comments: 0,
-      author: userId,
-      photos: [{ url: fileName }],
-    });
+      // Create post object
+      const post = new PostModel({
+        title,
+        content,
+        createdAt: currentDate,
+        reacts: 0,
+        comments: 0,
+        author: userId,
+        photos: [{ url: fileName }],
+      });
 
-    // Save post to database
-    await post.save();
+      // Save post to database
+      await post.save();
+      await updateUserStorageOnPost(userId, difference);
 
-    res.status(200).json({ message: "Post created successfully", post });
+      res.status(200).json({ message: "Post created successfully", post });
+    } else {
+      res.status(500).json({ error: "Not enough Storage" });
+    }
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -340,7 +357,6 @@ export const makeReaction = async (req: Request, res: Response) => {
 //   }
 // };
 
-
 export const getPostImage = async (req: Request, res: Response) => {
   try {
     const name = req.query.name as string | undefined;
@@ -352,15 +368,15 @@ export const getPostImage = async (req: Request, res: Response) => {
     const key = `uploads/image/post/${name}`;
 
     const command = new GetObjectCommand({
-      Bucket: 'vgs-upload',
-      Key: key,
+      Bucket: "vgs-upload",
+      Key: name,
     });
 
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
       res.set({
-        'Content-Type': 'image/jpg',
+        "Content-Type": "image/jpg",
       });
 
       Body.pipe(res);

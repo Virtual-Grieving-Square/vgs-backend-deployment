@@ -21,7 +21,7 @@ const userSchema: Schema = new Schema({
   refreshToken: { type: String, required: false },
   firstTimePaid: { type: Boolean, default: false },
   donations: [{ type: Schema.Types.ObjectId, ref: "donation" }],
-
+  storage: { type: Number, default: 0 },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -47,6 +47,7 @@ export interface User extends Document {
   password: string;
   accessToken: string;
   refreshToken: string;
+  storage: number;
 }
 
 export const UserModel = mongoose.model<User>("User", userSchema);
