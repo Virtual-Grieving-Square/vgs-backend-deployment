@@ -49,6 +49,19 @@ export const getByNumber = async (req: Request, res: Response) => {
   }
 };
 
+export const getById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const famous = await FamousPeopleModel.findById(id);
+
+    res.status(200).json(famous);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
 export const create = async (req: Request, res: Response) => {
   try {
     const { name, profession, dob, dod } = req.body;
@@ -114,7 +127,7 @@ export const getImage = async (req: Request, res: Response) => {
 
     const command = new GetObjectCommand({
       Bucket: "vgs-upload",
-      Key: image,
+      Key: key,
     });
 
 
@@ -130,8 +143,20 @@ export const getImage = async (req: Request, res: Response) => {
       res.status(500).json({ error: "Failed to fetch image from S3" });
     }
 
-
     console.log(image)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
+export const deleteData = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const famous = await FamousPeopleModel.findByIdAndDelete(id);
+
+    res.status(200).json(famous);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
