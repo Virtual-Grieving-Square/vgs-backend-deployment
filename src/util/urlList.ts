@@ -9,7 +9,7 @@ export const urlList = [
   // Production
   "https://uione.virtualgrievingsquare.com",
   "https://5729-196-188-123-14.ngrok-free.app",
-  "https://deoow05yxfsr.cloudfront.net/",
+  "https://deoow05yxfsr.cloudfront.net",
   "https://virtualgrievingsquare.com",
-  "https://admin.virtualgrievingsquare.com/",
+  "https://admin.virtualgrievingsquare.com",
 ];
