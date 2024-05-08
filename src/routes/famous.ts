@@ -5,7 +5,9 @@ import {
   getAll,
   getById,
   getByNumber,
-  getImage
+  getImage,
+  getRandom,
+  getRandomByNumber
 } from "../controller/famous";
 
 import multer from "multer";
@@ -18,6 +20,8 @@ const router = express.Router();
 // Get Items
 router.get("/getAll", getAll);
 router.get('/getById/:id', getById);
+router.get("/getRandom", getRandom);
+router.get("/getRandom/:id", getRandomByNumber);
 
 router.get("/getByNumber/:number", getByNumber);
 router.post("/create", upload.single("image"), create);

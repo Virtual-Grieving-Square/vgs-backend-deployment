@@ -10,6 +10,7 @@ import {
   getAllComments,
   getPostImage,
   getPostsWithImages,
+  getRecent3Posts,
   getUserPost,
   likePost,
   makeReaction,
@@ -26,7 +27,10 @@ const router = express.Router();
 
 // Post
 router.post("/create", upload.single("photos"), createPost);
+
+// Get POsts
 router.get("/getallPost", getPostsWithImages);
+router.get("/getRecent3Posts", getRecent3Posts)
 router.get("/getUserPost/:id", getUserPost);
 
 // Like, Comment, Share
@@ -43,5 +47,7 @@ router.post("/translate", translateComment);
 router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
 router.post("/Reactions", makeReaction);
-router.post("/profanity", profanityChecker)
+router.post("/profanity", profanityChecker);
+
+
 export default router;

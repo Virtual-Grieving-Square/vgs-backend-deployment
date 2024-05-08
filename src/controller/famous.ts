@@ -49,6 +49,64 @@ export const getByNumber = async (req: Request, res: Response) => {
   }
 };
 
+export const getRandom = async (req: Request, res: Response) => {
+  try {
+    const famous = await FamousPeopleModel.aggregate([{ $sample: { size: 1 } }]);
+
+    const key = famous[0].image;
+
+    const command = new GetObjectCommand({
+      Bucket: "vgs-upload",
+      Key: key,
+    });
+
+    const { Body } = await s3Client.send(command);
+
+    if (Body instanceof Stream) {
+      res.set({
+        "Content-Type": "image/jpg",
+      });
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
+export const getRandomByNumber = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const famous = await FamousPeopleModel.aggregate([{ $sample: { size: 1 } }]);
+
+    const key = famous[0].image;
+
+    const command = new GetObjectCommand({
+      Bucket: "vgs-upload",
+      Key: key,
+    });
+
+    const { Body } = await s3Client.send(command);
+
+    if (Body instanceof Stream) {
+      res.set({
+        "Content-Type": "image/jpg",
+      });
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
 export const getById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -60,7 +118,7 @@ export const getById = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const create = async (req: Request, res: Response) => {
   try {

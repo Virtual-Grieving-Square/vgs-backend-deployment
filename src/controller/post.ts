@@ -94,6 +94,45 @@ export const createPost = async (req: Request, res: Response) => {
   }
 };
 
+export const getPostsWithImages = async (req: Request, res: Response) => {
+  try {
+    const posts: IPost[] = await PostModel.find()
+      .sort({ createdAt: -1 })
+      .exec();
+
+    const postsWithImages = posts.map((post) => {
+      return {
+        _id: post._id,
+        title: post.title,
+        content: post.content,
+        createdAt: post.createdAt,
+        reacts: post.reacts,
+        comments: post.comments,
+        author: post.author,
+        photos: post.photos.map((photo: { url: any }) => photo.url),
+      };
+    });
+
+    res.status(200).json(postsWithImages);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getRecent3Posts = async (req: Request, res: Response) => {
+  try {
+    const post = await PostModel.find();
+
+    const posts = post.slice(0, 3);
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 export const countLike = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -165,31 +204,7 @@ export const likePost = async (req: Request, res: Response) => {
   }
 };
 
-export const getPostsWithImages = async (req: Request, res: Response) => {
-  try {
-    const posts: IPost[] = await PostModel.find()
-      .sort({ createdAt: -1 })
-      .exec();
 
-    const postsWithImages = posts.map((post) => {
-      return {
-        _id: post._id,
-        title: post.title,
-        content: post.content,
-        createdAt: post.createdAt,
-        reacts: post.reacts,
-        comments: post.comments,
-        author: post.author,
-        photos: post.photos.map((photo: { url: any }) => photo.url),
-      };
-    });
-
-    res.status(200).json(postsWithImages);
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
 
 export const deletePost = async (req: Request, res: Response) => {
   try {
