@@ -44,14 +44,17 @@ export const createPost = async (req: Request, res: Response) => {
         .status(400)
         .json({ error: "Title, content, and userId are required" });
     }
-
+    if (!req.file) {
+      return res.status(400).json({ error: "couldnt fetch file" });
+    }
     const currentDate = new Date();
-    const fileOrgnName = req.file?.originalname || "";
+    const fileOrgnName = req.file?.originalname;
     const fileName = `uploads/image/post/${Date.now()}-${removeSpaces(
       fileOrgnName
     )}`;
 
-    const fileSize = await getFileStats(fileName);
+    const fileSizeInBytes = req.file?.size || 0;
+    const fileSize = fileSizeInBytes / 1024;
     const usersStorage = await getUserStorage(userId);
     const { hasEnoughStorage, difference } = checkuserStorageLimit(
       usersStorage,
@@ -131,7 +134,7 @@ export const getRecent3Posts = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const countLike = async (req: Request, res: Response) => {
   try {
@@ -203,8 +206,6 @@ export const likePost = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
 
 export const deletePost = async (req: Request, res: Response) => {
   try {
