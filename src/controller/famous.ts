@@ -6,6 +6,7 @@ import { removeSpaces } from "../util/removeSpace";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { Stream } from "nodemailer/lib/xoauth2";
+import FamousPetModel from "../model/famousPet";
 
 
 export const getAll = async (req: Request, res: Response) => {
@@ -213,6 +214,84 @@ export const deleteData = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const famous = await FamousPeopleModel.findByIdAndDelete(id);
+
+    res.status(200).json(famous);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
+// Pets
+export const createPet = async (req: Request, res: Response) => {
+  try {
+    const { name, type, dob, dod } = req.body;
+
+    let number = 1;
+
+    if (!name || !type || !dob || !dod) {
+      return res
+        .status(402)
+        .json({ message: "Please fill in all required fields." });
+    }
+
+    // Image Upload Logic
+    const currentDate = new Date();
+    const fileOrgnName = req.file?.originalname || "";
+    const fileName = `uploads/image/famous/pet/${Date.now()}-${removeSpaces(
+      fileOrgnName
+    )}`;
+
+    const uploadParams = {
+      Bucket: "vgs-upload",
+      Key: fileName,
+      Body: req.file?.buffer,
+      ContentType: req.file?.mimetype,
+    };
+
+    const command = new PutObjectCommand(uploadParams);
+    await s3Client.send(command);
+
+    const famous = await FamousPetModel.find().sort({ number: -1 }).limit(1);
+    const newEntryData = {
+      name: name,
+      type: type,
+      dob: dob,
+      dod: dod,
+      image: fileName,
+    };
+    const newEntry = new FamousPetModel(newEntryData);
+
+    newEntry
+      .save()
+      .then((savedEntry) => {
+        res.status(200).json({ msg: "New entry added", data: savedEntry });
+      })
+      .catch((error) => {
+        res.status(500).json({ msg: "Error adding new entry:", data: error });
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
+export const getAllPet = async (req: Request, res: Response) => {
+  try {
+    const famous = await FamousPetModel.find();
+
+    res.status(200).json(famous);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
+
+export const deletePet = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const famous = await FamousPetModel.findByIdAndDelete(id);
 
     res.status(200).json(famous);
   } catch (error) {
