@@ -123,7 +123,7 @@ export const getById = async (req: Request, res: Response) => {
 
 export const create = async (req: Request, res: Response) => {
   try {
-    const { name, profession, dob, dod } = req.body;
+    const { name, profession, dob, dod, description } = req.body;
     console.log(req.body);
     let number = 1;
 
@@ -156,6 +156,7 @@ export const create = async (req: Request, res: Response) => {
       profession: profession,
       dob: dob,
       dod: dod,
+      description: description,
       image: fileName,
     };
     const newEntry = new FamousPeopleModel(newEntryData);
@@ -225,7 +226,7 @@ export const deleteData = async (req: Request, res: Response) => {
 // Pets
 export const createPet = async (req: Request, res: Response) => {
   try {
-    const { name, type, dob, dod } = req.body;
+    const { name, type, dob, dod, description } = req.body;
 
     let number = 1;
 
@@ -258,6 +259,7 @@ export const createPet = async (req: Request, res: Response) => {
       type: type,
       dob: dob,
       dod: dod,
+      description: description,
       image: fileName,
     };
     const newEntry = new FamousPetModel(newEntryData);

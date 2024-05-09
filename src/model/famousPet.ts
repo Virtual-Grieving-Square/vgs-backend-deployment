@@ -6,6 +6,7 @@ export interface FamousPetInterface extends Document {
   dob: string;
   dod: string;
   image: string;
+  description: string;
   number?: number;
 }
 
@@ -19,6 +20,7 @@ const FamousPetSchema: Schema = new Schema({
   dob: { type: String, required: true },
   dod: { type: String, required: false },
   number: { type: Number, required: false },
+  description: { type: String, required: false, default: "" },
   image: { type: String, required: false },
 
   //Timestamp
