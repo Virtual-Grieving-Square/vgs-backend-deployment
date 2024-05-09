@@ -10,7 +10,8 @@ import {
   getByNumber,
   getImage,
   getRandom,
-  getRandomByNumber
+  getRandomByNumber,
+  getRandomByNumberPet
 } from "../controller/famous";
 
 import multer from "multer";
@@ -39,7 +40,7 @@ router.delete("/delete/:id", deleteData);
 router.get("/pet/getAll", getAllPet);
 router.get("/pet/getById/:id");
 router.get("/pet/getRandom",);
-router.get("/pet/getRandom/:id");
+router.get("/pet/getRandom/:id", getRandomByNumberPet);
 
 // Create Pet
 router.post("/pet/create", upload.single("image"), createPet);

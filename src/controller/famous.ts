@@ -299,3 +299,32 @@ export const deletePet = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server Error" });
   }
 }
+
+export const getRandomByNumberPet = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const famous = await FamousPetModel.aggregate([{ $sample: { size: 1 } }]);
+
+    const key = famous[0].image;
+
+    const command = new GetObjectCommand({
+      Bucket: "vgs-upload",
+      Key: key,
+    });
+
+    const { Body } = await s3Client.send(command);
+
+    if (Body instanceof Stream) {
+      res.set({
+        "Content-Type": "image/jpg",
+      });
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
