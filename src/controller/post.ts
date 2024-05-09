@@ -205,7 +205,6 @@ export const likePost = async (req: Request, res: Response) => {
 };
 
 
-
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const postId = req.params.id;

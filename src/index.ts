@@ -36,6 +36,7 @@ import zoom from './routes/zoom';
 import famous from './routes/famous';
 import zoomAuth from "./routes/authZoom";
 import test from "./routes/test";
+import obituaries from "./routes/obituaries";
 
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
@@ -199,6 +200,7 @@ app.use("/meetings", tokenCheck, zoom);
 app.use("/famous", famous);
 app.use('/zoom-auth/', zoomAuth);
 app.use("/test", test);
+app.use("/obituaries", obituaries);
 
 // Use JSON parser for all non-webhook routes
 
