@@ -22,6 +22,7 @@ export async function getUserStorage(userId: string): Promise<number> {
     if (!user) {
       throw new Error("User not found");
     }
+    console.log(user);
     return user.storage;
   } catch (error) {
     console.error("Error fetching user storage:", error);

@@ -26,7 +26,7 @@ const upload = multer({ storage: storage })
 const router = express.Router();
 
 // Post
-router.post("/create", upload.single("photos"), createPost);
+router.post("/create", upload.array("photos"), createPost);
 
 // Get POsts
 router.get("/getallPost", getPostsWithImages);

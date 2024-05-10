@@ -44,33 +44,51 @@ export const createPost = async (req: Request, res: Response) => {
         .status(400)
         .json({ error: "Title, content, and userId are required" });
     }
-    if (!req.file) {
-      return res.status(400).json({ error: "couldnt fetch file" });
-    }
-    const currentDate = new Date();
-    const fileOrgnName = req.file?.originalname;
-    const fileName = `uploads/image/post/${Date.now()}-${removeSpaces(
-      fileOrgnName
-    )}`;
 
-    const fileSizeInBytes = req.file?.size || 0;
-    const fileSize = fileSizeInBytes / 1024;
+    // Check if files were uploaded
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No files were uploaded" });
+    }
+
+    const currentDate = new Date();
+    const files = req.files as Express.Multer.File[]; 
+
+    const photos = files.map((file) => {
+      const fileOrgnName = file.originalname;
+      const fileName = `uploads/image/post/${Date.now()}-${removeSpaces(
+        fileOrgnName
+      )}`;
+      return { url: fileName };
+    });
+
+    // Calculate total file size
+    const totalFileSize =
+      files.reduce((acc, file) => acc + (file.size || 0), 0) / 1024 / 1024;
+
+    // Check user storage limit
     const usersStorage = await getUserStorage(userId);
     const { hasEnoughStorage, difference } = checkuserStorageLimit(
       usersStorage,
-      fileSize
+      totalFileSize
     );
-    if (hasEnoughStorage) {
-      // Upload file to S3
-      const uploadParams = {
-        Bucket: "vgs-upload",
-        Key: fileName,
-        Body: req.file?.buffer,
-        ContentType: req.file?.mimetype,
-      };
 
-      const command = new PutObjectCommand(uploadParams);
-      await s3Client.send(command);
+    if (hasEnoughStorage) {
+      // Upload files to S3
+      const uploadPromises = files.map((file) => {
+        const fileName = photos.find((photo) =>
+          photo.url.includes(removeSpaces(file.originalname))
+        )?.url;
+        const uploadParams = {
+          Bucket: "vgs-upload",
+          Key: fileName || "",
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        };
+        const command = new PutObjectCommand(uploadParams);
+        return s3Client.send(command);
+      });
+
+      await Promise.all(uploadPromises);
 
       // Create post object
       const post = new PostModel({
@@ -80,7 +98,7 @@ export const createPost = async (req: Request, res: Response) => {
         reacts: 0,
         comments: 0,
         author: userId,
-        photos: [{ url: fileName }],
+        photos,
       });
 
       // Save post to database
