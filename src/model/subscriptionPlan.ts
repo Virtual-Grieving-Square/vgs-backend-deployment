@@ -27,6 +27,7 @@ export interface SubscriptionPlan extends Document {
   details: string[];
 }
 
+
 export const SubscriptionPlanModel = mongoose.model<SubscriptionPlan>(
   "SubscriptionPlan",
   subscriptionPlanSchema
