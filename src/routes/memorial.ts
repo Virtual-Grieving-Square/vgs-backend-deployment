@@ -8,6 +8,7 @@ import {
   getImage,
   getObituaries,
   getHumanMemorialById,
+  searchHumanMemorial,
 } from "../controller/humanMemorial";
 // Pet Memorial
 
@@ -49,13 +50,21 @@ const router = express.Router();
 // const paetMemorialUpload = multer({ storage: PetMemorialStorage });
 
 const storage = multer.memoryStorage()
-const upload = multer({storage: storage})
+const upload = multer({ storage: storage })
 // Human Memorial
+// Get
 router.get("/human/getAll", getAllHumanMemorial);
-router.post("/human/create", upload.single("image"), createHumanMemorial);
 router.get("/human/get/userId/:id", getMemorialByUserId);
 router.get("/human/getById/:id", getHumanMemorialById);
+
+// Get Image
 router.get("/human/getImage", getImage);
+
+// Search
+router.get("/human/search", searchHumanMemorial);
+
+// Create
+router.post("/human/create", upload.single("image"), createHumanMemorial);
 
 // Pet Memorial
 router.get('/pet/getAll', getAllPetMemorial);

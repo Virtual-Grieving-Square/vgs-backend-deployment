@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
 import { HumanMemorial } from "../model/humanMemorial";
-import { checkCommentUsingSapling } from "../util/commentFilter";
-import { UserModel } from "../model/user";
-import path, { dirname } from "path";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
@@ -145,3 +142,24 @@ export const getObituaries = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const searchHumanMemorial = async (req: Request, res: Response) => {
+  try {
+    const [search] = Object.values(req.query);
+    const humanMemorial = await HumanMemorial.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ],
+    });
+
+    if (humanMemorial.length === 0) {
+      return res.status(404).json({ message: "Memorial not found" });
+    }
+
+    res.status(200).json(humanMemorial);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
