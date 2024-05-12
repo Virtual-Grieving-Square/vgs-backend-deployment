@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPost extends Document {
   title: string;
-  content: string;
+  content: [];
   createdAt: Date;
   likes: number;
   reacts: number;

@@ -37,7 +37,6 @@ const filter = new Filter();
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, userId } = req.body;
-
     // Validate request data
     if (!title || !content || !userId) {
       return res
