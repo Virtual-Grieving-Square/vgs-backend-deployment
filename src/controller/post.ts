@@ -37,78 +37,77 @@ const filter = new Filter();
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, userId } = req.body;
-    console.log(req.files);
-    // // Validate request data
-    // if (!title || !content || !userId) {
-    //   return res
-    //     .status(400)
-    //     .json({ error: "Title, content, and userId are required" });
-    // }
+    // Validate request data
+    if (!title || !content || !userId) {
+      return res
+        .status(400)
+        .json({ error: "Title, content, and userId are required" });
+    }
 
-    // // Check if files were uploaded
-    // if (!req.files || req.files.length === 0) {
-    //   return res.status(400).json({ error: "No files were uploaded" });
-    // }
+    // Check if files were uploaded
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No files were uploaded" });
+    }
 
-    // const currentDate = new Date();
-    // const files = req.files as Express.Multer.File[]; 
+    const currentDate = new Date();
+    const files = req.files as Express.Multer.File[];
 
-    // const photos = files.map((file) => {
-    //   const fileOrgnName = file.originalname;
-    //   const fileName = `uploads/image/post/${Date.now()}-${removeSpaces(
-    //     fileOrgnName
-    //   )}`;
-    //   return { url: fileName };
-    // });
+    const photos = files.map((file) => {
+      const fileOrgnName = file.originalname;
+      const fileName = `uploads/image/post/${Date.now()}-${removeSpaces(
+        fileOrgnName
+      )}`;
+      return { url: fileName };
+    });
 
-    // // Calculate total file size
-    // const totalFileSize =
-    //   files.reduce((acc, file) => acc + (file.size || 0), 0) / 1024 / 1024;
+    // Calculate total file size
+    const totalFileSize =
+      files.reduce((acc, file) => acc + (file.size || 0), 0) / 1024 / 1024;
 
-    // // Check user storage limit
-    // const usersStorage = await getUserStorage(userId);
-    // const { hasEnoughStorage, difference } = checkuserStorageLimit(
-    //   usersStorage,
-    //   totalFileSize
-    // );
+    // Check user storage limit
+    const usersStorage = await getUserStorage(userId);
+    const { hasEnoughStorage, difference } = checkuserStorageLimit(
+      usersStorage,
+      totalFileSize
+    );
 
-    // if (hasEnoughStorage) {
-    //   // Upload files to S3
-    //   const uploadPromises = files.map((file) => {
-    //     const fileName = photos.find((photo) =>
-    //       photo.url.includes(removeSpaces(file.originalname))
-    //     )?.url;
-    //     const uploadParams = {
-    //       Bucket: "vgs-upload",
-    //       Key: fileName || "",
-    //       Body: file.buffer,
-    //       ContentType: file.mimetype,
-    //     };
-    //     const command = new PutObjectCommand(uploadParams);
-    //     return s3Client.send(command);
-    //   });
+    if (hasEnoughStorage) {
+      // Upload files to S3
+      const uploadPromises = files.map((file) => {
+        const fileName = photos.find((photo) =>
+          photo.url.includes(removeSpaces(file.originalname))
+        )?.url;
+        const uploadParams = {
+          Bucket: "vgs-upload",
+          Key: fileName || "",
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        };
+        const command = new PutObjectCommand(uploadParams);
+        return s3Client.send(command);
+      });
 
-    //   await Promise.all(uploadPromises);
+      await Promise.all(uploadPromises);
 
-    //   // Create post object
-    //   const post = new PostModel({
-    //     title,
-    //     content,
-    //     createdAt: currentDate,
-    //     reacts: 0,
-    //     comments: 0,
-    //     author: userId,
-    //     photos,
-    //   });
+      // Create post object
+      const post = new PostModel({
+        title,
+        content,
+        createdAt: currentDate,
+        reacts: 0,
+        comments: 0,
+        author: userId,
+        photos,
+      });
 
-    //   // Save post to database
-    //   await post.save();
-    //   await updateUserStorageOnPost(userId, difference);
+      // Save post to database
+      await post.save();
+      await updateUserStorageOnPost(userId, difference);
 
-    //   res.status(200).json({ message: "Post created successfully", post });
-    // } else {
-    //   res.status(500).json({ error: "Not enough Storage" });
-    // }
+      res.status(200).json({ message: "Post created successfully", post });
+    } else {
+      res.status(500).json({ error: "Not enough Storage" });
+    }
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
