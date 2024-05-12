@@ -61,9 +61,7 @@ export async function updateUserStorageOnPost(
   storageToSubtract: number
 ): Promise<void> {
   try {
-    await UserModel.findByIdAndUpdate(userId, {
-      $inc: { storage: -storageToSubtract },
-    });
+    await UserModel.findByIdAndUpdate(userId, { storage: storageToSubtract.toFixed(2) });
     console.log("User storage updated successfully on post.");
   } catch (error) {
     console.error("Error updating user storage on subtract:", error);
