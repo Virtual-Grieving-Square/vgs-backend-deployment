@@ -28,6 +28,7 @@ import {
   getFileStats,
   getUserStorage,
   updateUserStorageOnPost,
+  restoreStoragePost,
 } from "../util/storageTracker";
 
 // import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -36,7 +37,7 @@ const filter = new Filter();
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { title, content, userId } = req.body;
+    const { title, content, userId, relation } = req.body;
     // Validate request data
     if (!title || !content || !userId) {
       return res
@@ -98,6 +99,7 @@ export const createPost = async (req: Request, res: Response) => {
         comments: 0,
         author: userId,
         photos,
+        relation,
       });
 
       // Save post to database
@@ -227,7 +229,7 @@ export const likePost = async (req: Request, res: Response) => {
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const postId = req.params.id;
-
+    const restoreStorage = await restoreStoragePost(postId);
     const deletedPost = await PostModel.findByIdAndDelete(postId);
 
     if (!deletedPost) {

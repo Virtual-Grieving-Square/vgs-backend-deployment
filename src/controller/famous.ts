@@ -8,7 +8,6 @@ import { s3Client } from "../util/awsAccess";
 import { Stream } from "nodemailer/lib/xoauth2";
 import FamousPetModel from "../model/famousPet";
 
-
 export const getAll = async (req: Request, res: Response) => {
   try {
     const famous = await FamousPeopleModel.find();
@@ -52,7 +51,9 @@ export const getByNumber = async (req: Request, res: Response) => {
 
 export const getRandom = async (req: Request, res: Response) => {
   try {
-    const famous = await FamousPeopleModel.aggregate([{ $sample: { size: 1 } }]);
+    const famous = await FamousPeopleModel.aggregate([
+      { $sample: { size: 1 } },
+    ]);
 
     const key = famous[0].image;
 
@@ -72,17 +73,18 @@ export const getRandom = async (req: Request, res: Response) => {
     } else {
       res.status(500).json({ error: "Failed to fetch image from S3" });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const getRandomByNumber = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const famous = await FamousPeopleModel.aggregate([{ $sample: { size: 1 } }]);
+    const famous = await FamousPeopleModel.aggregate([
+      { $sample: { size: 1 } },
+    ]);
 
     const key = famous[0].image;
 
@@ -106,7 +108,7 @@ export const getRandomByNumber = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const getById = async (req: Request, res: Response) => {
   try {
@@ -190,7 +192,6 @@ export const getImage = async (req: Request, res: Response) => {
       Key: key,
     });
 
-
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
@@ -203,25 +204,26 @@ export const getImage = async (req: Request, res: Response) => {
       res.status(500).json({ error: "Failed to fetch image from S3" });
     }
 
-    console.log(image)
+    console.log(image);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const deleteData = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const famous = await FamousPeopleModel.findByIdAndDelete(id);
+    deleteImageFromS3(famous?.image);
 
     res.status(200).json(famous);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 // Pets
 export const createPet = async (req: Request, res: Response) => {
@@ -276,7 +278,7 @@ export const createPet = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const getAllPet = async (req: Request, res: Response) => {
   try {
@@ -287,20 +289,21 @@ export const getAllPet = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const deletePet = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const famous = await FamousPetModel.findByIdAndDelete(id);
+    deleteImageFromS3(famous?.image);
 
     res.status(200).json(famous);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const getRandomByNumberPet = async (req: Request, res: Response) => {
   try {
@@ -329,4 +332,8 @@ export const getRandomByNumberPet = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
+};
+
+function deleteImageFromS3(image: string | undefined) {
+  throw new Error("Function not implemented.");
 }
