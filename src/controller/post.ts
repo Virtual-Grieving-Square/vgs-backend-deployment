@@ -28,6 +28,7 @@ import {
   getFileStats,
   getUserStorage,
   updateUserStorageOnPost,
+  restoreStoragePost,
 } from "../util/storageTracker";
 
 // import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -60,19 +61,20 @@ export const createPost = async (req: Request, res: Response) => {
       return { url: fileName };
     });
 
-    // Calculate total file size
     const totalFileSize =
       files.reduce((acc, file) => acc + (file.size || 0), 0) / 1024 / 1024;
 
-    // Check user storage limit
     const usersStorage = await getUserStorage(userId);
+
+    console.log("total file size", totalFileSize);
+    console.log("user left size", usersStorage);
     const { hasEnoughStorage, difference } = checkuserStorageLimit(
       usersStorage,
       totalFileSize
     );
+    console.log("diffrence", difference);
 
     if (hasEnoughStorage) {
-      // Upload files to S3
       const uploadPromises = files.map((file) => {
         const fileName = photos.find((photo) =>
           photo.url.includes(removeSpaces(file.originalname))
@@ -89,7 +91,6 @@ export const createPost = async (req: Request, res: Response) => {
 
       await Promise.all(uploadPromises);
 
-      // Create post object
       const post = new PostModel({
         title,
         content,
@@ -244,7 +245,7 @@ export const likePost = async (req: Request, res: Response) => {
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const postId = req.params.id;
-
+    const restoreStorage = await restoreStoragePost(postId);
     const deletedPost = await PostModel.findByIdAndDelete(postId);
 
     if (!deletedPost) {

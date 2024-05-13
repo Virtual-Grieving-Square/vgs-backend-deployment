@@ -1,5 +1,9 @@
+import { DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import PostModel from "../model/Post";
 import { UserModel } from "../model/user";
 import * as fs from "fs";
+import { s3Client } from "./awsAccess";
+import { error } from "console";
 // Function to get file stats and size
 export async function getFileStats(fileName: string): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -45,13 +49,15 @@ export async function updateUserStorageOnDelete(
   userId: string,
   storageToAddBack: number
 ): Promise<void> {
+  console.log("to add", storageToAddBack);
   try {
     await UserModel.findByIdAndUpdate(userId, {
-      $inc: { storage: storageToAddBack },
+      $inc: { storage: storageToAddBack.toFixed(2) },
     });
     console.log("User storage updated successfully on delete.");
   } catch (error) {
     console.error("Error updating user storage on delete:", error);
+    throw error;
   }
 }
 
@@ -62,9 +68,70 @@ export async function updateUserStorageOnPost(
 ): Promise<void> {
   try {
     await UserModel.findByIdAndUpdate(userId, {
-      $inc: { storage: -storageToSubtract },
+      storage: storageToSubtract.toFixed(2),
     });
     console.log("User storage updated successfully on post.");
+  } catch (error) {
+    console.error("Error updating user storage on subtract:", error);
+  }
+}
+
+export const getImageSize = async (path: string): Promise<number> => {
+  try {
+    const key = `${path}`;
+
+    const headCommand = new HeadObjectCommand({
+      Bucket: "vgs-upload",
+      Key: key,
+    });
+
+    const { ContentLength } = await s3Client.send(headCommand);
+
+    if (!ContentLength) {
+      throw new Error("Image not found in S3");
+    }
+
+    return ContentLength / 1024 / 1024;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to get image size");
+  }
+};
+
+async function deleteImageFromS3(key: string): Promise<void> {
+  try {
+    const command = new DeleteObjectCommand({
+      Bucket: "vgs-upload",
+      Key: key,
+    });
+
+    await s3Client.send(command);
+  } catch (error) {
+    console.error("Error deleting image from S3:", error);
+    throw error;
+  }
+}
+
+// Function to update user's storage on Delete
+export async function restoreStoragePost(postID: string): Promise<void> {
+  try {
+    const postContent = await PostModel.findById(postID);
+    const imagePaths = postContent?.photos;
+    if (!imagePaths) {
+      throw error;
+    }
+    var totalSize = 0.0;
+    for (const path of imagePaths) {
+      try {
+        totalSize += await getImageSize(path.url);
+        await deleteImageFromS3(path.url);
+      } catch (error) {
+        console.error("Error fetching image size:", error);
+      }
+    }
+    console.log("total size", totalSize);
+    const owner = postContent?.author;
+    await updateUserStorageOnDelete(owner, totalSize);
   } catch (error) {
     console.error("Error updating user storage on subtract:", error);
   }

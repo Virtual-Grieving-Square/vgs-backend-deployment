@@ -9,7 +9,7 @@ const humanMemorialSchema: Schema = new Schema({
   author: { type: Schema.Types.ObjectId, ref: "User", required: true },
   donations: [{ type: Schema.Types.ObjectId, ref: "Donation" }],
   image: { type: String, required: false },
-
+  relation: { type: String, required: false },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -23,6 +23,7 @@ export interface humanMemorial extends Document {
   dod: Date;
   author: string;
   image: string;
+  relation: string;
 }
 
 export const HumanMemorial = mongoose.model<humanMemorial>(
