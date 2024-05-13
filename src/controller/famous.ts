@@ -35,9 +35,9 @@ export const getByNumber = async (req: Request, res: Response) => {
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
-      res.set({
-        "Content-Type": "image/jpg",
-      });
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
 
       Body.pipe(res);
     } else {
@@ -65,9 +65,9 @@ export const getRandom = async (req: Request, res: Response) => {
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
-      res.set({
-        "Content-Type": "image/jpg",
-      });
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
 
       Body.pipe(res);
     } else {
@@ -96,9 +96,9 @@ export const getRandomByNumber = async (req: Request, res: Response) => {
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
-      res.set({
-        "Content-Type": "image/jpg",
-      });
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
 
       Body.pipe(res);
     } else {
@@ -195,9 +195,9 @@ export const getImage = async (req: Request, res: Response) => {
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
-      res.set({
-        "Content-Type": "image/jpg",
-      });
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
 
       Body.pipe(res);
     } else {
