@@ -159,16 +159,33 @@ export const countLike = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const likes = await LikeModel.find({
-      postId: id,
+    const post: any = await PostModel.find({
+      _id: id,
     });
 
-    res.status(200).json({ likes: likes.length });
+    res.status(200).json({ likes: post[0].likes });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const countComment = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const post: any = await PostModel.find({
+      _id: id,
+    });
+
+    res.status(200).json({ comment: post[0].comments });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+}
 
 export const checkLike = async (req: Request, res: Response) => {
   try {
@@ -207,7 +224,7 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
 
-      return res.status(200).json({ message: "Post unliked successfully" });
+      return res.status(200).json({ like: false, message: "Post unliked successfully" });
     } else {
       const like = new LikeModel({
         postId: postId,
@@ -218,7 +235,7 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
-      return res.status(200).json({ message: "Post liked successfully" });
+      return res.status(200).json({ like: true, message: "Post liked successfully" });
     }
   } catch (error) {
     console.error(error);

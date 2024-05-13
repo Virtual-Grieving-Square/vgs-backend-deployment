@@ -3,6 +3,7 @@ import multer from "multer";
 
 import {
   checkLike,
+  countComment,
   countLike,
   createComment,
   createPost,
@@ -36,6 +37,7 @@ router.get("/getUserPost/:id", getUserPost);
 // Like, Comment, Share
 router.put('/like', likePost);
 router.get('/like/count/:id', countLike);
+router.get("/comment/count/:id", countComment);
 router.get('/checkLike/:id/:userId', checkLike);
 
 // Comment
