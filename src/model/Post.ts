@@ -9,7 +9,7 @@ export interface IPost extends Document {
   comments: number;
   author: string;
   photos: { url: string }[];
-  relation: string;
+ 
 }
 
 const PostSchema: Schema = new Schema({
@@ -20,7 +20,7 @@ const PostSchema: Schema = new Schema({
   comments: { type: Number, default: 0 },
   author: { type: Schema.Types.ObjectId, ref: "User", required: true },
   photos: [{ url: { type: String, required: true } }],
-  relation: { type: String, required: false },
+
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

@@ -37,7 +37,7 @@ const filter = new Filter();
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { title, content, userId, relation } = req.body;
+    const { title, content, userId } = req.body;
     // Validate request data
     if (!title || !content || !userId) {
       return res
@@ -99,7 +99,6 @@ export const createPost = async (req: Request, res: Response) => {
         comments: 0,
         author: userId,
         photos,
-        relation,
       });
 
       // Save post to database

@@ -34,7 +34,7 @@ export const getHumanMemorialById = async (req: Request, res: Response) => {
 
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, description, dob, dod, author } = req.body;
+    const { name, age, description, dob, dod, author, relation } = req.body;
     console.log(req.body);
     console.log(req.files);
 
@@ -75,6 +75,7 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
         dod: dod,
         author: author,
         image: fileName,
+        relation: relation,
       });
 
       await humanMemorial.save();
@@ -162,4 +163,4 @@ export const searchHumanMemorial = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
