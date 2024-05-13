@@ -8,17 +8,17 @@ import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Stream } from "stream";
+import { Stream } from "stream";
 
 export const getAllPetMemorial = async (req: Request, res: Response) => {
   try {
     const allpetMemorials = await PetMemorial.find();
     res.status(200).json(allpetMemorials);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const getPetById = async (req: Request, res: Response) => {
   try {
@@ -36,7 +36,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
     const { name, age, type, DOB, DOD, owner } = req.body;
 
     if (req.files?.length === 0) {
-      return res.status(406).json({ message: "No image provided" })
+      return res.status(406).json({ message: "No image provided" });
     } else {
       // const coverImage = (req.files as Express.Multer.File[]).map(
       //   (file: Express.Multer.File) => ({
@@ -48,6 +48,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
         fileOrgnName
       )}`;
 
+
       // Upload file to S3
       const uploadParams = {
         Bucket: "vgs-upload",
@@ -55,6 +56,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
         Body: req.file?.buffer,
         ContentType: req.file?.mimetype,
       };
+
 
       const command = new PutObjectCommand(uploadParams);
       await s3Client.send(command);
@@ -80,7 +82,6 @@ export const createPetMemorial = async (req: Request, res: Response) => {
         .status(201)
         .json({ message: "Pet Memory created successfully", petMemorial });
     }
-
   } catch (error) {
     console.error("Error creating pet memorials:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -99,7 +100,7 @@ export const getPetMemorialByUserId = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const fetchpetImage = async (req: Request, res: Response) => {
   try {
@@ -109,48 +110,20 @@ export const fetchpetImage = async (req: Request, res: Response) => {
       return res.status(400).send("Image name is not provided");
     }
 
-    const key = `uploads/image/post/${name}`;
+    try {
+      // const location = path.join(__dirname, "../../", image);
+      const getObjectParams = {
+        Bucket: "vgs-upload",
+        Key: image,
+      };
+      const command = new GetObjectCommand(getObjectParams);
+      const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
-    const command = new GetObjectCommand({
-      Bucket: "vgs-upload",
-      Key: name,
-    });
+      res.status(200).json({ url });
+      // res.sendFile(location);
+    } catch (error) {
+      console.error(error);
 
-    const { Body } = await s3Client.send(command);
-
-    if (Body instanceof Stream) {
-      res.set({
-        "Content-Type": "image/jpg",
-      });
-
-      Body.pipe(res);
-    } else {
-      res.status(500).json({ error: "Failed to fetch image from S3" });
+      res.status(500).json({ error: "Failed to get the signed URL" });
     }
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({ error: "Failed to get the signed URL" });
-  }
-};
-
-export const searchPetMemorial = async (req: Request, res: Response) => {
-  try {
-    const [search] = Object.values(req.query);
-    const petMemorial = await PetMemorial.find({
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ],
-    });
-
-    if (petMemorial.length === 0) {
-      return res.status(404).json({ message: "Memorial not found" });
-    }
-
-    res.status(200).json(petMemorial);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
+  };

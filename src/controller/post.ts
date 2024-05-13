@@ -412,9 +412,9 @@ export const getPostImage = async (req: Request, res: Response) => {
     const { Body } = await s3Client.send(command);
 
     if (Body instanceof Stream) {
-      res.set({
-        "Content-Type": "image/jpg",
-      });
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
 
       Body.pipe(res);
     } else {
