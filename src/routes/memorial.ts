@@ -17,37 +17,14 @@ import {
   createPetMemorial,
   fetchpetImage,
   getPetMemorialByUserId,
+  getPetById,
+  searchPetMemorial,
 } from "../controller/pet";
 
 import multer from "multer";
 import { removeSpaces } from "../util/removeSpace";
 
 const router = express.Router();
-
-
-// Human Memorial Upload
-// const HumanMemorialStorage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, "uploads/image/Memorial/HumanMemorial");
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
-//   },
-// });
-
-// Pet Memorial Upload
-// const PetMemorialStorage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, "uploads/image/Memorial/PetMemorial");
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + "-" + removeSpaces(file.originalname));
-//   },
-// });
-
-
-// const humanMemorialUpload = multer({ storage: HumanMemorialStorage });
-// const paetMemorialUpload = multer({ storage: PetMemorialStorage });
 
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -68,9 +45,14 @@ router.post("/human/create", upload.single("image"), createHumanMemorial);
 
 // Pet Memorial
 router.get('/pet/getAll', getAllPetMemorial);
+router.get('/pet/getById/:id', getPetById);
 router.post("/pet/create", upload.single("image"), createPetMemorial);
 router.get("/pet/get/userId/:id", getPetMemorialByUserId);
 router.get("/pet/getImage", fetchpetImage);
+
+// Search Pet
+router.get("/pet/search", searchPetMemorial);
+
 
 // Get Obituaries 
 router.get("/obituaries", getObituaries);

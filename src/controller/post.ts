@@ -118,23 +118,9 @@ export const createPost = async (req: Request, res: Response) => {
 export const getPostsWithImages = async (req: Request, res: Response) => {
   try {
     const posts: IPost[] = await PostModel.find()
-      .sort({ createdAt: -1 })
-      .exec();
+      .sort({ createdAt: -1 });
 
-    const postsWithImages = posts.map((post) => {
-      return {
-        _id: post._id,
-        title: post.title,
-        content: post.content,
-        createdAt: post.createdAt,
-        reacts: post.reacts,
-        comments: post.comments,
-        author: post.author,
-        photos: post.photos.map((photo: { url: any }) => photo.url),
-      };
-    });
-
-    res.status(200).json(postsWithImages);
+    res.status(200).json(posts);
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ error: "Internal server error" });
