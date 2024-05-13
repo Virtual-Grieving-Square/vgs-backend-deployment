@@ -19,8 +19,6 @@ import {
   translateComment
 } from '../controller/post';
 
-import { removeSpaces } from '../util/removeSpace';
-
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
