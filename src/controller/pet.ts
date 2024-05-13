@@ -8,7 +8,6 @@ import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Stream } from "stream";
-import { Stream } from "stream";
 
 export const getAllPetMemorial = async (req: Request, res: Response) => {
   try {
@@ -110,20 +109,27 @@ export const fetchpetImage = async (req: Request, res: Response) => {
       return res.status(400).send("Image name is not provided");
     }
 
-    try {
-      // const location = path.join(__dirname, "../../", image);
-      const getObjectParams = {
-        Bucket: "vgs-upload",
-        Key: image,
-      };
-      const command = new GetObjectCommand(getObjectParams);
-      const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    const key = `${name}`;
 
-      res.status(200).json({ url });
-      // res.sendFile(location);
-    } catch (error) {
-      console.error(error);
+    const command = new GetObjectCommand({
+      Bucket: "vgs-upload",
+      Key: name,
+    });
 
-      res.status(500).json({ error: "Failed to get the signed URL" });
+    const { Body } = await s3Client.send(command);
+
+    if (Body instanceof Stream) {
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
     }
-  };
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({ error: "Failed to get the signed URL" });
+  }
+};

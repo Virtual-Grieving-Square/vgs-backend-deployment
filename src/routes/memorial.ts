@@ -18,7 +18,7 @@ import {
   fetchpetImage,
   getPetMemorialByUserId,
   getPetById,
-  searchPetMemorial,
+  // searchPetMemorial,
 } from "../controller/pet";
 
 import multer from "multer";
@@ -51,7 +51,7 @@ router.get("/pet/get/userId/:id", getPetMemorialByUserId);
 router.get("/pet/getImage", fetchpetImage);
 
 // Search Pet
-router.get("/pet/search", searchPetMemorial);
+// router.get("/pet/search", searchPetMemorial);
 
 
 // Get Obituaries 
