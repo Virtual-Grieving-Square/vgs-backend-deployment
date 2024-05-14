@@ -7,6 +7,7 @@ import { FlowerDonationModel } from "../model/flowerDonation";
 
 export const makeDonation = async (req: Request, res: Response) => {
   const { from, to, amount, description } = req.body;
+  console.log(req.body);
 
   if (!from || !to || !amount) {
     res.status(403).send({ msg: "required field missing" });
