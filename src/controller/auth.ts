@@ -15,6 +15,7 @@ import { generateUserAccessToken } from "../util/generateUserAccessToken";
 import { RecoverPasswordModel } from "../model/recoverPassword";
 import { sendEmail } from "../util/email";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
+import { sendOtp, verifyOtp } from "../util/smsMethods";
 
 // Sign up
 export const signup: RequestHandler = async (
@@ -55,6 +56,8 @@ export const signup: RequestHandler = async (
     }
 
     if (verification == "phone") {
+      // here is where i need to send the sms
+      const verificationSMS = await sendOtp(phoneNumber);
       const checkTempUser = await TempUserModel.findOne({
         phoneNumber: phoneNumber,
       });
@@ -208,9 +211,12 @@ export const verify: RequestHandler = async (
         res.status(401).json({ msg: "Invalid OTP" });
       }
     } else if (type == "phone") {
+      const verification = await verifyOtp(otp, phoneNumber);
+      if (verification !== "approved") {
+        res.status(401).json({ msg: "Invalid OTP" });
+      }
       const tempUser = await TempUserModel.findOne({
         phoneNumber: phoneNumber,
-        otp: otp,
       });
 
       if (tempUser) {
@@ -572,11 +578,9 @@ export const resetPassword: RequestHandler = async (
     return res.status(200).json({ message: "Password reset successful." });
   } catch (error) {
     if ((error as any).name === "TokenExpiredError") {
-      return res
-        .status(400)
-        .json({
-          message: "Token expired. Please request a new password reset.",
-        });
+      return res.status(400).json({
+        message: "Token expired. Please request a new password reset.",
+      });
     }
     console.error("Error resetting password:", error);
     return res.status(500).json({ message: "Internal server error" });

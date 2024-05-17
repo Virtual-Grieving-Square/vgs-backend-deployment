@@ -11,6 +11,9 @@ interface Config {
   zoomAPI: string;
   Zoom_sdk_key: string;
   Zoom_sdk_sec_key: string;
+  twilioAccount: string;
+  twilioAuthToken: string;
+  twilioService: string;
 }
 
 const config: Config = {
@@ -23,6 +26,9 @@ const config: Config = {
   zoomAPI: process.env.ZOOM_API_KEY || "",
   Zoom_sdk_key: process.env.ZOOM_MEETING_SDK_KEY || "",
   Zoom_sdk_sec_key: process.env.ZOOM_MEETING_SDK_SECRET || "",
+  twilioAccount:process.env.TWILIO_ACCOUNT_SID || "",
+  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || "",
+  twilioService: process.env.SERVICETOKEN || ""
 };
 
 export default config;

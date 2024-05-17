@@ -199,7 +199,7 @@ app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
 app.use("/famous", famous);
 app.use('/zoom-auth/', zoomAuth);
-app.use("/test", test);
+app.use("/testsms", test);
 app.use("/obituaries", obituaries);
 app.use("/flower", flower);
 
