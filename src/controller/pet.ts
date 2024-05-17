@@ -32,7 +32,10 @@ export const getPetById = async (req: Request, res: Response) => {
 
 export const createPetMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, type, DOB, DOD, owner } = req.body;
+    const { name, age, type, dob, dod, author } = req.body;
+    const owner = author;
+    console.log(req.files);
+    console.log(req.body);
 
     if (req.files?.length === 0) {
       return res.status(406).json({ message: "No image provided" });
@@ -56,11 +59,10 @@ export const createPetMemorial = async (req: Request, res: Response) => {
         ContentType: req.file?.mimetype,
       };
 
-
       const command = new PutObjectCommand(uploadParams);
       await s3Client.send(command);
 
-      if (!name || !age || !type || !DOB || !DOD || !owner) {
+      if (!name || !age || !type || !dob || !dod || !owner) {
         return res.status(400).json({ message: "All fields are required" });
       }
 
@@ -69,8 +71,8 @@ export const createPetMemorial = async (req: Request, res: Response) => {
         name: name,
         age: age,
         type: type,
-        DOB: DOB,
-        DOD: DOD,
+        DOB: dob,
+        DOD: dod,
         owner: owner,
         coverImage: fileName,
       });
@@ -78,7 +80,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
       await petMemorial.save();
 
       res
-        .status(201)
+        .status(200)
         .json({ message: "Pet Memory created successfully", petMemorial });
     }
   } catch (error) {
