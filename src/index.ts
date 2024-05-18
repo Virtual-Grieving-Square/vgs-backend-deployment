@@ -74,7 +74,7 @@ firebase.initializeApp({
 // }
 // );
 
-const endpointSecret = "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
+const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET!;
 
 app.post("/webhook", express.raw({ type: "application/json" }), async (req: express.Request, res: express.Response) => {
   const sig = req.headers['stripe-signature'];
