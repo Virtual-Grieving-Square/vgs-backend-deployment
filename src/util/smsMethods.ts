@@ -12,7 +12,7 @@ export async function sendOtp(numb: string): Promise<any> {
     const verification = await client.verify.v2
       .services(servicToken)
       .verifications.create({
-        to: numb,
+        to: `+${numb}`,
         channel: "sms",
       });
 
@@ -31,7 +31,7 @@ export async function verifyOtp(otp: number, numb: string): Promise<any> {
   try {
     const verification = await client.verify.v2
       .services(servicToken)
-      .verificationChecks.create({ to: numb, code: otp });
+      .verificationChecks.create({ to: `+${numb}`, code: otp });
     return verification.status;
   } catch (error) {
     throw error;

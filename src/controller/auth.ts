@@ -24,8 +24,9 @@ export const signup: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, username, email, phoneNumber, password } =
+    const { firstName, lastName, username, email, password } =
       req.body.data;
+    const phoneNumber = req.body.phoneNumber;
     const verification = req.body.verification;
     const subscriptionType = req.body.subscriptionType;
     const existingUserByEmail = await UserModel.findOne({ email: email });

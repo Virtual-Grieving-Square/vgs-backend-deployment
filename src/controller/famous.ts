@@ -216,7 +216,7 @@ export const deleteData = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const famous = await FamousPeopleModel.findByIdAndDelete(id);
-    deleteImageFromS3(famous?.image);
+    // deleteImageFromS3(famous?.image);
 
     res.status(200).json(famous);
   } catch (error) {
@@ -296,7 +296,7 @@ export const deletePet = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const famous = await FamousPetModel.findByIdAndDelete(id);
-    deleteImageFromS3(famous?.image);
+    // deleteImageFromS3(famous?.image);
 
     res.status(200).json(famous);
   } catch (error) {
