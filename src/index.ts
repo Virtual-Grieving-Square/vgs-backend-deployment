@@ -4,11 +4,6 @@ import http from "http";
 import dotenv from "dotenv";
 import { connectDB } from "./database/db";
 import firebase from "firebase-admin";
-import Stripe from 'stripe';
-import * as fs from 'fs';
-
-// Stripe
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
 
 // Scoket.io
 import { Server } from 'socket.io';
@@ -42,9 +37,7 @@ import flower from './routes/flower';
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
 import { tokenCheck } from "./middleware/tokenCheckMiddleware";
-import PaymentListModel from "./model/paymentList";
-import { UserModel } from "./model/user";
-import DepositListModel from "./model/depositList";
+import { stripeWebhook } from "./util/stripe";
 
 var serviceAccount = require("../serviceAccountKey.json");
 
@@ -63,100 +56,13 @@ firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
 });
 
-// app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
-//   console.log(req.originalUrl);
-//   if (req.originalUrl === '/webhook') {
-//     next();
-//   } else {
-//     express.json();
-//     console.log("Here with express.json()")
-//   }
-// }
-// );
-
-const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET!;
 
 app.post("/webhook", express.raw({ type: "application/json" }), async (req: express.Request, res: express.Response) => {
   const sig = req.headers['stripe-signature'];
 
   let event: any;
 
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-  } catch (err: any) {
-    res.status(407).send(`Webhook Error: ${err.message}`);
-    return;
-  }
-
-  let intent: any = null;
-
-  switch (event['type']) {
-    case "checkout.session.completed":
-      const checkOutId = event.data.object.id;
-      const paymentStatus = event.data.object.payment_status;
-      console.log("Payment Status: ", paymentStatus)
-      if (paymentStatus === "paid") {
-
-        const checkPaymentType1 = await PaymentListModel.findOne({
-          paymentId: checkOutId
-        });
-
-        if (checkPaymentType1) {
-          const paidd = await PaymentListModel.updateOne({
-            paymentId: checkOutId
-          }, {
-            paid: true
-          });
-
-          const user = await PaymentListModel.findOne({
-            paymentId: checkOutId
-          });
-
-          await UserModel.updateOne({
-            _id: user!.userId
-          }, {
-            paid: true,
-            firstTimePaid: true,
-          });
-
-          console.log("Paid: ", paidd);
-        }
-
-        const checkPaymentType2 = await DepositListModel.findOne({
-          paymentId: checkOutId
-        });
-
-        if (checkPaymentType2) {
-          console.log("Balance Update");
-
-          const doubleCheck = await DepositListModel.findOne({
-            paymentId: checkOutId
-          });
-
-          if (doubleCheck?.paid) {
-            console.log("Already Paid");
-          } else {
-            const paidd = await DepositListModel.updateOne({
-              paymentId: checkOutId
-            }, {
-              paid: true
-            });
-
-            await UserModel.updateOne({
-              _id: checkPaymentType2.userId
-            }, {
-              $inc: {
-                balance: checkPaymentType2.amount
-              }
-            });
-          }
-        }
-      }
-      fs.writeFileSync('event.json', JSON.stringify(event.data.object, null, 2));
-      break;
-  }
-  res.json({ received: true });
-
+  stripeWebhook(sig, event, res, req);
 });
 
 app.use(express.json());
@@ -171,7 +77,7 @@ app.use(
   })
 );
 
-// app.use(apiAuthMiddleware);
+app.use(apiAuthMiddleware);
 
 
 app.set("view engine", "ejs");
@@ -203,7 +109,6 @@ app.use("/testsms", test);
 app.use("/obituaries", obituaries);
 app.use("/flower", flower);
 
-// Use JSON parser for all non-webhook routes
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {
