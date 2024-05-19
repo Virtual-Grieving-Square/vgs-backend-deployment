@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 
 // Stripe
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY!);
@@ -82,7 +81,7 @@ export const stripeWebhook = async (sig: any, event: any, res: any, req: any) =>
             }
           }
         }
-        fs.writeFileSync('event.json', JSON.stringify(event.data.object, null, 2));
+        // fs.writeFileSync('event.json', JSON.stringify(event.data.object, null, 2));
         break;
     }
 
