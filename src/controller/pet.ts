@@ -62,11 +62,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
       //   })
       // );
       const fileOrgnName = req.file?.originalname || "";
-      const fileName = `uploads/image/Memorial / PetMemorial / ${Date.now()} -${removeSpaces(
-        fileOrgnName
-      )
-        } `;
-
+      const fileName = `uploads/image/Memorial/PetMemorial/${Date.now()} -${removeSpaces(fileOrgnName)}`;
 
       // Upload file to S3
       const uploadParams = {
@@ -152,3 +148,22 @@ export const fetchpetImage = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to get the signed URL" });
   }
 };
+
+export const deletePetMemorial = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const petMemorial = await PetMemorial.findById(id);
+
+    if (!petMemorial) {
+      return res.status(404).json({ message: "Memorial not found" });
+    }
+
+    await PetMemorial.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Memorial deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

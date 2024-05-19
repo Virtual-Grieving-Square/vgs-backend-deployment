@@ -109,6 +109,21 @@ export const createPost = async (req: Request, res: Response) => {
   }
 };
 
+export const getUserPost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const posts = await PostModel.find({
+      author: id,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const getAll = async (req: any, res: Response) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -447,20 +462,6 @@ export const profanityChecker = async (req: Request, res: Response) => {
   }
 };
 
-export const getUserPost = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const posts = await PostModel.find({
-      author: id,
-    }).sort({ createdAt: -1 });
-
-    res.status(200).json(posts);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
 
 export const searchPost = async (req: Request, res: Response) => {
   try {

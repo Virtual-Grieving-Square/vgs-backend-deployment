@@ -46,7 +46,9 @@ router.post("/translate", translateComment);
 
 // Get Image
 router.get("/getImage", getPostImage);
-router.delete("/deleteposts/:id", deletePost);
+
+// Delete
+router.delete("/delete/:id", deletePost);
 router.post("/Reactions", makeReaction);
 router.post("/profanity", profanityChecker);
 

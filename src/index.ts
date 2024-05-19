@@ -33,6 +33,7 @@ import zoomAuth from "./routes/authZoom";
 import test from "./routes/test";
 import obituaries from "./routes/obituaries";
 import flower from './routes/flower';
+import image from './routes/image';
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -56,12 +57,9 @@ firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
 });
 
-
 app.post("/webhook", express.raw({ type: "application/json" }), async (req: express.Request, res: express.Response) => {
   const sig = req.headers['stripe-signature'];
-
   let event: any;
-
   stripeWebhook(sig, event, res, req);
 });
 
@@ -78,7 +76,6 @@ app.use(
 );
 
 app.use(apiAuthMiddleware);
-
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
@@ -108,6 +105,7 @@ app.use('/zoom-auth/', zoomAuth);
 app.use("/testsms", test);
 app.use("/obituaries", obituaries);
 app.use("/flower", flower);
+app.use("/getImage", image);
 
 
 // Socket.io Connect
