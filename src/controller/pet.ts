@@ -1,18 +1,34 @@
 import { Request, Response } from "express";
 import { PetMemorial } from "../model/petMemorial";
-import { checkCommentUsingSapling } from "../util/commentFilter";
-import { UserModel } from "../model/user";
-import path from "path";
 import { removeSpaces } from "../util/removeSpace";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  PutObjectCommand
+} from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Stream } from "stream";
 
-export const getAllPetMemorial = async (req: Request, res: Response) => {
+export const getAllPetMemorial = async (req: any, res: Response) => {
   try {
-    const allpetMemorials = await PetMemorial.find();
-    res.status(200).json(allpetMemorials);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const allpetMemorials = await PetMemorial.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await PetMemorial.countDocuments();
+
+    res.status(200).json({
+      total: total,
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit),
+      memorials: allpetMemorials
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -46,9 +62,10 @@ export const createPetMemorial = async (req: Request, res: Response) => {
       //   })
       // );
       const fileOrgnName = req.file?.originalname || "";
-      const fileName = `uploads/image/Memorial/PetMemorial/${Date.now()}-${removeSpaces(
+      const fileName = `uploads/image/Memorial / PetMemorial / ${Date.now()} -${removeSpaces(
         fileOrgnName
-      )}`;
+      )
+        } `;
 
 
       // Upload file to S3
@@ -111,7 +128,7 @@ export const fetchpetImage = async (req: Request, res: Response) => {
       return res.status(400).send("Image name is not provided");
     }
 
-    const key = `${name}`;
+    const key = `${name} `;
 
     const command = new GetObjectCommand({
       Bucket: "vgs-upload",

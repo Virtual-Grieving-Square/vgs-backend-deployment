@@ -5,12 +5,28 @@ import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-export const getAllHumanMemorial = async (req: Request, res: Response) => {
+export const getAllHumanMemorial = async (req: any, res: Response) => {
   try {
-    const allhumanMemorials = await HumanMemorial.find().sort({
-      createdAt: -1,
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+
+    const allhumanMemorials = await HumanMemorial.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await HumanMemorial.countDocuments();
+
+    res.status(200).json({
+      total: total,
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit),
+      memorials: allhumanMemorials
     });
-    res.status(200).json(allhumanMemorials);
+
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
   }

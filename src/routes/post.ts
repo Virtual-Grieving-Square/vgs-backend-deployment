@@ -10,13 +10,14 @@ import {
   deletePost,
   getAllComments,
   getPostImage,
-  getPostsWithImages,
+  getAll,
   getRecent3Posts,
   getUserPost,
   likePost,
   makeReaction,
   profanityChecker,
-  translateComment
+  translateComment,
+  searchPost
 } from '../controller/post';
 
 const storage = multer.memoryStorage()
@@ -28,7 +29,7 @@ const router = express.Router();
 router.post("/create", upload.array("photos"), createPost);
 
 // Get POsts
-router.get("/getallPost", getPostsWithImages);
+router.get("/getAll", getAll);
 router.get("/getRecent3Posts", getRecent3Posts)
 router.get("/getUserPost/:id", getUserPost);
 
@@ -48,6 +49,9 @@ router.get("/getImage", getPostImage);
 router.delete("/deleteposts/:id", deletePost);
 router.post("/Reactions", makeReaction);
 router.post("/profanity", profanityChecker);
+
+// Search Post
+router.get("/search", searchPost);
 
 
 export default router;

@@ -1,5 +1,4 @@
 import { RequestHandler } from "express";
-import { UserModel } from "../model/user";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -8,13 +7,17 @@ import path from "path";
 import fs from "fs";
 import ejs from "ejs";
 
+// Models
+import { UserModel } from "../model/user";
+import { RecoverPasswordModel } from "../model/recoverPassword";
+import { SubscriptionPlanModel } from "../model/subscriptionPlan";
+import { TempUserModel } from "../model/tempUser";
+
+
 // Functions
 import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
-import { TempUserModel } from "../model/tempUser";
 import { generateUserAccessToken } from "../util/generateUserAccessToken";
-import { RecoverPasswordModel } from "../model/recoverPassword";
 import { sendEmail } from "../util/email";
-import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import { sendOtp, verifyOtp } from "../util/smsMethods";
 
 // Sign up
