@@ -18,17 +18,18 @@ interface CustomRequest extends Request {
  * https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meeting
  */
 router.get("/:meetingId", async (req: CustomRequest, res: Response) => {
-  const { headerConfig, params } = req;
-  const { meetingId } = params;
-
   try {
+    const { headerConfig, params } = req;
+    const { meetingId } = params;
+
+
     const request = await axios.get(
       `${ZOOM_API_BASE_URL}/meetings/${meetingId}`,
       headerConfig
     );
     return res.json(request.data);
   } catch (err) {
-    return errorHandler(err, res, `Error fetching meeting: ${meetingId}`);
+    return errorHandler(err, res, `Error fetching meeting`);
   }
 });
 
@@ -37,20 +38,25 @@ router.get("/:meetingId", async (req: CustomRequest, res: Response) => {
  * https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingCreate
  */
 router.post("/:userId", async (req: CustomRequest, res: Response) => {
-  const { headerConfig, params, body } = req;
-  const { userId } = params;
-  console.log(body);
   try {
+    console.log("Here");
+
+    const { headerConfig, params, body } = req;
+    const { userId } = params;
+    console.log(body);
+
     const request = await axios.post(
       `${ZOOM_API_BASE_URL}/users/${userId}/meetings`,
       body,
-      headerConfig  
+      headerConfig
     );
     const dbresponse = saveStreaming(request.data, body);
+
     return res.json(request.data);
-  } catch (err) {
-    return errorHandler(err, res, `Error creating meeting for user: ${userId}`);
-  }
+  } catch (error: any) {
+    console.error(error)
+    res.status(500).json({ error: "Internal server error" });
+  };
 });
 
 /**
@@ -58,10 +64,11 @@ router.post("/:userId", async (req: CustomRequest, res: Response) => {
  * https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingUpdate
  */
 router.patch("/:meetingId", async (req: CustomRequest, res: Response) => {
-  const { headerConfig, params, body } = req;
-  const { meetingId } = params;
-
   try {
+    const { headerConfig, params, body } = req;
+    const { meetingId } = params;
+
+
     const request = await axios.patch(
       `${ZOOM_API_BASE_URL}/meetings/${meetingId}`,
       body,
@@ -69,7 +76,7 @@ router.patch("/:meetingId", async (req: CustomRequest, res: Response) => {
     );
     return res.json(request.data);
   } catch (err) {
-    return errorHandler(err, res, `Error updating meeting: ${meetingId}`);
+    return errorHandler(err, res, `Error updating meeting`);
   }
 });
 
@@ -78,17 +85,18 @@ router.patch("/:meetingId", async (req: CustomRequest, res: Response) => {
  * https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingDelete
  */
 router.delete("/:meetingId", async (req: CustomRequest, res: Response) => {
-  const { headerConfig, params } = req;
-  const { meetingId } = params;
-
   try {
+    const { headerConfig, params } = req;
+    const { meetingId } = params;
+
+
     const request = await axios.delete(
       `${ZOOM_API_BASE_URL}/meetings/${meetingId}`,
       headerConfig
     );
     return res.json(request.data);
   } catch (err) {
-    return errorHandler(err, res, `Error deleting meeting: ${meetingId}`);
+    return errorHandler(err, res, `Error deleting meeting`);
   }
 });
 
@@ -99,10 +107,11 @@ router.delete("/:meetingId", async (req: CustomRequest, res: Response) => {
 router.get(
   "/getallMeeting/:userId",
   async (req: CustomRequest, res: Response) => {
-    const { headerConfig, params, query } = req;
-    const { userId } = params;
-
     try {
+      const { headerConfig, params, query } = req;
+      const { userId } = params;
+
+
       // const params = new URLSearchParams({ next_page_token });
       // const request = await axios.get(
       //   `${ZOOM_API_BASE_URL}/report/meetings/${meetingId}/participants?${params}`,
@@ -113,8 +122,7 @@ router.get(
       return errorHandler(
         err,
         res,
-        `Error fetching meetings for user: ${userId}`
-      );
+        `Error fetching meetings for user`);
     }
   }
 );
@@ -123,7 +131,8 @@ router.get("/db/getusersMeeting", async (req: CustomRequest, res: Response) => {
   try {
     const livestreamingDataBeforeTime =
       await getLivestreamingDataWithinLastHour();
-    return res.json(livestreamingDataBeforeTime);
+
+    return res.status(200).json(livestreamingDataBeforeTime);
   } catch (err) {
     console.log(err);
     return errorHandler(err, res, `Error fetching meetings live meeting`);
