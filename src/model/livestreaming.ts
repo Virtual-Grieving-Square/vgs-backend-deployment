@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface Livestreaming extends Document {
   meetingId: string;
+  password: string;
   creator: mongoose.Types.ObjectId[];
   link: string;
   joinLink: string;
@@ -14,6 +15,7 @@ export interface Livestreaming extends Document {
 
 const LiveSchema: Schema = new Schema({
   meetingId: { type: String },
+  password: { type: String },
   creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
   link: { type: String },
   joinLink: { type: String },

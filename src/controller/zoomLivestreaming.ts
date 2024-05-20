@@ -6,6 +6,7 @@ export const saveStreaming = async (meetingData: any, userdata: any) => {
   try {
     const newLiveStream = new LiveStreamingModel({
       meetingId: meetingData.id,
+      password: meetingData.password,
       creator: userdata.UserID,
       link: meetingData.start_url,
       joinLink: meetingData.join_url,

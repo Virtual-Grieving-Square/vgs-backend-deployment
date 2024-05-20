@@ -44,7 +44,7 @@ router.post("/:userId", async (req: CustomRequest, res: Response) => {
     const request = await axios.post(
       `${ZOOM_API_BASE_URL}/users/${userId}/meetings`,
       body,
-      headerConfig
+      headerConfig  
     );
     const dbresponse = saveStreaming(request.data, body);
     return res.json(request.data);

@@ -21,8 +21,8 @@ const config: Config = {
   Google_translate: process.env.GOOGLE_TRANSLATE_API_KEY || "",
   zoomSEC: process.env.ZOOM_API_SECRET || "",
   zoomAPI: process.env.ZOOM_API_KEY || "",
-  Zoom_sdk_key: process.env.ZOOM_MEETING_SDK_KEY || "",
-  Zoom_sdk_sec_key: process.env.ZOOM_MEETING_SDK_SECRET || "",
+  Zoom_sdk_key: process.env.ZOOM_API_KEY || "",
+  Zoom_sdk_sec_key: process.env.ZOOM_API_SECRET || "",
 };
 
 export default config;
