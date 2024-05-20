@@ -28,7 +28,6 @@ export const getImage = async (req: Request, res: Response) => {
       res.status(500).json({ error: "Failed to fetch image from S3" });
     }
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Failed to get the signed URL" });
   }
 };

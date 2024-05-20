@@ -4,93 +4,168 @@ import { UserModel } from "../model/user";
 import { ProductModel } from "../model/Product";
 import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
+import { PetMemorial } from "../model/petMemorial";
 
 export const makeDonation = async (req: Request, res: Response) => {
-  const { from, to, amount, description } = req.body;
-  console.log(req.body);
+  try {
+    const { from, to, amount, description } = req.body;
+    const { type } = req.query || "";
 
-  if (!from || !to || !amount) {
-    res.status(403).send({ msg: "required field missing" });
-  } else {
-    try {
-      const user = await HumanMemorial.findOne({ _id: to });
+    console.log(req.body, req.query)
+    if (!from || !to || !amount) {
+      res.status(403).send({ msg: "required field missing" });
+    } else {
 
-      if (!user) {
-        res.status(402).send({ msg: "User not found" });
-      } else {
+      if (type == "pet") {
 
-        const checkUser = await HumanMemorial.findOne({
-          _id: to
-        });
+        const user = await PetMemorial.findOne({ _id: to });
 
-        if (checkUser!.author == from) {
-          res.status(402).send({ msg: "You can't donate to yourself" });
+        if (!user) {
+          res.status(402).send({ msg: "User not found" });
         } else {
 
-          const checDonatorBalance = await UserModel.findOne({ _id: from });
+          const checkUser = await PetMemorial.findOne({
+            _id: to
+          });
 
-          if (checDonatorBalance!.balance < amount) {
-            res.status(405).send({ msg: "Insufficient balance" });
+          if (checkUser!.owner == from) {
+            res.status(402).send({ msg: "You can't donate to yourself" });
           } else {
-            const donate = new DonationModel({
-              from: from,
-              to: user!._id,
-              amount: amount,
-              description: description || "Donation",
-            });
 
-            await donate.save();
+            const checDonatorBalance = await UserModel.findOne({ _id: from });
 
-            await HumanMemorial.updateOne({
-              _id: user!._id,
-            }, {
-              $push: {
-                donations: donate._id,
-              },
-            });
-            res.status(200).json({ message: "Donated successfully", donate });
+            if (checDonatorBalance!.balance < amount) {
+              res.status(405).send({ msg: "Insufficient balance" });
+            } else {
+              const donate = new DonationModel({
+                from: from,
+                to: user!._id,
+                amount: amount,
+                description: description || "Donation",
+              });
+
+              await donate.save();
+
+              await PetMemorial.updateOne({
+                _id: user!._id,
+              }, {
+                $push: {
+                  donations: donate._id,
+                },
+              });
+              res.status(200).json({ message: "Donated successfully", donate });
+            }
           }
-
         }
+      } else {
 
+        const user = await HumanMemorial.findOne({ _id: to });
+
+        if (!user) {
+          res.status(402).send({ msg: "User not found" });
+        } else {
+
+          const checkUser = await HumanMemorial.findOne({
+            _id: to
+          });
+
+          if (checkUser!.author == from) {
+            res.status(402).send({ msg: "You can't donate to yourself" });
+          } else {
+
+            const checDonatorBalance = await UserModel.findOne({ _id: from });
+
+            if (checDonatorBalance!.balance < amount) {
+              res.status(405).send({ msg: "Insufficient balance" });
+            } else {
+              const donate = new DonationModel({
+                from: from,
+                to: user!._id,
+                amount: amount,
+                description: description || "Donation",
+              });
+
+              await donate.save();
+
+              await HumanMemorial.updateOne({
+                _id: user!._id,
+              }, {
+                $push: {
+                  donations: donate._id,
+                },
+              });
+              res.status(200).json({ message: "Donated successfully", donate });
+            }
+          }
+        }
       }
-    } catch (error) {
-      console.error("Error making Donation", error);
-      res.status(500).json({ error: "Internal server error" });
     }
+  } catch (error) {
+    console.error("Error making Donation", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 export const donateFlower = async (req: Request, res: Response) => {
   try {
     const { from, to, id, amount } = req.body;
+    const { type } = req.query || "";
 
     if (!from || !to || !id || !amount) {
       res.status(403).send({ msg: "required field missing" });
     } else {
 
-      const user = await HumanMemorial.findOne({ _id: to });
-      if (!user) {
-        res.status(402).send({ msg: "User not found" });
-      } else {
-        const checDonatorBalance = await UserModel.findOne({ _id: from });
+      if (type == "pet") {
 
-        if (checDonatorBalance!.balance < amount) {
-          res.status(405).send({ msg: "Insufficient balance" });
+        const pet = await PetMemorial.findOne({ _id: to });
+
+        if (!pet) {
+          res.status(402).send({ msg: "Pet not found" });
         } else {
+          const checDonatorBalance = await UserModel.findOne({ _id: from });
 
-          const donateFlower = new FlowerDonationModel({
-            from: from,
-            to: to,
-            id: id,
-            amount: amount,
-          });
+          if (checDonatorBalance!.balance < amount) {
+            res.status(405).send({ msg: "Insufficient balance" });
+          } else {
 
-          await donateFlower.save();
+            const donateFlower = new FlowerDonationModel({
+              from: from,
+              to: to,
+              id: id,
+              amount: amount,
+            });
 
-          res.status(200).json({ message: "Donated successfully", donateFlower });
+            await donateFlower.save();
+
+            res.status(200).json({ message: "Donated successfully", donateFlower });
+          }
+        }
+      } else {
+        const user = await HumanMemorial.findOne({ _id: to });
+        if (!user) {
+          res.status(402).send({ msg: "User not found" });
+        } else {
+          const checDonatorBalance = await UserModel.findOne({ _id: from });
+
+          if (checDonatorBalance!.balance < amount) {
+            res.status(405).send({ msg: "Insufficient balance" });
+          } else {
+
+            const donateFlower = new FlowerDonationModel({
+              from: from,
+              to: to,
+              id: id,
+              amount: amount,
+            });
+
+            await donateFlower.save();
+
+            res.status(200).json({ message: "Donated successfully", donateFlower });
+          }
         }
       }
+
+
     }
   } catch (error) {
     console.error(error);
@@ -143,5 +218,88 @@ export const flowerDonationHistory = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export const getAll = async (req: Request, res: Response) => {
+  try {
+    const donations = await DonationModel.find();
+
+    res.status(200).json({ donations });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export const getDonationByUserId = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    let donation;
+    let humanDonation = [];
+    let petDonation = [];
+
+    let flower;
+    let humanFlowerDonation = [];
+    let petFlowerDonation = [];
+
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      return res.status(403).json({ msg: "User not Found" });
+
+    } else {
+      const humanMemorial = await HumanMemorial.find({
+        author: id,
+      });
+
+      const petMemorial = await PetMemorial.find({
+        owner: id,
+      });
+
+      for (let i = 0; i < humanMemorial.length; i++) {
+        donation = await DonationModel.find({
+          to: humanMemorial[i]._id,
+        });
+        humanDonation[i] = donation;
+      }
+
+      for (let i = 0; i < petMemorial.length; i++) {
+        donation = await DonationModel.find({
+          to: petMemorial[i]._id,
+        });
+        petDonation[i] = donation;
+      }
+
+      const allDonation = [...humanDonation[0], ...petDonation[0]];
+
+      for (let i = 0; i < humanMemorial.length; i++) {
+        flower = await FlowerDonationModel.find({
+          to: humanMemorial[i]._id,
+        });
+        humanFlowerDonation[i] = flower;
+      }
+
+      for (let i = 0; i < petMemorial.length; i++) {
+        flower = await FlowerDonationModel.find({
+          to: petMemorial[i]._id,
+        });
+        petFlowerDonation[i] = flower;
+      }
+
+      const allFlower = [...humanFlowerDonation[0], ...petFlowerDonation[0]];
+
+      const donationTotal = allDonation.reduce((acc, donation) => acc + donation.amount, 0);
+      const flowerTotal = allFlower.reduce((acc, flower) => acc + flower.amount, 0);
+
+      res.status(200).json({
+        allDonation: donationTotal,
+        allFlower: flowerTotal,
+      });
+    }
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
   }
 }
