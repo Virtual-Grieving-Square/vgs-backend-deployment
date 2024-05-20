@@ -19,6 +19,7 @@ import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import { generateUserAccessToken } from "../util/generateUserAccessToken";
 import { sendEmail } from "../util/email";
 import { sendOtp, verifyOtp } from "../util/smsMethods";
+import { generateRandomNumber } from "../util/generateRandomNumber";
 
 // Sign up
 export const signup: RequestHandler = async (
@@ -182,6 +183,7 @@ export const verify: RequestHandler = async (
         });
         const hashedPassword = await bcrypt.hash(tempUser.password, 10);
         const storageSubscribed = storagePicked?.storagePerk || 0;
+
         const user = new UserModel({
           firstName: tempUser.firstName,
           lastName: tempUser.lastName,
@@ -325,6 +327,23 @@ export const login: RequestHandler = async (
   }
 };
 
+export const checkGoogleSignin: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.params;
+    const existingUser = await UserModel.findOne({ email: email });
+
+    if (!existingUser) {
+      return res.status(200).json({ user: false });
+    } else {
+      return res.status(200).json({ user: true });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export const signInWithGoogle: RequestHandler = async (
   req: Request,
   res: Response,
@@ -340,7 +359,11 @@ export const signInWithGoogle: RequestHandler = async (
       profileImage,
       accessToken,
       refreshToken,
+      subscriptionType
     } = req.body;
+
+
+    console.log(req.body);
 
     const existingUser = await UserModel.findOne({ email: email });
 
@@ -349,11 +372,12 @@ export const signInWithGoogle: RequestHandler = async (
         firstName: firstName,
         lastName: lastName,
         email: email,
-        phoneNumber: phoneNumber || "",
+        phoneNumber: phoneNumber || `${generateRandomNumber(20)}`,
         username: username,
         profileImage: profileImage,
         accessToken: accessToken,
         refreshToken: refreshToken,
+        subscriptionType: subscriptionType,
         signInMethod: "Google",
       });
 

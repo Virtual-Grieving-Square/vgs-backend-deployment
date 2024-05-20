@@ -3,6 +3,7 @@ import express from 'express';
 // Controller
 import {
   changePassword,
+  checkGoogleSignin,
   checkUser,
   login,
   requestPasswordReset,
@@ -27,6 +28,7 @@ router.put('/forgot-password/verifyOtp', verifyOTP);
 router.put('/forgot-password/resetPassword', changePassword);
 
 // Signin with Google
+router.get("/google/check/:email", checkGoogleSignin);
 router.post('/google', signInWithGoogle);
 
 // Other
