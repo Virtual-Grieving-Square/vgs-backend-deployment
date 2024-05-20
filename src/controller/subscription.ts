@@ -81,6 +81,7 @@ export const test = async (req: Request, res: Response) => {
 export const pay = async (req: Request, res: Response) => {
   try {
     const { id } = req.body;
+    console.log(req.body)
     const user = await UserModel.findById(id);
     var price = "";
 
@@ -92,6 +93,7 @@ export const pay = async (req: Request, res: Response) => {
       }
     }
 
+    console.log(user)
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
