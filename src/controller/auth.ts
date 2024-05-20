@@ -1,5 +1,4 @@
 import { RequestHandler } from "express";
-import { UserModel } from "../model/user";
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -8,13 +7,18 @@ import path from "path";
 import fs from "fs";
 import ejs from "ejs";
 
+// Models
+import { UserModel } from "../model/user";
+import { RecoverPasswordModel } from "../model/recoverPassword";
+import { SubscriptionPlanModel } from "../model/subscriptionPlan";
+import { TempUserModel } from "../model/tempUser";
+
+
 // Functions
 import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
-import { TempUserModel } from "../model/tempUser";
 import { generateUserAccessToken } from "../util/generateUserAccessToken";
-import { RecoverPasswordModel } from "../model/recoverPassword";
 import { sendEmail } from "../util/email";
-import { SubscriptionPlanModel } from "../model/subscriptionPlan";
+import { sendOtp, verifyOtp } from "../util/smsMethods";
 
 // Sign up
 export const signup: RequestHandler = async (
@@ -23,8 +27,9 @@ export const signup: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, username, email, phoneNumber, password } =
+    const { firstName, lastName, username, email, password } =
       req.body.data;
+    const phoneNumber = req.body.phoneNumber;
     const verification = req.body.verification;
     const subscriptionType = req.body.subscriptionType;
     const existingUserByEmail = await UserModel.findOne({ email: email });
@@ -55,6 +60,8 @@ export const signup: RequestHandler = async (
     }
 
     if (verification == "phone") {
+      // here is where i need to send the sms
+      const verificationSMS = await sendOtp(phoneNumber);
       const checkTempUser = await TempUserModel.findOne({
         phoneNumber: phoneNumber,
       });
@@ -208,9 +215,12 @@ export const verify: RequestHandler = async (
         res.status(401).json({ msg: "Invalid OTP" });
       }
     } else if (type == "phone") {
+      const verification = await verifyOtp(otp, phoneNumber);
+      if (verification !== "approved") {
+        res.status(401).json({ msg: "Invalid OTP" });
+      }
       const tempUser = await TempUserModel.findOne({
         phoneNumber: phoneNumber,
-        otp: otp,
       });
 
       if (tempUser) {

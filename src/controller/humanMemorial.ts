@@ -4,13 +4,30 @@ import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Stream } from "stream";
 
-export const getAllHumanMemorial = async (req: Request, res: Response) => {
+export const getAllHumanMemorial = async (req: any, res: Response) => {
   try {
-    const allhumanMemorials = await HumanMemorial.find().sort({
-      createdAt: -1,
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+
+    const allhumanMemorials = await HumanMemorial.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await HumanMemorial.countDocuments();
+
+    res.status(200).json({
+      total: total,
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit),
+      memorials: allhumanMemorials
     });
-    res.status(200).json(allhumanMemorials);
+
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
   }
@@ -48,9 +65,7 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
       // );
 
       const fileOrgnName = req.file?.originalname || "";
-      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(
-        fileOrgnName
-      )}`;
+      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(fileOrgnName)}`;
 
       // Upload file to S3
       const uploadParams = {
@@ -110,21 +125,30 @@ export const getMemorialByUserId = async (req: Request, res: Response) => {
 
 export const getImage = async (req: Request, res: Response) => {
   try {
-    const image = req.query.name as string | undefined;
+    const name = req.query.name as string | "";
 
-    if (!image) {
+    if (!name) {
       return res.status(403).send("Image name is not provided");
     }
 
-    const getObjectParams = {
-      Bucket: "vgs-upload",
-      Key: image,
-    };
-    const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
-    res.status(200).json({ url });
-    // res.sendFile(location);
+    const command = new GetObjectCommand({
+      Bucket: "vgs-upload",
+      Key: name,
+    });
+
+    const { Body } = await s3Client.send(command);
+
+    if (Body instanceof Stream) {
+      // res.set({
+      //   "Content-Type": "image/*",
+      // });
+
+      Body.pipe(res);
+    } else {
+      res.status(500).json({ error: "Failed to fetch image from S3" });
+    }
+
   } catch (error) {
     res.status(500).json({ message: "Error fetching pet memorial ", error });
   }
@@ -164,3 +188,22 @@ export const searchHumanMemorial = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const deleteHumanMemorial = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const humanMemorial = await HumanMemorial.findById(id);
+
+    if (!humanMemorial) {
+      return res.status(404).json({ message: "Memorial not found" });
+    }
+
+    await HumanMemorial.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Memorial deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

@@ -3,29 +3,23 @@ import PostModel, { IPost } from "../model/Post";
 import { UserModel } from "../model/user";
 import ReactionModel from "../model/reaction";
 import CommentModel from "../model/comment";
-import { Multer } from "multer";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { Stream } from "stream";
 import config from "../config";
 
-const { Translate } = require("@google-cloud/translate").v2;
 
 import {
-  checkComment,
-  checkCommentUsingSapling,
   checkCommentUsingBadwords,
 } from "../util/commentFilter";
 
 import Filter from "bad-words";
 import LikeModel from "../model/like";
-import path from "path";
 import axios from "axios";
 import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import {
   checkuserStorageLimit,
-  getFileStats,
   getUserStorage,
   updateUserStorageOnPost,
   restoreStoragePost,
@@ -115,12 +109,42 @@ export const createPost = async (req: Request, res: Response) => {
   }
 };
 
-export const getPostsWithImages = async (req: Request, res: Response) => {
+export const getUserPost = async (req: Request, res: Response) => {
   try {
-    const posts: IPost[] = await PostModel.find()
-      .sort({ createdAt: -1 });
+    const { id } = req.params;
+
+    const posts = await PostModel.find({
+      author: id,
+    }).sort({ createdAt: -1 });
 
     res.status(200).json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getAll = async (req: any, res: Response) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const posts = await PostModel.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await PostModel.countDocuments();
+
+    res.status(200).json({
+      total: total,
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit),
+      posts: posts
+    });
+
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -438,17 +462,25 @@ export const profanityChecker = async (req: Request, res: Response) => {
   }
 };
 
-export const getUserPost = async (req: Request, res: Response) => {
+
+export const searchPost = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const [search] = Object.values(req.query);
 
-    const posts = await PostModel.find({
-      author: id,
-    }).sort({ createdAt: -1 });
+    const post = await PostModel.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { content: { $regex: search, $options: "i" } },
+      ]
+    });
 
-    res.status(200).json(posts);
+    if (post.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json({ posts: post });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-};
+}
