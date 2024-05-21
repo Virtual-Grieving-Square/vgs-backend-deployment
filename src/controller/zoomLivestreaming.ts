@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { LiveStreamingModel, Livestreaming } from "../model/livestreaming"; // Assuming you have a Subscription model
 import { UserModel, User } from "../model/user";
 
-export const saveStreaming = async (meetingData: any, userdata: any) => {
+export const saveStreaming = async (meetingData: any, userdata: any, image: any) => {
+
   try {
     const newLiveStream = new LiveStreamingModel({
       meetingId: meetingData.id,

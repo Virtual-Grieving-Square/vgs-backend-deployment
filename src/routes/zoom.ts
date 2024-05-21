@@ -40,17 +40,26 @@ router.get("/:meetingId", async (req: CustomRequest, res: Response) => {
 router.post("/:userId", async (req: CustomRequest, res: Response) => {
   try {
     console.log("Here");
-
-    const { headerConfig, params, body } = req;
+    console.log(req.body)
+    const { headerConfig, params, body, file } = req;
     const { userId } = params;
     console.log(body);
+    console.log(userId);
+
+    const newBody = {
+      "agenda": body.name,
+      settings: {
+        auto_recording: "cloud",
+      }
+    }
 
     const request = await axios.post(
       `${ZOOM_API_BASE_URL}/users/${userId}/meetings`,
-      body,
+      newBody,
       headerConfig
     );
-    const dbresponse = saveStreaming(request.data, body);
+
+    await saveStreaming(request.data, body, file);
 
     return res.json(request.data);
   } catch (error: any) {
