@@ -147,6 +147,7 @@ export const pay = async (req: Request, res: Response) => {
         client_secret: session.client_secret,
       });
     }
+
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -204,6 +205,7 @@ export const deposit = async (req: Request, res: Response) => {
     });
   }
 };
+
 const endpointSecret =
   "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
 
