@@ -542,6 +542,7 @@ export const changePassword: RequestHandler = async (
 ) => {
   try {
     const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await UserModel.updateOne(
       {
@@ -549,7 +550,7 @@ export const changePassword: RequestHandler = async (
       },
       {
         $set: {
-          password: password,
+          password: hashedPassword,
         },
       }
     );
