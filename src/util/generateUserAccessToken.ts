@@ -8,7 +8,8 @@ export const generateUserAccessToken = (
   phoneNumber: string,
   email: string,
   subType: string,
-  firstTimePaid: boolean
+  firstTimePaid: boolean,
+  signInMethod: string,
 ) => {
   const data = {
     id: id,
@@ -18,7 +19,8 @@ export const generateUserAccessToken = (
     phonenumber: phoneNumber,
     email: email,
     subType: subType,
-    firstTimePaid: firstTimePaid
+    firstTimePaid: firstTimePaid,
+    signInMethod: signInMethod,
   };
 
   return jwt.sign(data, process.env.JWT_SECRET as string);
