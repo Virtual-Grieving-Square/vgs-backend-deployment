@@ -211,6 +211,10 @@ export const verify: RequestHandler = async (
           user.profileImage || ""
         );
 
+        await TempUserModel.deleteOne({
+          email: email,
+        });
+
         res.status(200).json({
           accessToken: accessToken,
           message: "User created successfully",

@@ -22,7 +22,7 @@ import {
 // });
 
 const storage = multer.memoryStorage()
-const upload = multer({storage: storage})
+const upload = multer({ storage: storage })
 
 
 // const upload = multer({ storage: storage });
@@ -33,7 +33,7 @@ const router = express.Router();
 router.get("/getAll", getAll);
 router.get("/getDetails/:id", getDetails);
 router.put('/update/:id', updateDetails);
-router.post("/uploadProfileImage", upload.single("image"), uploadProfileImage);
+router.post("/uploadProfileImage/:id", upload.single("image"), uploadProfileImage);
 router.get('/getImage', getProfileImage);
 router.get('/getImageById', getProfileImagebyID);
 

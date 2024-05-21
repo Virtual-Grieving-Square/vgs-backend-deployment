@@ -54,7 +54,7 @@ export const updateDetails = async (req: Request, res: Response) => {
 
 export const uploadProfileImage = async (req: Request, res: Response) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params;
 
     // const photos = (req.files as Express.Multer.File[]).map(
     //   (file: Express.Multer.File) => ({
@@ -62,7 +62,7 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
     //   })
     // );
 
-    
+
     const fileOrgnName = req.file?.originalname || "";
     const fileName = `uploads/image/profileImage/${Date.now()}-${removeSpaces(
       fileOrgnName
@@ -87,7 +87,9 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "Profile image uploaded successfully" });
+    const newuser = await UserModel.findById(id);
+
+    res.status(200).json({ message: "Profile image uploaded successfully", user: newuser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
