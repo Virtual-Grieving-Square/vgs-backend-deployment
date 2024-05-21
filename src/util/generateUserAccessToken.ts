@@ -10,6 +10,7 @@ export const generateUserAccessToken = (
   subType: string,
   firstTimePaid: boolean,
   signInMethod: string,
+  profileImage: string,
 ) => {
   const data = {
     id: id,
@@ -21,6 +22,7 @@ export const generateUserAccessToken = (
     subType: subType,
     firstTimePaid: firstTimePaid,
     signInMethod: signInMethod,
+    profileImage: profileImage,
   };
 
   return jwt.sign(data, process.env.JWT_SECRET as string);

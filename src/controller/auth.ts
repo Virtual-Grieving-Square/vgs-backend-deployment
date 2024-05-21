@@ -207,7 +207,8 @@ export const verify: RequestHandler = async (
           user.email,
           user.subscriptionType,
           user.firstTimePaid,
-          "email"
+          "email",
+          user.profileImage || ""
         );
 
         res.status(200).json({
@@ -249,7 +250,8 @@ export const verify: RequestHandler = async (
           user.email,
           user.subscriptionType,
           user.firstTimePaid,
-          "phone"
+          "phone",
+          user.profileImage || ""
         );
 
         res.status(200).json({
@@ -308,7 +310,8 @@ export const login: RequestHandler = async (
       user.email,
       user.subscriptionType,
       user.firstTimePaid,
-      "email"
+      "email",
+      user.profileImage || ""
     );
 
     await UserModel.updateOne(
@@ -395,7 +398,8 @@ export const signInWithGoogle: RequestHandler = async (
         user.email,
         user.subscriptionType,
         user.firstTimePaid,
-        "google"
+        "google",
+        user.profileImage || ""
       );
 
       return res.status(200).json({
@@ -415,7 +419,8 @@ export const signInWithGoogle: RequestHandler = async (
         user!.email,
         user!.subscriptionType,
         user!.firstTimePaid,
-        "email"
+        "email",
+        user!.profileImage || ""
       );
 
       return res.status(200).json({
