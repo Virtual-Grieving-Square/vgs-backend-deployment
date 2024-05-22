@@ -6,11 +6,13 @@ import {
   getAll,
   getDonationByUserId,
   makeDonation,
+  makeDonationNonUser,
 } from '../controller/donation';
 
 const router = express.Router();
 
 router.post('/makeDonation', makeDonation);
+router.post("/makeDonation/non-user", makeDonationNonUser)
 router.post('/donateFlower', donateFlower);
 router.post('/fetchDonation', donationHistory);
 router.get('/donationHistory/:id', donationHistory);

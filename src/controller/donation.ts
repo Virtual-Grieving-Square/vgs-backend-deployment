@@ -5,6 +5,9 @@ import { ProductModel } from "../model/Product";
 import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
 import { PetMemorial } from "../model/petMemorial";
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
+
+const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
 
 export const makeDonation = async (req: Request, res: Response) => {
   try {
@@ -105,6 +108,71 @@ export const makeDonation = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const makeDonationNonUser = async (req: Request, res: Response) => {
+  try {
+    const { from, to, amount, description } = req.body;
+
+    const user = await HumanMemorial.findOne({ _id: to });
+
+    if (!user) {
+      res.status(402).send({ msg: "User not found" });
+    } else {
+
+      const checkUser = await HumanMemorial.findOne({
+        _id: to
+      });
+
+      const donate = new DonationModel({
+        from: "664b6f476efa78884d3a9af6",
+        to: user!._id,
+        amount: amount,
+        description: description || "Donation",
+      });
+
+      await donate.save();
+
+      await HumanMemorial.updateOne({
+        _id: user!._id,
+      }, {
+        $push: {
+          donations: donate._id,
+        },
+      });
+
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "Donatino",
+              },
+              unit_amount: amount * 100,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${YOUR_DOMAIN}/donation?success=true`,
+        cancel_url: `${YOUR_DOMAIN}/donation?canceled=true`,
+        automatic_tax: { enabled: true },
+      });
+
+      res.status(200).json({
+        request: "success",
+        session: session,
+        client_secret: session.client_secret,
+      });
+
+
+
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
 
 export const donateFlower = async (req: Request, res: Response) => {
   try {
