@@ -305,10 +305,12 @@ export const createComment = async (req: Request, res: Response) => {
     // }
 
     // const isCommentInappropriate = await checkCommentUsingSapling(content);
-    let user = await UserModel.findById(authorId);
+    let user = await UserModel.findById(userId);
+    console.log(user);
     if (user) {
       var strike = user.blacklistCount;
 
+      console.log("Strike", strike);
       // console.log(isCommentInappropriate)
       if (filter.isProfane(content) || response2) {
         try {
