@@ -102,8 +102,8 @@ export const pay = async (req: Request, res: Response) => {
         },
       ],
       mode: "subscription",
-      success_url: `${YOUR_DOMAIN}?payment=success?id=${id}`,
-      cancel_url: `${YOUR_DOMAIN}?payment=canceled?id=${id}`,
+      success_url: `${YOUR_DOMAIN}?payment=success&id=${id}`,
+      cancel_url: `${YOUR_DOMAIN}?payment=canceled&id=${id}`,
       automatic_tax: { enabled: true },
     });
 
