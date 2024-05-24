@@ -28,7 +28,7 @@ export const signup: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, username, email, password } =
+    const { firstName, lastName, email, password } =
       req.body.data;
     const phoneNumber = req.body.phoneNumber;
     const verification = req.body.verification;
@@ -38,7 +38,7 @@ export const signup: RequestHandler = async (
       phoneNumber: phoneNumber,
     });
     const verificationCode = verificationCodeGenerator(6);
-
+    const username = "";
     if (existingUserByEmail) {
       console.error("User with this Email already exists");
       return res
