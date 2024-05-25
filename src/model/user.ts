@@ -15,7 +15,7 @@ const userSchema: Schema = new Schema({
   blacklistCount: { type: Number, default: 0 },
   banCount: { type: Number, default: 0 },
   banExpiry: { type: Date, default: null }, // January 1, 1970, as default
-  flag: { type: String, default: "Active" },
+  flag: { type: String, default: "active" },
   paid: { type: Boolean, default: false },
   signInMethod: { type: String, required: false },
   password: { type: String, required: false },

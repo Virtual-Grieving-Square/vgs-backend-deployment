@@ -7,6 +7,7 @@ const petMemorialSchema: Schema = new Schema({
   type: { type: String, required: true },
   DOB: { type: Date, required: true },
   DOD: { type: Date, required: true },
+  description: { type: String, required: false },
   owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
   coverImage: { type: String, required: false },
 
@@ -20,6 +21,7 @@ export interface PetMemorial extends Document {
   age: number;
   type: string;
   DOB: Date;
+  description: string;
   DOD: Date;
   owner: string;
   coverImage: string;

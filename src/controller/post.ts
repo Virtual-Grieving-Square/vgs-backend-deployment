@@ -302,79 +302,6 @@ export const createComment = async (req: Request, res: Response) => {
 
     let user = await UserModel.findById(userId);
 
-    // if (user) {
-    //   var strike = user.blacklistCount;
-
-    //   console.log("Strike", strike);
-    //   // console.log(isCommentInappropriate)
-    //   if (filter.isProfane(content) || response2) {
-    //     try {
-    //       if (strike < 2) {
-    //         user.blacklistCount += 1;
-    //         await user.save();
-    //         return res
-    //           .status(405)
-    //           .json({ error: "Inappropriate comment detected" });
-    //       } else if (strike === 2) {
-    //         user.blacklistCount += 1;
-    //         user.banCount += 1;
-    //         if (user.banCount == 1) {
-    //           // first timer
-    //           let now = new Date();
-    //           let expDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    //           user.flag = "suspended";
-    //           user.banExpiry = expDate;
-    //           await user.save();
-    //           return res.status(400).json({
-    //             error:
-    //               "Inappropriate comment detected and account suspended for 24 Hr",
-    //           });
-    //         } else if (user.banCount == 2) {
-    //           // second timer
-    //           let now = new Date();
-    //           let expDate = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-    //           user.flag = "suspended";
-    //           user.banExpiry = expDate;
-    //           await user.save();
-    //           return res.status(400).json({
-    //             error:
-    //               "Inappropriate comment detected and account suspended for 48 Hr",
-    //           });
-    //         } else if (user.banCount > 2) {
-    //           // third timer
-    //           let now = new Date();
-    //           let expDate = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-    //           user.flag = "BAN";
-    //           user.banExpiry = expDate;
-    //           await user.save();
-    //           return res.status(400).json({
-    //             error:
-    //               "Inappropriate comment detected and account Ban you cant comment anymore",
-    //           });
-    //         }
-    //       } else if (strike > 2) {
-    //         return res.status(400).json({
-    //           error: "Account Suspended",
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.error("Error updating user blacklist count:", error);
-    //     }
-    //   }
-
-    //   if (strike > 2) {
-    //     return res.status(400).json({
-    //       error: "Account Suspended",
-    //     });
-    //   } else {
-    //     await comment.save();
-    //     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
-
-    //     res
-    //       .status(200)
-    //       .json({ message: "Comment created successfully", comment });
-    //   }
-    // }
 
     if (user) {
       var strike = user.blacklistCount;
@@ -386,8 +313,12 @@ export const createComment = async (req: Request, res: Response) => {
             user.blacklistCount += 1;
             await user.save();
             return res
-              .status(405)
-              .json({ error: "Inappropriate comment detected" });
+              .status(402)
+              .json({
+                error: "Inappropriate comment detected",
+                msg: "inappropriate_comment_detected",
+                banMessage: "Inappropriate comment detected"
+              });
           } else {
             user.blacklistCount += 1;
             user.banCount += 1;
@@ -409,11 +340,14 @@ export const createComment = async (req: Request, res: Response) => {
             let banMessage =
               user.banCount > 2
                 ? "Inappropriate comment detected and account banned. You can't comment anymore"
-                : `Inappropriate comment detected and account suspended for ${
-                    banPeriod / (60 * 60 * 1000)
-                  } Hr`;
+                : `Inappropriate comment detected and account suspended for ${banPeriod / (60 * 60 * 1000)
+                } Hr`;
 
-            return res.status(400).json({ error: banMessage });
+            return res.status(402).json({
+              error: banMessage,
+              banMessage: banMessage,
+              msg: user.banCount > 2 ? "account_banned" : "account_suspended"
+            });
           }
         } catch (error) {
           console.error("Error updating user blacklist count:", error);
@@ -421,13 +355,21 @@ export const createComment = async (req: Request, res: Response) => {
       }
 
       if (strike > 2) {
-        return res.status(400).json({ error: "Account Suspended" });
+        return res.status(402).json({
+          error: "Account Suspended",
+          msg: "account_suspended",
+          banMessage: "Account Suspended for Bad Comment",
+        });
       } else {
         await comment.save();
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
         res
           .status(200)
-          .json({ message: "Comment created successfully", comment });
+          .json({
+            msg: "comment_created_successfully",
+            message: "Comment created successfully",
+            comment
+          });
       }
     }
   } catch (error) {

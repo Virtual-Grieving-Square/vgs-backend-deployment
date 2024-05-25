@@ -19,7 +19,7 @@ import {
   translateComment,
   searchPost
 } from '../controller/post';
-import {checkUserStatus} from '../middleware/userStatus'
+import { checkUserStatus } from '../middleware/userStatus'
 
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
@@ -42,7 +42,7 @@ router.get('/checkLike/:id/:userId', checkLike);
 
 // Comment
 router.get("/comment/:id", getAllComments);
-router.post("/comment/add",checkUserStatus, createComment);
+router.post("/comment/add", checkUserStatus, createComment);
 router.post("/translate", translateComment);
 
 // Get Image

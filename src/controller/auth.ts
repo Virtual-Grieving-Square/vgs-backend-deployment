@@ -179,10 +179,11 @@ export const verify: RequestHandler = async (
 
       if (tempUser) {
         const storagePicked = await SubscriptionPlanModel.findOne({
-          name: tempUser.subscriptionType,
+          label: tempUser.subscriptionType,
         });
-        const hashedPassword = await bcrypt.hash(tempUser.password, 10);
         const storageSubscribed = storagePicked?.storagePerk || 0;
+
+        const hashedPassword = await bcrypt.hash(tempUser.password, 10);
 
         const user = new UserModel({
           firstName: tempUser.firstName,
@@ -378,6 +379,12 @@ export const signInWithGoogle: RequestHandler = async (
     const existingUser = await UserModel.findOne({ email: email });
 
     if (!existingUser) {
+
+      const storagePicked = await SubscriptionPlanModel.findOne({
+        label: subscriptionType,
+      });
+      const storageSubscribed = storagePicked?.storagePerk || 0;
+
       const user = new UserModel({
         firstName: firstName,
         lastName: lastName,
@@ -388,6 +395,7 @@ export const signInWithGoogle: RequestHandler = async (
         accessToken: accessToken,
         refreshToken: refreshToken,
         subscriptionType: subscriptionType,
+        storage: storageSubscribed,
         signInMethod: "Google",
       });
 

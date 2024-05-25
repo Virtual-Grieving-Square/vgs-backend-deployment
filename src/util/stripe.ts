@@ -24,6 +24,7 @@ export const stripeWebhook = async (sig: any, event: any, res: any, req: any) =>
         const checkOutId = event.data.object.id;
         const paymentStatus = event.data.object.payment_status;
         console.log("Payment Status: ", paymentStatus)
+
         if (paymentStatus === "paid") {
 
           const checkPaymentType1 = await PaymentListModel.findOne({
