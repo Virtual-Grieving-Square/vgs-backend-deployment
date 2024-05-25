@@ -7,10 +7,7 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { Stream } from "stream";
 import config from "../config";
 
-
-import {
-  checkCommentUsingBadwords,
-} from "../util/commentFilter";
+import { checkCommentUsingBadwords } from "../util/commentFilter";
 
 import Filter from "bad-words";
 import LikeModel from "../model/like";
@@ -142,9 +139,8 @@ export const getAll = async (req: any, res: Response) => {
       page: page,
       limit: limit,
       totalPages: Math.ceil(total / limit),
-      posts: posts
+      posts: posts,
     });
-
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -173,7 +169,6 @@ export const countLike = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({ likes: post[0].likes });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -189,12 +184,11 @@ export const countComment = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({ comment: post[0].comments });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
-}
+};
 
 export const checkLike = async (req: Request, res: Response) => {
   try {
@@ -233,7 +227,9 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
 
-      return res.status(200).json({ like: false, message: "Post unliked successfully" });
+      return res
+        .status(200)
+        .json({ like: false, message: "Post unliked successfully" });
     } else {
       const like = new LikeModel({
         postId: postId,
@@ -244,7 +240,9 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
-      return res.status(200).json({ like: true, message: "Post liked successfully" });
+      return res
+        .status(200)
+        .json({ like: true, message: "Post liked successfully" });
     }
   } catch (error) {
     console.error(error);
@@ -288,6 +286,9 @@ export const createComment = async (req: Request, res: Response) => {
   try {
     const { authorId, content, postId, userId } = req.body;
 
+    if (!authorId || !content || !postId || !userId) {
+      return res.status(400).json({ error: "content and userId are required" });
+    }
     const comment = new CommentModel({
       authorId: authorId,
       content: content,
@@ -298,20 +299,87 @@ export const createComment = async (req: Request, res: Response) => {
     // Check if the comment contains bad words from library
     const response: any = filter.isProfane(content);
     const response2: any = await checkCommentUsingBadwords(content);
-    console.log(response);
 
-    // if (filter.isProfane(content)) {
-    //   return res.status(400).json({ error: "Inappropriate comment detected" });
+    let user = await UserModel.findById(userId);
+
+    // if (user) {
+    //   var strike = user.blacklistCount;
+
+    //   console.log("Strike", strike);
+    //   // console.log(isCommentInappropriate)
+    //   if (filter.isProfane(content) || response2) {
+    //     try {
+    //       if (strike < 2) {
+    //         user.blacklistCount += 1;
+    //         await user.save();
+    //         return res
+    //           .status(405)
+    //           .json({ error: "Inappropriate comment detected" });
+    //       } else if (strike === 2) {
+    //         user.blacklistCount += 1;
+    //         user.banCount += 1;
+    //         if (user.banCount == 1) {
+    //           // first timer
+    //           let now = new Date();
+    //           let expDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    //           user.flag = "suspended";
+    //           user.banExpiry = expDate;
+    //           await user.save();
+    //           return res.status(400).json({
+    //             error:
+    //               "Inappropriate comment detected and account suspended for 24 Hr",
+    //           });
+    //         } else if (user.banCount == 2) {
+    //           // second timer
+    //           let now = new Date();
+    //           let expDate = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+    //           user.flag = "suspended";
+    //           user.banExpiry = expDate;
+    //           await user.save();
+    //           return res.status(400).json({
+    //             error:
+    //               "Inappropriate comment detected and account suspended for 48 Hr",
+    //           });
+    //         } else if (user.banCount > 2) {
+    //           // third timer
+    //           let now = new Date();
+    //           let expDate = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+    //           user.flag = "BAN";
+    //           user.banExpiry = expDate;
+    //           await user.save();
+    //           return res.status(400).json({
+    //             error:
+    //               "Inappropriate comment detected and account Ban you cant comment anymore",
+    //           });
+    //         }
+    //       } else if (strike > 2) {
+    //         return res.status(400).json({
+    //           error: "Account Suspended",
+    //         });
+    //       }
+    //     } catch (error) {
+    //       console.error("Error updating user blacklist count:", error);
+    //     }
+    //   }
+
+    //   if (strike > 2) {
+    //     return res.status(400).json({
+    //       error: "Account Suspended",
+    //     });
+    //   } else {
+    //     await comment.save();
+    //     await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
+
+    //     res
+    //       .status(200)
+    //       .json({ message: "Comment created successfully", comment });
+    //   }
     // }
 
-    // const isCommentInappropriate = await checkCommentUsingSapling(content);
-    let user = await UserModel.findById(userId);
-    console.log(user);
     if (user) {
       var strike = user.blacklistCount;
-
       console.log("Strike", strike);
-      // console.log(isCommentInappropriate)
+
       if (filter.isProfane(content) || response2) {
         try {
           if (strike < 2) {
@@ -320,18 +388,32 @@ export const createComment = async (req: Request, res: Response) => {
             return res
               .status(405)
               .json({ error: "Inappropriate comment detected" });
-          } else if (strike === 2) {
+          } else {
             user.blacklistCount += 1;
+            user.banCount += 1;
 
-            user.flag = "suspended";
+            let now = new Date();
+            let banPeriod = 24 * 60 * 60 * 1000; // 24 hours
+
+            if (user.banCount == 2) {
+              banPeriod = 48 * 60 * 60 * 1000; // 48 hours
+            } else if (user.banCount > 2) {
+              banPeriod = 48 * 60 * 60 * 1000; // 48 hours
+              user.flag = "BAN";
+            }
+
+            user.flag = user.banCount > 2 ? "BAN" : "suspended";
+            user.banExpiry = new Date(now.getTime() + banPeriod);
             await user.save();
-            return res.status(400).json({
-              error: "Inappropriate comment detected and account suspended",
-            });
-          } else if (strike > 2) {
-            return res.status(400).json({
-              error: "Account Suspended",
-            });
+
+            let banMessage =
+              user.banCount > 2
+                ? "Inappropriate comment detected and account banned. You can't comment anymore"
+                : `Inappropriate comment detected and account suspended for ${
+                    banPeriod / (60 * 60 * 1000)
+                  } Hr`;
+
+            return res.status(400).json({ error: banMessage });
           }
         } catch (error) {
           console.error("Error updating user blacklist count:", error);
@@ -339,13 +421,10 @@ export const createComment = async (req: Request, res: Response) => {
       }
 
       if (strike > 2) {
-        return res.status(400).json({
-          error: "Account Suspended",
-        });
+        return res.status(400).json({ error: "Account Suspended" });
       } else {
         await comment.save();
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
-
         res
           .status(200)
           .json({ message: "Comment created successfully", comment });
@@ -464,7 +543,6 @@ export const profanityChecker = async (req: Request, res: Response) => {
   }
 };
 
-
 export const searchPost = async (req: Request, res: Response) => {
   try {
     const [search] = Object.values(req.query);
@@ -473,7 +551,7 @@ export const searchPost = async (req: Request, res: Response) => {
       $or: [
         { name: { $regex: search, $options: "i" } },
         { content: { $regex: search, $options: "i" } },
-      ]
+      ],
     });
 
     if (post.length === 0) {
@@ -485,4 +563,4 @@ export const searchPost = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};

@@ -13,6 +13,8 @@ const userSchema: Schema = new Schema({
   balance: { type: Number, required: false, default: 0 },
   groups: [{ type: Schema.Types.ObjectId, ref: "Group" }],
   blacklistCount: { type: Number, default: 0 },
+  banCount: { type: Number, default: 0 },
+  banExpiry: { type: Date, default: null }, // January 1, 1970, as default
   flag: { type: String, default: "Active" },
   paid: { type: Boolean, default: false },
   signInMethod: { type: String, required: false },
@@ -40,6 +42,8 @@ export interface User extends Document {
   balance: number;
   groups: mongoose.Types.ObjectId[];
   blacklistCount: number;
+  banCount: number;
+  banExpiry: Date | null;
   firstTimePaid: boolean;
   flag: string;
   paid: boolean;
