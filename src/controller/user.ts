@@ -56,13 +56,6 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // const photos = (req.files as Express.Multer.File[]).map(
-    //   (file: Express.Multer.File) => ({
-    //     url: file.path,
-    //   })
-    // );
-
-
     const fileOrgnName = req.file?.originalname || "";
     const fileName = `uploads/image/profileImage/${Date.now()}-${removeSpaces(
       fileOrgnName
@@ -139,3 +132,40 @@ export const getProfileImagebyID = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const updateCoverImage = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const fileOrgnName = req.file?.originalname || "";
+    const fileName = `uploads/image/coverImage/${Date.now()}-${removeSpaces(
+      fileOrgnName
+    )}`;
+
+    // Upload file to S3
+    const uploadParams = {
+      Bucket: "vgs-upload",
+      Key: fileName,
+      Body: req.file?.buffer,
+      ContentType: req.file?.mimetype,
+    };
+
+    const command = new PutObjectCommand(uploadParams);
+    await s3Client.send(command);
+
+    const user = await UserModel.findByIdAndUpdate(id, {
+      coverImage: fileName,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const newuser = await UserModel.findById(id);
+
+    res.status(200).json({ message: "Profile image uploaded successfully", user: newuser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

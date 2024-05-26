@@ -39,6 +39,7 @@ export const signup: RequestHandler = async (
     });
     const verificationCode = verificationCodeGenerator(6);
     const username = "";
+
     if (existingUserByEmail) {
       console.error("User with this Email already exists");
       return res
@@ -103,11 +104,11 @@ export const signup: RequestHandler = async (
         message: "Verification code sent successfully",
       });
     } else if (verification == "email") {
-      console.log("Verification Email");
 
       const checkTempUser = await TempUserModel.findOne({
         email: email,
       });
+
 
       if (checkTempUser) {
         await TempUserModel.updateOne(
