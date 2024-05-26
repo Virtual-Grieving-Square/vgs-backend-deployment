@@ -153,6 +153,8 @@ export const updateCoverImage = async (req: Request, res: Response) => {
     const command = new PutObjectCommand(uploadParams);
     await s3Client.send(command);
 
+    // 
+
     const user = await UserModel.findByIdAndUpdate(id, {
       coverImage: fileName,
     });

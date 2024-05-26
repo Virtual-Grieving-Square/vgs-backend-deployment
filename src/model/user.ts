@@ -1,8 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 const userSchema: Schema = new Schema({
-  profileImage: { type: String, required: false },
-  coverImage: { type: String, required: false, default: "https://picsum.photos/1000/350?random=222" },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   username: { type: String, required: false },
@@ -24,6 +22,8 @@ const userSchema: Schema = new Schema({
   refreshToken: { type: String, required: false },
   firstTimePaid: { type: Boolean, default: false },
   donations: [{ type: Schema.Types.ObjectId, ref: "donation" }],
+  profileImage: { type: String, required: false },
+  coverImage: { type: String, required: false, default: "https://picsum.photos/1000/350?random=222" },
   storage: { type: Number, default: 0 },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
@@ -31,8 +31,6 @@ const userSchema: Schema = new Schema({
 });
 
 export interface User extends Document {
-  profileImage: string;
-  coverImage: string;
   firstName: string;
   lastName: string;
   username: string;
@@ -54,6 +52,8 @@ export interface User extends Document {
   accessToken: string;
   refreshToken: string;
   storage: number;
+  profileImage: string;
+  coverImage: string;
 }
 
 export const UserModel = mongoose.model<User>("User", userSchema);

@@ -1,17 +1,22 @@
 import jwt from 'jsonwebtoken';
+import { User } from '../types/user';
 
-export const generateUserAccessToken = (
-  id: string,
-  fname: string,
-  lname: string,
-  username: string,
-  phoneNumber: string,
-  email: string,
-  subType: string,
-  firstTimePaid: boolean,
-  signInMethod: string,
-  profileImage: string,
-) => {
+export const generateUserAccessToken = (user: User) => {
+
+  const {
+    id,
+    fname,
+    lname,
+    username,
+    phoneNumber,
+    email,
+    subType,
+    firstTimePaid,
+    profileImage,
+    coverImage,
+    signInMethod,
+  } = user;
+
   const data = {
     id: id,
     fname: fname,
@@ -19,10 +24,11 @@ export const generateUserAccessToken = (
     username: username,
     phonenumber: phoneNumber,
     email: email,
-    subType: subType,
+    subType: subType || "",
     firstTimePaid: firstTimePaid,
-    signInMethod: signInMethod,
-    profileImage: profileImage,
+    signInMethod: signInMethod || "",
+    profileImage: profileImage || "",
+    coverImage: coverImage || "",
   };
 
   return jwt.sign(data, process.env.JWT_SECRET as string);

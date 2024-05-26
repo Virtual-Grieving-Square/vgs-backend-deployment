@@ -200,27 +200,27 @@ export const verify: RequestHandler = async (
 
         await user.save();
 
-        const accessToken = generateUserAccessToken(
-          user._id,
-          user.firstName,
-          user.lastName,
-          user.username,
-          user.phoneNumber,
-          user.email,
-          user.subscriptionType,
-          user.firstTimePaid,
-          "email",
-          user.profileImage || ""
-        );
+        // const accessToken = generateUserAccessToken(
+        //   user._id,
+        //   user.firstName,
+        //   user.lastName,
+        //   user.username,
+        //   user.phoneNumber,
+        //   user.email,
+        //   user.subscriptionType,
+        //   user.firstTimePaid,
+        //   "email",
+        //   user.profileImage || ""
+        // );
 
         await TempUserModel.deleteOne({
           email: email,
         });
 
-        res.status(200).json({
-          accessToken: accessToken,
-          message: "User created successfully",
-        });
+        // res.status(200).json({
+        //   accessToken: accessToken,
+        //   message: "User created successfully",
+        // });
       } else {
         res.status(401).json({ msg: "Invalid OTP" });
       }
@@ -247,23 +247,23 @@ export const verify: RequestHandler = async (
         });
         await user.save();
 
-        const accessToken = generateUserAccessToken(
-          user._id,
-          user.firstName,
-          user.lastName,
-          user.username,
-          user.phoneNumber,
-          user.email,
-          user.subscriptionType,
-          user.firstTimePaid,
-          "phone",
-          user.profileImage || ""
-        );
+        // const accessToken = generateUserAccessToken(
+        //   user._id,
+        //   user.firstName,
+        //   user.lastName,
+        //   user.username,
+        //   user.phoneNumber,
+        //   user.email,
+        //   user.subscriptionType,
+        //   user.firstTimePaid,
+        //   "phone",
+        //   user.profileImage || ""
+        // );
 
-        res.status(200).json({
-          accessToken: accessToken,
-          message: "User created successfully",
-        });
+        // res.status(200).json({
+        //   accessToken: accessToken,
+        //   message: "User created successfully",
+        // });
       } else {
         res.status(401).json({ msg: "Invalid OTP" });
       }
@@ -307,18 +307,22 @@ export const login: RequestHandler = async (
         .json({ message: "Authentication failed. Invalid password." });
     }
 
-    const accessToken = generateUserAccessToken(
-      user._id,
-      user.firstName,
-      user.lastName,
-      user.username,
-      user.phoneNumber,
-      user.email,
-      user.subscriptionType,
-      user.firstTimePaid,
-      "email",
-      user.profileImage || ""
-    );
+    const UserData = {
+      id: user.id,
+      fname: user.firstName,
+      lname: user.lastName,
+      username: user.username,
+      phoneNumber: user.phoneNumber,
+      email: user.email,
+      subType: user.subscriptionType,
+      firstTimePaid: user.firstTimePaid,
+      profileImage: user.profileImage,
+      coverImage: user.coverImage,
+      signInMethod: user.signInMethod,
+    };
+
+    const accessToken = generateUserAccessToken(UserData);
+
 
     await UserModel.updateOne(
       { email: email },
@@ -402,42 +406,49 @@ export const signInWithGoogle: RequestHandler = async (
 
       await user.save();
 
-      const accessTokenToken = generateUserAccessToken(
-        user._id,
-        user.firstName,
-        user.lastName,
-        user.username,
-        user.phoneNumber,
-        user.email,
-        user.subscriptionType,
-        user.firstTimePaid,
-        "google",
-        user.profileImage || ""
-      );
+      const UserData = {
+        id: user.id,
+        fname: user.firstName,
+        lname: user.lastName,
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+        email: user.email,
+        subType: user.subscriptionType,
+        firstTimePaid: user.firstTimePaid,
+        profileImage: user.profileImage,
+        coverImage: user.coverImage,
+        signInMethod: user.signInMethod,
+      };
+
+      const accessToken1 = generateUserAccessToken(UserData);
 
       return res.status(200).json({
-        accessToken: accessTokenToken,
+        accessToken: accessToken1,
         account: "new",
         message: "User created successfully",
       });
     } else {
+
       const user = await UserModel.findOne({ email: email });
 
-      const accessToken1 = generateUserAccessToken(
-        user!._id,
-        user!.firstName,
-        user!.lastName,
-        user!.username,
-        user!.phoneNumber,
-        user!.email,
-        user!.subscriptionType,
-        user!.firstTimePaid,
-        "email",
-        user!.profileImage || ""
-      );
+      const UserData = {
+        id: user!.id,
+        fname: user!.firstName,
+        lname: user!.lastName,
+        username: user!.username,
+        phoneNumber: user!.phoneNumber,
+        email: user!.email,
+        subType: user!.subscriptionType,
+        firstTimePaid: user!.firstTimePaid,
+        profileImage: user!.profileImage,
+        coverImage: user!.coverImage,
+        signInMethod: user!.signInMethod,
+      };
+
+      const accessToken = generateUserAccessToken(UserData);
 
       return res.status(200).json({
-        accessToken: accessToken1,
+        accessToken: accessToken,
         account: "existing",
         message: "User created successfully",
       });
