@@ -4,6 +4,8 @@ import { UserModel } from "../model/user";
 import PaymentListModel from "../model/paymentList";
 import DepositListModel from "../model/depositList";
 import { generateOrderNumber } from "../util/generateOrderNumber";
+import bcrypt from "bcrypt";
+
 const express = require("express");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -85,12 +87,11 @@ export const pay = async (req: Request, res: Response) => {
     const user = await UserModel.findById(id);
     var price = "";
 
-    const checkUser = await PaymentListModel.findOne({
-      userId: id,
-    });
+    const checkUser = await UserModel.findById(id);
+
+    console.log(checkUser);
 
     if (user) {
-
       if (checkUser!.paid == true) {
         res.status(201).json({
           request: "success",
@@ -155,6 +156,41 @@ export const pay = async (req: Request, res: Response) => {
   }
 };
 
+export const cancelSubscription = async (req: Request, res: Response) => {
+  try {
+    const { id, password } = req.body;
+
+    console.log(id, password)
+
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      return res.status(402).json({ msg: "User Not Found" });
+    } else {
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+        return res.status(403).json({ msg: "Password Incorrect" });
+      } else {
+        await UserModel.updateOne({
+          _id: id,
+        },
+          {
+            subscriptionType: "free",
+            subscribed: false,
+          });
+      }
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      msg: "Internal Server Error",
+      error: error,
+    });
+  }
+}
+
 export const deposit = async (req: Request, res: Response) => {
   try {
     const { id, amount } = req.body;
@@ -204,29 +240,3 @@ export const deposit = async (req: Request, res: Response) => {
   }
 };
 
-const endpointSecret =
-  "whsec_4cfbe1dc0651f6c6632e9f4bcef99cd2cb463682d95b466169ded6c615622391";
-
-export const stripe_webhook = async (req: Request, res: Response) => {
-  try {
-    const sig = req.headers["stripe-signature"];
-
-    console.log(sig);
-    let event;
-
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-      console.log(event);
-    } catch (err: any) {
-      console.error(err);
-
-      return;
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      msg: "Internal Server Error",
-      error: error,
-    });
-  }
-};

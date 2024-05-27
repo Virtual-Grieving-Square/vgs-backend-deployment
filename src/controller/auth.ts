@@ -34,9 +34,11 @@ export const signup: RequestHandler = async (
     const verification = req.body.verification;
     const subscriptionType = req.body.subscriptionType;
     const existingUserByEmail = await UserModel.findOne({ email: email });
+
     const existingUserByPhone = await UserModel.findOne({
       phoneNumber: phoneNumber,
     });
+
     const verificationCode = verificationCodeGenerator(6);
     const username = "";
 
@@ -62,8 +64,10 @@ export const signup: RequestHandler = async (
     }
 
     if (verification == "phone") {
+      console.log(phoneNumber)
       // here is where i need to send the sms
       const verificationSMS = await sendOtp(phoneNumber);
+
       const checkTempUser = await TempUserModel.findOne({
         phoneNumber: phoneNumber,
       });
@@ -108,7 +112,6 @@ export const signup: RequestHandler = async (
       const checkTempUser = await TempUserModel.findOne({
         email: email,
       });
-
 
       if (checkTempUser) {
         await TempUserModel.updateOne(
@@ -179,6 +182,7 @@ export const verify: RequestHandler = async (
       const tempUser = await TempUserModel.findOne({ email: email, otp: otp });
 
       if (tempUser) {
+
         const storagePicked = await SubscriptionPlanModel.findOne({
           label: tempUser.subscriptionType,
         });
@@ -194,79 +198,104 @@ export const verify: RequestHandler = async (
           phoneNumber: tempUser.phoneNumber,
           password: hashedPassword,
           subscriptionType: tempUser.subscriptionType,
-          signInMethod: "Email",
+          signInMethod: "email",
           storage: storageSubscribed,
         });
 
         await user.save();
 
-        // const accessToken = generateUserAccessToken(
-        //   user._id,
-        //   user.firstName,
-        //   user.lastName,
-        //   user.username,
-        //   user.phoneNumber,
-        //   user.email,
-        //   user.subscriptionType,
-        //   user.firstTimePaid,
-        //   "email",
-        //   user.profileImage || ""
-        // );
-
         await TempUserModel.deleteOne({
           email: email,
         });
 
-        // res.status(200).json({
-        //   accessToken: accessToken,
-        //   message: "User created successfully",
-        // });
+        const UserData = {
+          id: user.id,
+          fname: user.firstName,
+          lname: user.lastName,
+          username: user.username,
+          phoneNumber: user.phoneNumber,
+          email: user.email,
+          subscribed: user.subscribed,
+          paid: user.paid,
+          subType: user.subscriptionType,
+          firstTimePaid: user.firstTimePaid,
+          profileImage: user.profileImage,
+          coverImage: user.coverImage,
+          signInMethod: user.signInMethod,
+        };
+
+        const accessToken = generateUserAccessToken(UserData);
+
+        res.status(200).json({
+          accessToken: accessToken,
+          message: "User created successfully",
+        });
+
       } else {
         res.status(401).json({ msg: "Invalid OTP" });
       }
     } else if (type == "phone") {
-      const verification = await verifyOtp(otp, phoneNumber);
-      if (verification !== "approved") {
-        res.status(401).json({ msg: "Invalid OTP" });
-      }
-      const tempUser = await TempUserModel.findOne({
-        phoneNumber: phoneNumber,
-      });
 
-      if (tempUser) {
-        const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+      verifyOtp(otp, phoneNumber)
+        .then(async (response) => {
+          if (response !== "approved") {
+            res.status(401).json({ msg: "Invalid OTP" });
+          } else {
+            const tempUser = await TempUserModel.findOne({
+              phoneNumber: phoneNumber,
+            });
 
-        const user = new UserModel({
-          firstName: tempUser.firstName,
-          lastName: tempUser.lastName,
-          username: tempUser.username,
-          email: tempUser.email,
-          phoneNumber: tempUser.phoneNumber,
-          password: hashedPassword,
-          signInMethod: "Phone",
-        });
-        await user.save();
+            const storagePicked = await SubscriptionPlanModel.findOne({
+              label: tempUser!.subscriptionType,
+            });
 
-        // const accessToken = generateUserAccessToken(
-        //   user._id,
-        //   user.firstName,
-        //   user.lastName,
-        //   user.username,
-        //   user.phoneNumber,
-        //   user.email,
-        //   user.subscriptionType,
-        //   user.firstTimePaid,
-        //   "phone",
-        //   user.profileImage || ""
-        // );
+            const storageSubscribed = storagePicked?.storagePerk || 0;
 
-        // res.status(200).json({
-        //   accessToken: accessToken,
-        //   message: "User created successfully",
-        // });
-      } else {
-        res.status(401).json({ msg: "Invalid OTP" });
-      }
+            if (tempUser) {
+              const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
+              const user = new UserModel({
+                firstName: tempUser.firstName,
+                lastName: tempUser.lastName,
+                username: tempUser.username,
+                email: tempUser.email,
+                phoneNumber: tempUser.phoneNumber,
+                password: hashedPassword,
+                subscriptionType: tempUser.subscriptionType,
+                signInMethod: "phone",
+                storage: storageSubscribed,
+              });
+              await user.save();
+
+              await TempUserModel.deleteOne({
+                phoneNumber: phoneNumber,
+              });
+
+              const UserData = {
+                id: user.id,
+                fname: user.firstName,
+                lname: user.lastName,
+                username: user.username,
+                phoneNumber: user.phoneNumber,
+                email: user.email,
+                subscribed: user.subscribed,
+                paid: user.paid,
+                subType: user.subscriptionType,
+                firstTimePaid: user.firstTimePaid,
+                profileImage: user.profileImage,
+                coverImage: user.coverImage,
+                signInMethod: user.signInMethod,
+              };
+
+              const accessToken = generateUserAccessToken(UserData);
+
+              res.status(200).json({
+                accessToken: accessToken,
+                message: "User created successfully",
+              });
+            }
+          }
+        })
     }
   } catch (error) {
     console.log(error);
@@ -314,6 +343,8 @@ export const login: RequestHandler = async (
       username: user.username,
       phoneNumber: user.phoneNumber,
       email: user.email,
+      subscribed: user.subscribed,
+      paid: user.paid,
       subType: user.subscriptionType,
       firstTimePaid: user.firstTimePaid,
       profileImage: user.profileImage,
@@ -322,7 +353,6 @@ export const login: RequestHandler = async (
     };
 
     const accessToken = generateUserAccessToken(UserData);
-
 
     await UserModel.updateOne(
       { email: email },
@@ -413,6 +443,8 @@ export const signInWithGoogle: RequestHandler = async (
         username: user.username,
         phoneNumber: user.phoneNumber,
         email: user.email,
+        subscribed: user.subscribed,
+        paid: user.paid,
         subType: user.subscriptionType,
         firstTimePaid: user.firstTimePaid,
         profileImage: user.profileImage,
@@ -439,6 +471,8 @@ export const signInWithGoogle: RequestHandler = async (
         phoneNumber: user!.phoneNumber,
         email: user!.email,
         subType: user!.subscriptionType,
+        subscribed: user!.subscribed,
+        paid: user!.paid,
         firstTimePaid: user!.firstTimePaid,
         profileImage: user!.profileImage,
         coverImage: user!.coverImage,

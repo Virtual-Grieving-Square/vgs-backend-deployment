@@ -5,6 +5,8 @@ export interface User {
   username: string;
   phoneNumber: string;
   email: string;
+  subscribed: boolean;
+  paid: boolean;
   subType: string;
   firstTimePaid: boolean;
   profileImage: string;

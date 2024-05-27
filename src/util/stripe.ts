@@ -68,6 +68,7 @@ async function handleCheckoutSessionCompleted(event: any) {
       await UserModel.updateOne({
         _id: user!.userId
       }, {
+        subscribed: true,
         paid: true,
         firstTimePaid: true,
       });
