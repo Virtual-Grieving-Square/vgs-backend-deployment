@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import { UserModel } from "../model/user";
+import UpgreadModel from "../model/upgrade";
 import PaymentListModel from "../model/paymentList";
 import DepositListModel from "../model/depositList";
 import { generateOrderNumber } from "../util/generateOrderNumber";
@@ -120,7 +121,6 @@ export const pay = async (req: Request, res: Response) => {
             automatic_tax: { enabled: true },
           });
 
-
           await PaymentListModel.create({
             paymentId: session.id,
             userId: id,
@@ -132,7 +132,6 @@ export const pay = async (req: Request, res: Response) => {
             session: session,
             client_secret: session.client_secret,
           });
-
         } else {
           res.status(404).json({
             request: "failed",
@@ -146,7 +145,6 @@ export const pay = async (req: Request, res: Response) => {
         msg: "User Not Found",
       });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -160,7 +158,7 @@ export const cancelSubscription = async (req: Request, res: Response) => {
   try {
     const { id, password } = req.body;
 
-    console.log(id, password)
+    console.log(id, password);
 
     const user = await UserModel.findById(id);
 
@@ -172,27 +170,30 @@ export const cancelSubscription = async (req: Request, res: Response) => {
       if (!match) {
         return res.status(403).json({ msg: "Password Incorrect" });
       } else {
-
-        stripe.subscriptions.cancel(user.subscriptionId)
+        stripe.subscriptions
+          .cancel(user.subscriptionId)
           .then(async (response: any) => {
             const status = response.status;
             if (status == "canceled") {
-              await UserModel.updateOne({
-                _id: id,
-              },
+              await UserModel.updateOne(
+                {
+                  _id: id,
+                },
                 {
                   subscriptionType: "free",
                   subscribed: false,
                   subscriptionId: "",
                   storage: 0,
-                });
+                }
+              );
 
-              res.status(200).json({ msg: "subscription_canceled", status: status });
+              res
+                .status(200)
+                .json({ msg: "subscription_canceled", status: status });
             }
-          })
+          });
       }
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -200,7 +201,7 @@ export const cancelSubscription = async (req: Request, res: Response) => {
       error: error,
     });
   }
-}
+};
 
 export const deposit = async (req: Request, res: Response) => {
   try {
@@ -251,6 +252,71 @@ export const deposit = async (req: Request, res: Response) => {
   }
 };
 
+export const upgrade = async (req: Request, res: Response) => {
+  const { userID, upSubscription } = req.body;
+
+  if (!userID || !upSubscription) {
+    res.status(403).json({ msg: "missing parameter" });
+  }
+  const userInfo = await UserModel.findById(userID);
+
+  const levels: { [key: string]: number } = {
+    free: 1,
+    silver: 2,
+    gold: 3,
+  };
+
+  const currentLevel = levels[userInfo?.subscriptionType ?? ""];
+  const selectedLevel = levels[upSubscription];
+  if (selectedLevel <= currentLevel) {
+    res.status(403).json({ msg: "Wrong upgrading option" });
+  }
+
+  const subscriptionPlan = await SubscriptionPlanModel.findOne({
+    name: upSubscription,
+  });
+
+  try {
+    var newPrice: string = "";
+    if (upSubscription == "silver") {
+      newPrice = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+    } else if (upSubscription == "gold") {
+      newPrice = "price_1PABvTFEZ2nUxcULGaj999zd";
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: newPrice,
+          quantity: 1,
+        },
+      ],
+      mode: "subscription",
+      success_url: `${YOUR_DOMAIN}?payment=success&id=${userID}&type=upgrade`,
+      cancel_url: `${YOUR_DOMAIN}?payment=canceled&id=${userID}&type=upgrade`,
+      automatic_tax: { enabled: true },
+    });
+
+    await UpgreadModel.create({
+      paymentId: session.id,
+      userId: userID,
+      upgreadType: upSubscription,
+    });
+
+    res.status(200).json({
+      request: "success",
+      session: session,
+      client_secret: session.client_secret,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      message: "strip request error",
+      error: err,
+    });
+  }
+};
+
 export const checkSubscriptions = async (req: Request, res: Response) => {
   try {
     const subscriptions = await stripe.subscriptions.list({});
@@ -260,4 +326,4 @@ export const checkSubscriptions = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
-}
+};
