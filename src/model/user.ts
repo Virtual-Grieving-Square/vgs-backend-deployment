@@ -8,6 +8,7 @@ const userSchema: Schema = new Schema({
   phoneNumber: { type: String, required: false, unique: false },
   subscribed: { type: Boolean, required: true, default: false },
   subscriptionType: { type: String, required: false },
+  subscriptionId: { type: String, default: "", required: false },
   subscribedDate: { type: Date, required: false },
   balance: { type: Number, required: false, default: 0 },
   groups: [{ type: Schema.Types.ObjectId, ref: "Group" }],
@@ -52,6 +53,7 @@ export interface User extends Document {
   accessToken: string;
   refreshToken: string;
   storage: number;
+  subscriptionId: string;
   profileImage: string;
   coverImage: string;
 }

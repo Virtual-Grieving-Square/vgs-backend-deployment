@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import { UserModel } from "../model/user";
+import UpgreadModel from "../model/upgrade";
 import PaymentListModel from "../model/paymentList";
 import DepositListModel from "../model/depositList";
 import { generateOrderNumber } from "../util/generateOrderNumber";
@@ -169,15 +170,28 @@ export const cancelSubscription = async (req: Request, res: Response) => {
       if (!match) {
         return res.status(403).json({ msg: "Password Incorrect" });
       } else {
-        await UserModel.updateOne(
-          {
-            _id: id,
-          },
-          {
-            subscriptionType: "free",
-            subscribed: false,
-          }
-        );
+        stripe.subscriptions
+          .cancel(user.subscriptionId)
+          .then(async (response: any) => {
+            const status = response.status;
+            if (status == "canceled") {
+              await UserModel.updateOne(
+                {
+                  _id: id,
+                },
+                {
+                  subscriptionType: "free",
+                  subscribed: false,
+                  subscriptionId: "",
+                  storage: 0,
+                }
+              );
+
+              res
+                .status(200)
+                .json({ msg: "subscription_canceled", status: status });
+            }
+          });
       }
     }
   } catch (error) {
@@ -247,10 +261,11 @@ export const upgrade = async (req: Request, res: Response) => {
   const userInfo = await UserModel.findById(userID);
 
   const levels: { [key: string]: number } = {
-    Free: 1,
-    Silver: 2,
-    Gold: 3,
+    free: 1,
+    silver: 2,
+    gold: 3,
   };
+
   const currentLevel = levels[userInfo?.subscriptionType ?? ""];
   const selectedLevel = levels[upSubscription];
   if (selectedLevel <= currentLevel) {
@@ -261,5 +276,54 @@ export const upgrade = async (req: Request, res: Response) => {
     name: upSubscription,
   });
 
-  
+  try {
+    var newPrice: string = "";
+    if (upSubscription == "silver") {
+      newPrice = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+    } else if (upSubscription == "gold") {
+      newPrice = "price_1PABvTFEZ2nUxcULGaj999zd";
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: newPrice,
+          quantity: 1,
+        },
+      ],
+      mode: "subscription",
+      success_url: `${YOUR_DOMAIN}?payment=success&id=${userID}&type=upgrade`,
+      cancel_url: `${YOUR_DOMAIN}?payment=canceled&id=${userID}&type=upgrade`,
+      automatic_tax: { enabled: true },
+    });
+
+    await UpgreadModel.create({
+      paymentId: session.id,
+      userId: userID,
+      upgreadType: upSubscription,
+    });
+
+    res.status(200).json({
+      request: "success",
+      session: session,
+      client_secret: session.client_secret,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      message: "strip request error",
+      error: err,
+    });
+  }
+};
+
+export const checkSubscriptions = async (req: Request, res: Response) => {
+  try {
+    const subscriptions = await stripe.subscriptions.list({});
+
+    res.status(200).json(subscriptions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
 };

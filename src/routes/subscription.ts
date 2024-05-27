@@ -6,7 +6,8 @@ import {
   test,
   deposit,
   upgrade,
-  cancelSubscription
+  cancelSubscription,
+  checkSubscriptions
 } from '../controller/subscription';
 
 // Controllers
@@ -24,5 +25,8 @@ router.post("/upgrade", upgrade);
 router.post("/cancel", cancelSubscription);
 
 router.post("/deposit", deposit);
+
+// Check Subscriptions
+router.get("/checkSubscription", checkSubscriptions);
 
 export default router; 
