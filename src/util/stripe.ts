@@ -51,6 +51,7 @@ async function handleCheckoutSessionCompleted(event: any) {
   console.log("Payment Status: ", paymentStatus);
 
   if (paymentStatus === "paid") {
+
     // Check Subscription Payment
     const CheckSubscriptionPayment = await PaymentListModel.findOne({
       paymentId: checkOutId,
@@ -126,17 +127,25 @@ async function handleCheckoutSessionCompleted(event: any) {
     const CheckUpgrade = await UpgreadModel.findOne({
       paymentId: checkOutId,
     });
+
     if (CheckUpgrade) {
       const UserInformation = await UserModel.findById(CheckUpgrade.userId);
+
+
       const subscrptionType = await SubscriptionPlanModel.findOne({
-        name: CheckUpgrade.upgreadType,
+        label: CheckUpgrade.upgreadType,
       });
+
+
       if (UserInformation && subscrptionType) {
+
         stripe.subscriptions
           .cancel(UserInformation.subscriptionId)
           .then(async (response: any) => {
             const status = response.status;
+
             if (status == "canceled") {
+
               await UserModel.updateOne(
                 {
                   _id: UserInformation.id,
@@ -147,6 +156,14 @@ async function handleCheckoutSessionCompleted(event: any) {
                   storage: subscrptionType.storagePerk,
                 }
               );
+
+              await UpgreadModel.updateOne(
+                { paymentId: checkOutId },
+                {
+                  paid: true
+                }
+              );
+
             } else {
               throw "couldnt cancel request";
             }
