@@ -14,21 +14,22 @@ export const stripeWebhook = async (sig: any, event: any, res: any, req: any) =>
   try {
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+
+      switch (event['type']) {
+        case "checkout.session.completed":
+          // handleCheckoutSessionCompleted(event);
+          break;
+        case "payment_intent.succeeded":
+          handlePaymentSucceeded(event.data.object);
+          break;
+      }
+
+      res.json({ received: true });
     } catch (err: any) {
+      console.error(err);
       res.status(407).send(`Webhook Error: ${err.message}`);
       return;
     }
-
-    switch (event['type']) {
-      case "checkout.session.completed":
-        // handleCheckoutSessionCompleted(event);
-        break;
-      case "payment_intent.succeeded":
-        handlePaymentSucceeded(event.data.object);
-        break;
-    }
-
-    res.json({ received: true });
   } catch (e) {
     console.error(e);
   }
@@ -38,7 +39,6 @@ function handlePaymentSucceeded(invoice: any) {
   const subscriptionId = invoice.subscription;
   const metadata = invoice.metadata;
 
-  console.log(subscriptionId, metadata);
 }
 
 async function handleCheckoutSessionCompleted(event: any) {
@@ -49,11 +49,12 @@ async function handleCheckoutSessionCompleted(event: any) {
 
   if (paymentStatus === "paid") {
 
-    const checkPaymentType1 = await PaymentListModel.findOne({
+    // Check Subscription Payment
+    const CheckSubscriptionPayment = await PaymentListModel.findOne({
       paymentId: checkOutId
     });
 
-    if (checkPaymentType1) {
+    if (CheckSubscriptionPayment) {
       const paidd = await PaymentListModel.updateOne({
         paymentId: checkOutId
       }, {
@@ -74,11 +75,12 @@ async function handleCheckoutSessionCompleted(event: any) {
       console.log("Paid: ", paidd);
     }
 
-    const checkPaymentType2 = await DepositListModel.findOne({
+    // Check Deposit Payment
+    const CheckDeposit = await DepositListModel.findOne({
       paymentId: checkOutId
     });
 
-    if (checkPaymentType2) {
+    if (CheckDeposit) {
       console.log("Balance Update");
 
       const doubleCheck = await DepositListModel.findOne({
@@ -95,10 +97,10 @@ async function handleCheckoutSessionCompleted(event: any) {
         });
 
         await UserModel.updateOne({
-          _id: checkPaymentType2.userId
+          _id: CheckDeposit.userId
         }, {
           $inc: {
-            balance: checkPaymentType2.amount
+            balance: CheckDeposit.amount
           }
         });
       }

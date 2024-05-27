@@ -89,60 +89,65 @@ export const pay = async (req: Request, res: Response) => {
       userId: id,
     });
 
-    if (checkUser!.paid == true) {
-      res.status(201).json({
-        request: "success",
-        msg: "User Already Paid",
-      });
-    } else {
-      if (user) {
-        if (user.subscriptionType == "silver") {
-          price = "price_1PABuPFEZ2nUxcULGeQfmIs7";
-        } else if (user.subscriptionType == "gold") {
-          price = "price_1PABvTFEZ2nUxcULGaj999zd";
-        }
+    if (user) {
 
-        const orderNumber = generateOrderNumber(20);
-
-        const metadata = {
-          userId: user!._id,
-          orderId: orderNumber,
-          paymentType: "subscription",
-        };
-
-        const session = await stripe.paymentIntents.create({
-          // amount: amount,
-          // currency: currency,
-          // customer: customerId,
-          // metadata: metadata,
-          // mode: "subscription",
-          // success_url: `${YOUR_DOMAIN}?payment=success&id=${id}`,
-          // cancel_url: `${YOUR_DOMAIN}?payment=canceled&id=${id}`,
-          // automatic_tax: { enabled: true },
-        });
-
-
-        await PaymentListModel.create({
-          paymentId: session.id,
-          userId: id,
-          amount: session.amount_total,
-        });
-
-        res.status(200).json({
+      if (checkUser!.paid == true) {
+        res.status(201).json({
           request: "success",
-          session: session,
-          client_secret: session.client_secret,
+          msg: "User Already Paid",
         });
-
       } else {
-        res.status(404).json({
-          request: "failed",
-          msg: "User Not Found",
-        });
+        if (user) {
+          if (user.subscriptionType == "silver") {
+            price = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+          } else if (user.subscriptionType == "gold") {
+            price = "price_1PABvTFEZ2nUxcULGaj999zd";
+          }
+
+          const orderNumber = generateOrderNumber(20);
+
+          const session = await stripe.checkout.sessions.create({
+            line_items: [
+              {
+                price: price,
+                quantity: 1,
+              },
+            ],
+            mode: "subscription",
+            success_url: `${YOUR_DOMAIN}?payment=success&id=${id}`,
+            cancel_url: `${YOUR_DOMAIN}?payment=canceled&id=${id}`,
+            automatic_tax: { enabled: true },
+          });
+
+
+          await PaymentListModel.create({
+            paymentId: session.id,
+            userId: id,
+            amount: session.amount_total,
+          });
+
+          res.status(200).json({
+            request: "success",
+            session: session,
+            client_secret: session.client_secret,
+          });
+
+        } else {
+          res.status(404).json({
+            request: "failed",
+            msg: "User Not Found",
+          });
+        }
       }
+    } else {
+      res.status(404).json({
+        request: "failed",
+        msg: "User Not Found",
+      });
     }
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       msg: "Internal Server Error",
       error: error,
