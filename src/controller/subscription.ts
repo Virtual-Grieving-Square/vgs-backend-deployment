@@ -221,7 +221,7 @@ export const deposit = async (req: Request, res: Response) => {
             product_data: {
               name: "Deposit",
             },
-            unit_amount: depostList[amount - 1].amount * 100,
+            unit_amount: amount * 100,
           },
           quantity: 1,
         },
@@ -235,7 +235,7 @@ export const deposit = async (req: Request, res: Response) => {
     await DepositListModel.create({
       paymentId: session.id,
       userId: id,
-      amount: depostList[amount - 1].amount,
+      amount: amount,
     }).then(() => {
       res.status(200).json({
         request: "success",
