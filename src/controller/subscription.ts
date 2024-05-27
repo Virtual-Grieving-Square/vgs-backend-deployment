@@ -120,7 +120,6 @@ export const pay = async (req: Request, res: Response) => {
             automatic_tax: { enabled: true },
           });
 
-
           await PaymentListModel.create({
             paymentId: session.id,
             userId: id,
@@ -132,7 +131,6 @@ export const pay = async (req: Request, res: Response) => {
             session: session,
             client_secret: session.client_secret,
           });
-
         } else {
           res.status(404).json({
             request: "failed",
@@ -146,7 +144,6 @@ export const pay = async (req: Request, res: Response) => {
         msg: "User Not Found",
       });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -160,7 +157,7 @@ export const cancelSubscription = async (req: Request, res: Response) => {
   try {
     const { id, password } = req.body;
 
-    console.log(id, password)
+    console.log(id, password);
 
     const user = await UserModel.findById(id);
 
@@ -172,16 +169,17 @@ export const cancelSubscription = async (req: Request, res: Response) => {
       if (!match) {
         return res.status(403).json({ msg: "Password Incorrect" });
       } else {
-        await UserModel.updateOne({
-          _id: id,
-        },
+        await UserModel.updateOne(
+          {
+            _id: id,
+          },
           {
             subscriptionType: "free",
             subscribed: false,
-          });
+          }
+        );
       }
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -189,7 +187,7 @@ export const cancelSubscription = async (req: Request, res: Response) => {
       error: error,
     });
   }
-}
+};
 
 export const deposit = async (req: Request, res: Response) => {
   try {
@@ -240,3 +238,28 @@ export const deposit = async (req: Request, res: Response) => {
   }
 };
 
+export const upgrade = async (req: Request, res: Response) => {
+  const { userID, upSubscription } = req.body;
+
+  if (!userID || !upSubscription) {
+    res.status(403).json({ msg: "missing parameter" });
+  }
+  const userInfo = await UserModel.findById(userID);
+
+  const levels: { [key: string]: number } = {
+    Free: 1,
+    Silver: 2,
+    Gold: 3,
+  };
+  const currentLevel = levels[userInfo?.subscriptionType ?? ""];
+  const selectedLevel = levels[upSubscription];
+  if (selectedLevel <= currentLevel) {
+    res.status(403).json({ msg: "Wrong upgrading option" });
+  }
+
+  const subscriptionPlan = await SubscriptionPlanModel.findOne({
+    name: upSubscription,
+  });
+
+  
+};
