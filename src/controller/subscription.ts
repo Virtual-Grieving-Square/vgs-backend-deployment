@@ -172,13 +172,24 @@ export const cancelSubscription = async (req: Request, res: Response) => {
       if (!match) {
         return res.status(403).json({ msg: "Password Incorrect" });
       } else {
-        await UserModel.updateOne({
-          _id: id,
-        },
-          {
-            subscriptionType: "free",
-            subscribed: false,
-          });
+
+        stripe.subscriptions.cancel(user.subscriptionId)
+          .then(async (response: any) => {
+            const status = response.status;
+            if (status == "canceled") {
+              await UserModel.updateOne({
+                _id: id,
+              },
+                {
+                  subscriptionType: "free",
+                  subscribed: false,
+                  subscriptionId: "",
+                  storage: 0,
+                });
+
+              res.status(200).json({ msg: "subscription_canceled", status: status });
+            }
+          })
       }
     }
 
@@ -240,3 +251,13 @@ export const deposit = async (req: Request, res: Response) => {
   }
 };
 
+export const checkSubscriptions = async (req: Request, res: Response) => {
+  try {
+    const subscriptions = await stripe.subscriptions.list({});
+
+    res.status(200).json(subscriptions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+}

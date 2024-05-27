@@ -17,7 +17,7 @@ export const stripeWebhook = async (sig: any, event: any, res: any, req: any) =>
 
       switch (event['type']) {
         case "checkout.session.completed":
-          // handleCheckoutSessionCompleted(event);
+          handleCheckoutSessionCompleted(event);
           break;
         case "payment_intent.succeeded":
           handlePaymentSucceeded(event.data.object);
@@ -71,6 +71,7 @@ async function handleCheckoutSessionCompleted(event: any) {
         subscribed: true,
         paid: true,
         firstTimePaid: true,
+        subscriptionId: event.data.object.subscription,
       });
 
       console.log("Paid: ", paidd);
