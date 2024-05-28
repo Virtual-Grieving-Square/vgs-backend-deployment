@@ -288,6 +288,10 @@ export const createComment = async (req: Request, res: Response) => {
   try {
     const { authorId, content, postId, userId } = req.body;
 
+    if (!authorId|| !content || !postId || !userId) {
+      return res.status(404).json({ error: "missing parameter" });
+    }
+
     const comment = new CommentModel({
       authorId: authorId,
       content: content,
