@@ -48,7 +48,7 @@ export const getPetById = async (req: Request, res: Response) => {
 
 export const createPetMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, type, dob, dod, author } = req.body;
+    const { name, age, type, dob, dod, author, description } = req.body;
     const owner = author;
     console.log(req.files);
     console.log(req.body);
@@ -87,6 +87,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
         DOB: dob,
         DOD: dod,
         owner: owner,
+        description: description,
         coverImage: fileName,
       });
 

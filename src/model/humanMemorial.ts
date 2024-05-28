@@ -20,6 +20,7 @@ export interface humanMemorial extends Document {
   age: number;
   property: string;
   dob: Date;
+  description: string;
   dod: Date;
   author: string;
   image: string;

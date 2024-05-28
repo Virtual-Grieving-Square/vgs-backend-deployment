@@ -10,6 +10,7 @@ import {
   getHumanMemorialById,
   searchHumanMemorial,
   deleteHumanMemorial,
+  updateHumanMemorial,
 } from "../controller/humanMemorial";
 
 // Pet Memorial
@@ -47,6 +48,9 @@ router.get("/human/getImage", getImage);
 
 // Search
 router.get("/human/search", searchHumanMemorial);
+
+// Update
+router.post("/human/update", upload.single("image"), updateHumanMemorial);
 
 // Pet Memorial
 router.get('/pet/getAll', getAllPetMemorial);

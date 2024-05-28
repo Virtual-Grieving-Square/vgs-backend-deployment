@@ -28,16 +28,19 @@ export const signup: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, username, email, password } =
+    const { firstName, lastName, email, password } =
       req.body.data;
     const phoneNumber = req.body.phoneNumber;
     const verification = req.body.verification;
     const subscriptionType = req.body.subscriptionType;
     const existingUserByEmail = await UserModel.findOne({ email: email });
+
     const existingUserByPhone = await UserModel.findOne({
       phoneNumber: phoneNumber,
     });
+
     const verificationCode = verificationCodeGenerator(6);
+    const username = "";
 
     if (existingUserByEmail) {
       console.error("User with this Email already exists");
@@ -61,8 +64,10 @@ export const signup: RequestHandler = async (
     }
 
     if (verification == "phone") {
+      console.log(phoneNumber)
       // here is where i need to send the sms
       const verificationSMS = await sendOtp(phoneNumber);
+
       const checkTempUser = await TempUserModel.findOne({
         phoneNumber: phoneNumber,
       });
@@ -103,7 +108,6 @@ export const signup: RequestHandler = async (
         message: "Verification code sent successfully",
       });
     } else if (verification == "email") {
-      console.log("Verification Email");
 
       const checkTempUser = await TempUserModel.findOne({
         email: email,
@@ -178,11 +182,13 @@ export const verify: RequestHandler = async (
       const tempUser = await TempUserModel.findOne({ email: email, otp: otp });
 
       if (tempUser) {
+
         const storagePicked = await SubscriptionPlanModel.findOne({
-          name: tempUser.subscriptionType,
+          label: tempUser.subscriptionType,
         });
-        const hashedPassword = await bcrypt.hash(tempUser.password, 10);
         const storageSubscribed = storagePicked?.storagePerk || 0;
+
+        const hashedPassword = await bcrypt.hash(tempUser.password, 10);
 
         const user = new UserModel({
           firstName: tempUser.firstName,
@@ -192,79 +198,104 @@ export const verify: RequestHandler = async (
           phoneNumber: tempUser.phoneNumber,
           password: hashedPassword,
           subscriptionType: tempUser.subscriptionType,
-          signInMethod: "Email",
+          signInMethod: "email",
           storage: storageSubscribed,
         });
 
         await user.save();
 
-        const accessToken = generateUserAccessToken(
-          user._id,
-          user.firstName,
-          user.lastName,
-          user.username,
-          user.phoneNumber,
-          user.email,
-          user.subscriptionType,
-          user.firstTimePaid,
-          "email",
-          user.profileImage || ""
-        );
-
         await TempUserModel.deleteOne({
           email: email,
         });
 
+        const UserData = {
+          id: user.id,
+          fname: user.firstName,
+          lname: user.lastName,
+          username: user.username,
+          phoneNumber: user.phoneNumber,
+          email: user.email,
+          subscribed: user.subscribed,
+          paid: user.paid,
+          subType: user.subscriptionType,
+          firstTimePaid: user.firstTimePaid,
+          profileImage: user.profileImage,
+          coverImage: user.coverImage,
+          signInMethod: user.signInMethod,
+        };
+
+        const accessToken = generateUserAccessToken(UserData);
+
         res.status(200).json({
           accessToken: accessToken,
           message: "User created successfully",
         });
+
       } else {
         res.status(401).json({ msg: "Invalid OTP" });
       }
     } else if (type == "phone") {
-      const verification = await verifyOtp(otp, phoneNumber);
-      if (verification !== "approved") {
-        res.status(401).json({ msg: "Invalid OTP" });
-      }
-      const tempUser = await TempUserModel.findOne({
-        phoneNumber: phoneNumber,
-      });
 
-      if (tempUser) {
-        const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+      verifyOtp(otp, phoneNumber)
+        .then(async (response) => {
+          if (response !== "approved") {
+            res.status(401).json({ msg: "Invalid OTP" });
+          } else {
+            const tempUser = await TempUserModel.findOne({
+              phoneNumber: phoneNumber,
+            });
 
-        const user = new UserModel({
-          firstName: tempUser.firstName,
-          lastName: tempUser.lastName,
-          username: tempUser.username,
-          email: tempUser.email,
-          phoneNumber: tempUser.phoneNumber,
-          password: hashedPassword,
-          signInMethod: "Phone",
-        });
-        await user.save();
+            const storagePicked = await SubscriptionPlanModel.findOne({
+              label: tempUser!.subscriptionType,
+            });
 
-        const accessToken = generateUserAccessToken(
-          user._id,
-          user.firstName,
-          user.lastName,
-          user.username,
-          user.phoneNumber,
-          user.email,
-          user.subscriptionType,
-          user.firstTimePaid,
-          "phone",
-          user.profileImage || ""
-        );
+            const storageSubscribed = storagePicked?.storagePerk || 0;
 
-        res.status(200).json({
-          accessToken: accessToken,
-          message: "User created successfully",
-        });
-      } else {
-        res.status(401).json({ msg: "Invalid OTP" });
-      }
+            if (tempUser) {
+              const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
+              const user = new UserModel({
+                firstName: tempUser.firstName,
+                lastName: tempUser.lastName,
+                username: tempUser.username,
+                email: tempUser.email,
+                phoneNumber: tempUser.phoneNumber,
+                password: hashedPassword,
+                subscriptionType: tempUser.subscriptionType,
+                signInMethod: "phone",
+                storage: storageSubscribed,
+              });
+              await user.save();
+
+              await TempUserModel.deleteOne({
+                phoneNumber: phoneNumber,
+              });
+
+              const UserData = {
+                id: user.id,
+                fname: user.firstName,
+                lname: user.lastName,
+                username: user.username,
+                phoneNumber: user.phoneNumber,
+                email: user.email,
+                subscribed: user.subscribed,
+                paid: user.paid,
+                subType: user.subscriptionType,
+                firstTimePaid: user.firstTimePaid,
+                profileImage: user.profileImage,
+                coverImage: user.coverImage,
+                signInMethod: user.signInMethod,
+              };
+
+              const accessToken = generateUserAccessToken(UserData);
+
+              res.status(200).json({
+                accessToken: accessToken,
+                message: "User created successfully",
+              });
+            }
+          }
+        })
     }
   } catch (error) {
     console.log(error);
@@ -305,18 +336,23 @@ export const login: RequestHandler = async (
         .json({ message: "Authentication failed. Invalid password." });
     }
 
-    const accessToken = generateUserAccessToken(
-      user._id,
-      user.firstName,
-      user.lastName,
-      user.username,
-      user.phoneNumber,
-      user.email,
-      user.subscriptionType,
-      user.firstTimePaid,
-      "email",
-      user.profileImage || ""
-    );
+    const UserData = {
+      id: user.id,
+      fname: user.firstName,
+      lname: user.lastName,
+      username: user.username,
+      phoneNumber: user.phoneNumber,
+      email: user.email,
+      subscribed: user.subscribed,
+      paid: user.paid,
+      subType: user.subscriptionType,
+      firstTimePaid: user.firstTimePaid,
+      profileImage: user.profileImage,
+      coverImage: user.coverImage,
+      signInMethod: user.signInMethod,
+    };
+
+    const accessToken = generateUserAccessToken(UserData);
 
     await UserModel.updateOne(
       { email: email },
@@ -378,6 +414,12 @@ export const signInWithGoogle: RequestHandler = async (
     const existingUser = await UserModel.findOne({ email: email });
 
     if (!existingUser) {
+
+      const storagePicked = await SubscriptionPlanModel.findOne({
+        label: subscriptionType,
+      });
+      const storageSubscribed = storagePicked?.storagePerk || 0;
+
       const user = new UserModel({
         firstName: firstName,
         lastName: lastName,
@@ -388,47 +430,59 @@ export const signInWithGoogle: RequestHandler = async (
         accessToken: accessToken,
         refreshToken: refreshToken,
         subscriptionType: subscriptionType,
+        storage: storageSubscribed,
         signInMethod: "Google",
       });
 
       await user.save();
 
-      const accessTokenToken = generateUserAccessToken(
-        user._id,
-        user.firstName,
-        user.lastName,
-        user.username,
-        user.phoneNumber,
-        user.email,
-        user.subscriptionType,
-        user.firstTimePaid,
-        "google",
-        user.profileImage || ""
-      );
+      const UserData = {
+        id: user.id,
+        fname: user.firstName,
+        lname: user.lastName,
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+        email: user.email,
+        subscribed: user.subscribed,
+        paid: user.paid,
+        subType: user.subscriptionType,
+        firstTimePaid: user.firstTimePaid,
+        profileImage: user.profileImage,
+        coverImage: user.coverImage,
+        signInMethod: user.signInMethod,
+      };
+
+      const accessToken1 = generateUserAccessToken(UserData);
 
       return res.status(200).json({
-        accessToken: accessTokenToken,
+        accessToken: accessToken1,
         account: "new",
         message: "User created successfully",
       });
     } else {
+
       const user = await UserModel.findOne({ email: email });
 
-      const accessToken1 = generateUserAccessToken(
-        user!._id,
-        user!.firstName,
-        user!.lastName,
-        user!.username,
-        user!.phoneNumber,
-        user!.email,
-        user!.subscriptionType,
-        user!.firstTimePaid,
-        "email",
-        user!.profileImage || ""
-      );
+      const UserData = {
+        id: user!.id,
+        fname: user!.firstName,
+        lname: user!.lastName,
+        username: user!.username,
+        phoneNumber: user!.phoneNumber,
+        email: user!.email,
+        subType: user!.subscriptionType,
+        subscribed: user!.subscribed,
+        paid: user!.paid,
+        firstTimePaid: user!.firstTimePaid,
+        profileImage: user!.profileImage,
+        coverImage: user!.coverImage,
+        signInMethod: user!.signInMethod,
+      };
+
+      const accessToken = generateUserAccessToken(UserData);
 
       return res.status(200).json({
-        accessToken: accessToken1,
+        accessToken: accessToken,
         account: "existing",
         message: "User created successfully",
       });

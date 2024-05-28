@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import { HumanMemorial } from "../model/humanMemorial";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
@@ -202,6 +202,62 @@ export const deleteHumanMemorial = async (req: Request, res: Response) => {
     await HumanMemorial.findByIdAndDelete(id);
 
     res.status(200).json({ message: "Memorial deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const updateHumanMemorial = async (req: any, res: Response) => {
+  try {
+    const { id, name, description, dob, dod, author } = req.body;
+    if (req.files?.length === 0) {
+      const humanMemorial = await HumanMemorial.findById(id);
+      if (!humanMemorial) {
+        return res.status(404).json({ message: "Memorial not found" });
+      } else {
+        if (
+          name == humanMemorial.name &&
+          description == humanMemorial.description &&
+          dob == humanMemorial.dob
+        ) {
+          return res.status(402).json({ message: "No changes made" });
+        } else {
+          await HumanMemorial.findByIdAndUpdate(id, {
+            name: name,
+            description: description,
+            dob: dob,
+            dod: dod,
+          });
+          res.status(200).json({ msg: "Memorial Updated" });
+        }
+      }
+    } else {
+      const fileOrgnName = req.file?.originalname || "";
+      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(fileOrgnName)}`;
+
+      // Upload file to S3
+      const uploadParams = {
+        Bucket: "vgs-upload",
+        Key: fileName,
+        Body: req.file?.buffer,
+        ContentType: req.file?.mimetype,
+      };
+
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
+
+      await HumanMemorial.findByIdAndUpdate(id, {
+        name: name,
+        description: description,
+        dob: dob,
+        dod: dod,
+        image: fileName,
+      });
+
+      res.status(200).json({ msg: "Memorial Updated" });
+    }
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
