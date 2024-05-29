@@ -40,11 +40,11 @@ router.get("/:meetingId", async (req: CustomRequest, res: Response) => {
 router.post("/:userId", async (req: CustomRequest, res: Response) => {
   try {
     console.log("Here");
-    console.log(req.body)
-    const { headerConfig, params, body, file } = req;
+    // console.log(req.body)
+    const { headerConfig, params, body } = req;
     const { userId } = params;
-    console.log(body);
-    console.log(userId);
+    // console.log(body);
+    // console.log(userId);
 
     const newBody = {
       "agenda": body.name,
@@ -60,7 +60,7 @@ router.post("/:userId", async (req: CustomRequest, res: Response) => {
       headerConfig
     );
 
-    await saveStreaming(request.data, body, file);
+    await saveStreaming(request.data, body);
 
     return res.json(request.data);
   } catch (error: any) {
