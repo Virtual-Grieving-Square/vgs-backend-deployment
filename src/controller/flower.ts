@@ -14,9 +14,7 @@ export const addFlower = async (req: Request, res: Response) => {
     } else {
 
       const fileOriginName = req.file?.originalname || "";
-      const fileName = `uploads/image/flower/${Date.now()}-${removeSpaces(
-        fileOriginName
-      )}`;
+      const fileName = `uploads/image/flower/${Date.now()}-${removeSpaces(fileOriginName)}`;
 
       // Upload file to S3
       const uploadParams = {
@@ -38,7 +36,7 @@ export const addFlower = async (req: Request, res: Response) => {
 
       await flower.save();
 
-      res.status(201).json(flower);
+      res.status(200).json(flower);
 
     }
   } catch (error) {
@@ -85,5 +83,22 @@ export const getImage = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(error);
+  }
+}
+
+export const deleteFlower = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+
+    const flower = await FlowerModel.findByIdAndDelete(id);
+
+    if (!flower) {
+      return res.status(404).json({ message: "Flower not found" });
+    }
+
+    res.status(200).json({ message: "Flower deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 }

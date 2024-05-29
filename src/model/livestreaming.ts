@@ -7,8 +7,9 @@ export interface Livestreaming extends Document {
   link: string;
   joinLink: string;
   topic: string;
-  BOD: string;
-  DOD: string;
+  image: string;
+  dob: string;
+  dod: string;
   description: string;
   createdAt: Date;
 }
@@ -20,8 +21,9 @@ const LiveSchema: Schema = new Schema({
   link: { type: String },
   joinLink: { type: String },
   topic: { type: String },
-  BOD: { type: String },
-  DOD: { type: String },
+  dob: { type: String },
+  dod: { type: String },
+  image: { type: String },
   description: { type: String },
   createdAt: { type: Date, default: Date.now },
 });

@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import { LiveStreamingModel, Livestreaming } from "../model/livestreaming"; // Assuming you have a Subscription model
 import { UserModel, User } from "../model/user";
 
-export const saveStreaming = async (meetingData: any, userdata: any, image: any) => {
-
+export const saveStreaming = async (meetingData: any, userdata: any) => {
   try {
+    console.log(userdata);
+
     const newLiveStream = new LiveStreamingModel({
       meetingId: meetingData.id,
       password: meetingData.password,
@@ -12,8 +13,9 @@ export const saveStreaming = async (meetingData: any, userdata: any, image: any)
       link: meetingData.start_url,
       joinLink: meetingData.join_url,
       topic: meetingData.topic,
-      BOD: userdata.bod,
-      DOD: userdata.dod,
+      image: userdata.image || "",
+      dob: userdata.dob,
+      dod: userdata.dod,
       description: userdata.description,
     });
 
