@@ -5,6 +5,7 @@ import { ProductModel } from "../model/Product";
 import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
 import { PetMemorial } from "../model/petMemorial";
+import FlowerModel from "../model/flowers";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
@@ -173,8 +174,6 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
         client_secret: session.client_secret,
       });
 
-
-
     }
   } catch (error) {
     console.error(error);
@@ -192,9 +191,7 @@ export const donateFlower = async (req: Request, res: Response) => {
     } else {
 
       if (type == "pet") {
-
         const pet = await PetMemorial.findOne({ _id: to });
-
         if (!pet) {
           res.status(402).send({ msg: "Pet not found" });
         } else {
@@ -204,11 +201,15 @@ export const donateFlower = async (req: Request, res: Response) => {
             res.status(405).send({ msg: "Insufficient balance" });
           } else {
 
+            const flowerType = await FlowerModel.findOne({ _id: id });
+
             const donateFlower = new FlowerDonationModel({
               from: from,
               to: to,
               id: id,
               amount: amount,
+              flowerId: flowerType!._id,
+              flowerImage: flowerType!.photos,
             });
 
             await donateFlower.save();
@@ -227,11 +228,15 @@ export const donateFlower = async (req: Request, res: Response) => {
             res.status(405).send({ msg: "Insufficient balance" });
           } else {
 
+            const flowerType = await FlowerModel.findOne({ _id: id });
+
             const donateFlower = new FlowerDonationModel({
               from: from,
               to: to,
               id: id,
               amount: amount,
+              flowerId: flowerType!._id,
+              flowerImage: flowerType!.photos,
             });
 
             await donateFlower.save();
