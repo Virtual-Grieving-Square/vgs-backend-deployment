@@ -5,6 +5,7 @@ export interface IFlower extends Document {
   description: string;
   price: number;
   photos: string;
+  type: string;
 }
 
 const FlowerSchema: Schema = new Schema({
@@ -12,6 +13,7 @@ const FlowerSchema: Schema = new Schema({
   description: { type: String, required: false },
   price: { type: Number, required: true },
   photos: { type: String, required: true },
+  type: { type: String, required: true },
 });
 
 const FlowerModel = mongoose.model<IFlower>("Flower", FlowerSchema);

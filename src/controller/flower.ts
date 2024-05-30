@@ -7,9 +7,9 @@ import { Stream } from "stream";
 
 export const addFlower = async (req: Request, res: Response) => {
   try {
-    const { name, description, price } = req.body;
+    const { name, description, price, type } = req.body;
 
-    if (!name || !description || !price) {
+    if (!name || !description || !price || !type) {
       return res.status(400).json({ message: "All fields are required" });
     } else {
 
@@ -32,6 +32,7 @@ export const addFlower = async (req: Request, res: Response) => {
         description: description,
         price: price,
         photos: fileName,
+        type: type,
       });
 
       await flower.save();

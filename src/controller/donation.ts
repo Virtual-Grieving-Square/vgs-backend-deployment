@@ -210,6 +210,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               amount: amount,
               flowerId: flowerType!._id,
               flowerImage: flowerType!.photos,
+              type: flowerType!.type,
             });
 
             await donateFlower.save();
@@ -237,6 +238,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               amount: amount,
               flowerId: flowerType!._id,
               flowerImage: flowerType!.photos,
+              type: flowerType!.type,
             });
 
             await donateFlower.save();
