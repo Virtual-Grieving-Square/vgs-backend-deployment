@@ -228,6 +228,8 @@ export const donateFlower = async (req: Request, res: Response) => {
               type: flowerType!.type,
             });
 
+            await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
+
             await donateFlower.save();
 
             res.status(200).json({ message: "Donated successfully", donateFlower });
@@ -258,7 +260,12 @@ export const donateFlower = async (req: Request, res: Response) => {
 
             await donateFlower.save();
 
-            res.status(200).json({ message: "Donated successfully", donateFlower });
+            await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
+
+            res.status(200).json({
+              message: "Donated successfully",
+              donateFlower
+            });
           }
         }
       }
