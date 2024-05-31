@@ -34,6 +34,7 @@ import test from "./routes/test";
 import obituaries from "./routes/obituaries";
 import flower from './routes/flower';
 import image from './routes/image';
+import stripe from './routes/stripe';
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -106,6 +107,7 @@ app.use("/testsms", test);
 app.use("/obituaries", obituaries);
 app.use("/flower", flower);
 app.use("/getImage", image);
+app.use("/stripe", stripe);
 
 
 // Socket.io Connect

@@ -6,6 +6,7 @@ import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
 import { PetMemorial } from "../model/petMemorial";
 import FlowerModel from "../model/flowers";
+import { addToWallet } from "../util/wallet";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
@@ -57,6 +58,17 @@ export const makeDonation = async (req: Request, res: Response) => {
                   donations: donate._id,
                 },
               });
+
+              addToWallet(to, amount);
+
+              await UserModel.updateOne({
+                _id: from,
+              }, {
+                $inc: {
+                  balance: -amount,
+                },
+              });
+
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -99,6 +111,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                 },
               });
 
+              addToWallet(to, amount);
+
               await UserModel.updateOne({
                 _id: from,
               }, {
@@ -106,6 +120,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                   balance: -amount,
                 },
               });
+
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
