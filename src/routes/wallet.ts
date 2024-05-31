@@ -1,10 +1,11 @@
 import express from 'express';
-import { addToWalletFunction, removeFromWalletFunction, updateWallet, wallet } from "../controller/wallet";
+import { addToWalletFunction, getWallet, removeFromWalletFunction, updateWallet, wallet } from "../controller/wallet";
 
 const router = express.Router();
 
 router.post('/wallet', wallet);
 router.put('/update', updateWallet);
+router.get("/getWallet/:id", getWallet);
 
 // Add
 router.post("/addToWallet", addToWalletFunction);
