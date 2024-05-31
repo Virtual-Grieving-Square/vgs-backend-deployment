@@ -57,15 +57,6 @@ export const makeDonation = async (req: Request, res: Response) => {
                   donations: donate._id,
                 },
               });
-
-              await UserModel.updateOne({
-                _id: from,
-              }, {
-                $inc: {
-                  balance: -amount,
-                },
-              });
-
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -115,7 +106,6 @@ export const makeDonation = async (req: Request, res: Response) => {
                   balance: -amount,
                 },
               });
-
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -223,14 +213,6 @@ export const donateFlower = async (req: Request, res: Response) => {
               type: flowerType!.type,
             });
 
-            await UserModel.updateOne({
-              _id: from,
-            }, {
-              $inc: {
-                balance: -amount,
-              },
-            });
-
             await donateFlower.save();
 
             res.status(200).json({ message: "Donated successfully", donateFlower });
@@ -260,14 +242,6 @@ export const donateFlower = async (req: Request, res: Response) => {
             });
 
             await donateFlower.save();
-
-            await UserModel.updateOne({
-              _id: from,
-            }, {
-              $inc: {
-                balance: -amount,
-              },
-            });
 
             res.status(200).json({ message: "Donated successfully", donateFlower });
           }
