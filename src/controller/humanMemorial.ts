@@ -174,7 +174,7 @@ export const searchHumanMemorial = async (req: Request, res: Response) => {
     const humanMemorial = await HumanMemorial.find({
       $or: [
         { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        // { description: { $regex: search, $options: "i" } },
       ],
     });
 
