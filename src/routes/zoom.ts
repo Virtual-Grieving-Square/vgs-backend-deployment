@@ -49,8 +49,8 @@ router.post("/:userId", async (req: CustomRequest, res: Response) => {
     const newBody = {
       "agenda": body.name,
       "topic": body.topic,
-      settings: {
-        auto_recording: "cloud",
+      "settings": {
+        "auto_recording": "local",
       }
     }
 

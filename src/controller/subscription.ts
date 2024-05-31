@@ -272,9 +272,6 @@ export const upgrade = async (req: Request, res: Response) => {
     res.status(403).json({ msg: "Wrong upgrading option" });
   }
 
-  const subscriptionPlan = await SubscriptionPlanModel.findOne({
-    name: upSubscription,
-  });
 
   try {
     var newPrice: string = "";
