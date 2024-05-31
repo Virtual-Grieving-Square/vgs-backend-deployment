@@ -57,6 +57,15 @@ export const makeDonation = async (req: Request, res: Response) => {
                   donations: donate._id,
                 },
               });
+
+              await UserModel.updateOne({
+                _id: from,
+              }, {
+                $inc: {
+                  balance: -amount,
+                },
+              });
+
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
