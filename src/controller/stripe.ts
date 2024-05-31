@@ -1,27 +1,50 @@
 import { Request, Response } from "express";
+import { UserModel } from "../model/user";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
-const YOUR_DOMAIN = "http://localhost:3131";
+const YOUR_DOMAIN = process.env.DOMAIN;
+
+export const stripeBalace = async (req: Request, res: Response) => {
+  try {
+    const balance = await stripe.balance.retrieve();
+
+    res.status(200).json({ balance: balance });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error, msg: "Internal Server Error" });
+  }
+}
 
 export const addStripeAccount = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
+
     stripe.accounts.create({
       type: "express",
     }).then((response: any) => {
       const accountId = response.id;
       return accountId;
-      // res.status(200).json({ accountId: accountId });
+
     }).then(async (response: any) => {
       const accountId = response;
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
-        refresh_url: `${YOUR_DOMAIN}/refresh`,
-        return_url: `${YOUR_DOMAIN}/return`,
+        refresh_url: `${YOUR_DOMAIN}/account?refresh=true`,
+        return_url: `${YOUR_DOMAIN}/account?success=true&type=stripe-account-creation&userId=${id}`,
         type: 'account_onboarding',
       });
 
-      res.status(200).json({ url: accountLink.url });
+      const user = await UserModel.findById(id);
+      if (user?.stripeAccountId == "") {
+        user.stripeAccountId = accountId;
+        await user.save();
+        res.status(200).json({ url: accountLink.url });
+      } else {
+        await UserModel.findByIdAndUpdate(id, { stripeAccountId: accountId });
+        res.status(200).json({ url: accountLink.url });
+      }
+
     })
       .catch((error: any) => {
         console.error(error);
@@ -121,6 +144,40 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
 
     res.status(200).json({ client_secret: paymentIntent });
 
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error, msg: "Internal Server Error" });
+  }
+}
+
+export const processPayout = async (req: Request, res: Response) => {
+  try {
+    const { amount, currency, connectedAccountId } = req.body;
+
+    // Step 1: Transfer funds from platform account to connected account
+    stripe.transfers.create({
+      amount: amount * 100,  // amount in cents
+      currency: currency,
+      destination: connectedAccountId,
+    }).then((response: any) => {
+      console.log(response);
+      res.status(200).json({ transfer: response });
+    }).catch((error: any) => {
+      console.error(error);
+      res.status(500).json({ error: error, msg: "Internal Server Error" });
+    })
+
+
+    // Step 2: Create a payout from the connected account to the user's bank account
+    // const payout = await stripe.payouts.create({
+    //   amount: amount * 100,  // amount in cents
+    //   currency: currency,
+    //   method: 'standard',  // or 'instant' for instant payouts
+    // }, {
+    //   stripeAccount: connectedAccountId,
+    // });
+
+    // res.status(200).json({ transfer, payout });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error, msg: "Internal Server Error" });
