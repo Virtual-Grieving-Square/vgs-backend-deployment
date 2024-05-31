@@ -4,7 +4,9 @@ import {
   addFlower,
   deleteFlower,
   getFlowers,
-  getImage
+  getImage,
+  update,
+  updateFlower
 } from '../controller/flower';
 
 const router = express.Router();
@@ -18,5 +20,9 @@ router.delete("/delete/:id", deleteFlower);
 
 // Images
 router.get("/getImage", getImage);
+
+// Update
+router.post("/updateFlowerImage", upload.single("image"), updateFlower);
+router.put("/update", update);
 
 export default router; 
