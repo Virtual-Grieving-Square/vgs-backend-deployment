@@ -228,9 +228,10 @@ export const donateFlower = async (req: Request, res: Response) => {
               type: flowerType!.type,
             });
 
+            await donateFlower.save();
+
             await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
 
-            await donateFlower.save();
 
             res.status(200).json({ message: "Donated successfully", donateFlower });
           }
