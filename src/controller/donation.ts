@@ -198,7 +198,7 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
 
 export const donateFlower = async (req: Request, res: Response) => {
   try {
-    const { from, to, id, amount } = req.body;
+    const { from, to, id, amount, note } = req.body;
     const { type } = req.query || "";
 
     if (!from || !to || !id || !amount) {
@@ -225,6 +225,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               amount: amount,
               flowerId: flowerType!._id,
               flowerImage: flowerType!.photos,
+              note: note,
               type: flowerType!.type,
             });
 
@@ -255,6 +256,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               id: id,
               amount: amount,
               flowerId: flowerType!._id,
+              note: note,
               flowerImage: flowerType!.photos,
               type: flowerType!.type,
             });
