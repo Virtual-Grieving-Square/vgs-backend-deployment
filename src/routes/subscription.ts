@@ -7,7 +7,8 @@ import {
   deposit,
   upgrade,
   cancelSubscription,
-  checkSubscriptions
+  checkSubscriptions,
+  downgrade
 } from '../controller/subscription';
 
 // Controllers
@@ -22,6 +23,7 @@ router.post("/test", test);
 // Subscription
 router.post("/pay", pay);
 router.post("/upgrade", upgrade);
+router.post("/downgrade", downgrade);
 router.post("/cancel", cancelSubscription);
 
 router.post("/deposit", deposit);

@@ -189,7 +189,10 @@ export const cancelSubscription = async (req: Request, res: Response) => {
 
               res
                 .status(200)
-                .json({ msg: "subscription_canceled", status: status });
+                .json({
+                  msg: "subscription_canceled",
+                  status: status,
+                });
             }
           });
       }
@@ -315,6 +318,52 @@ export const upgrade = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const downgrade = async (req: Request, res: Response) => {
+  try {
+    const { id, password } = req.body;
+
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User Not Found" })
+    } else {
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+        return res.status(403).json({ msg: "Password Incorrect" });
+      } else {
+        const subscription = await stripe.subscriptions.retrieve(user.subscriptionId);
+
+        const updateSubscription = await stripe.subscriptions.update(user.subscriptionId, {
+          items: [{
+            id: subscription.items.data[0].id,
+            price: "price_1PABuPFEZ2nUxcULGeQfmIs7",
+          }],
+          proration_behavior: 'none', // Disable proration
+          billing_cycle_anchor: 'now', // Changes take effect immediately 
+        });
+
+        await UserModel.findOneAndUpdate(
+          { _id: id },
+          {
+            subscriptionType: "silver",
+            subscriptionId: updateSubscription.id,
+            storage: 10000,
+          }
+        );
+
+        res.status(200).json({
+          status: true,
+          msg: "Subscription Downgraded",
+        });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+}
 
 export const checkSubscriptions = async (req: Request, res: Response) => {
   try {
