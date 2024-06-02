@@ -5,7 +5,8 @@ import NewsModel from "../model/news";
 // import newsapi from "newsapi";
 const NewsAPI = require('newsapi');
 
-const newsapi = new NewsAPI("e42134b4c21a40aeb96703d971947429");
+const NewApiEnv = process.env.NEWS_API_KEY;
+const newsapi = new NewsAPI(NewApiEnv);
 
 export const getNews = async (req: any, res: Response) => {
   try {
