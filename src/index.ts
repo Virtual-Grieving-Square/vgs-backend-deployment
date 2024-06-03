@@ -135,6 +135,10 @@ io.on("connection", (socket: any) => {
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
   });
+
+  socket.on("client-stripe-account-setup-complete", () => {
+    socket.emit("server-stripe-account-setup-complete");
+  });
 });
 
 server.listen(PORT, () => {

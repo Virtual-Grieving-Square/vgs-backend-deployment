@@ -1,11 +1,19 @@
 import { Request, Response } from "express";
 import { UserModel } from "../model/user";
-import { addToWallet, removeFromWallet } from "../util/wallet";
+import {
+  addToWallet,
+  getWalletBalance,
+  removeFromWallet,
+} from "../util/wallet";
 import { WalletModel } from "../model/wallet";
 
 export const wallet = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
 
+    const wallet = await getWalletBalance(id);
+
+    res.status(200).json({ wallet: wallet });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

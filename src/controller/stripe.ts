@@ -20,37 +20,42 @@ export const addStripeAccount = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    stripe.accounts.create({
-      type: "express",
-    }).then((response: any) => {
-      const accountId = response.id;
-      return accountId;
+    const user = await UserModel.findById(id);
 
-    }).then(async (response: any) => {
-      const accountId = response;
-      const accountLink = await stripe.accountLinks.create({
-        account: accountId,
-        refresh_url: `${YOUR_DOMAIN}/account?refresh=true`,
-        return_url: `${YOUR_DOMAIN}/account?success=true&type=stripe-account-creation&userId=${id}`,
-        type: 'account_onboarding',
-      });
+    if (user!.stripeAccountCompleted == true) {
+      res.status(201).json({ status: true, msg: "Account already created" });
+    } else {
+      stripe.accounts.create({
+        type: "express",
+      }).then((response: any) => {
+        const accountId = response.id;
+        return accountId;
 
-      const user = await UserModel.findById(id);
-      if (user?.stripeAccountId == "") {
-        user.stripeAccountId = accountId;
-        await user.save();
-        res.status(200).json({ url: accountLink.url });
-      } else {
-        await UserModel.findByIdAndUpdate(id, { stripeAccountId: accountId });
-        res.status(200).json({ url: accountLink.url });
-      }
+      }).then(async (response: any) => {
+        const accountId = response;
+        const accountLink = await stripe.accountLinks.create({
+          account: accountId,
+          refresh_url: `${YOUR_DOMAIN}/account`,
+          return_url: `${YOUR_DOMAIN}/account?success=true&type=stripe-account-creation&id=${id}`,
+          type: 'account_onboarding',
+        });
 
-    })
-      .catch((error: any) => {
-        console.error(error);
-        res.status(400).json({ error: error, msg: "Error in creating account" });
+        const user = await UserModel.findById(id);
+        if (user?.stripeAccountId == "") {
+          user.stripeAccountId = accountId;
+          await user.save();
+          res.status(200).json({ url: accountLink.url });
+        } else {
+          await UserModel.findByIdAndUpdate(id, { stripeAccountId: accountId });
+          res.status(200).json({ url: accountLink.url });
+        }
+
       })
-
+        .catch((error: any) => {
+          console.error(error);
+          res.status(400).json({ error: error, msg: "Error in creating account" });
+        })
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error, msg: "Internal Server Error" });

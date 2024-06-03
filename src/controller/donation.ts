@@ -6,7 +6,8 @@ import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
 import { PetMemorial } from "../model/petMemorial";
 import FlowerModel from "../model/flowers";
-import { addToWallet } from "../util/wallet";
+import { addToWallet, addToWalletFlower } from "../util/wallet";
+import { WalletModel } from "../model/wallet";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
@@ -23,9 +24,9 @@ export const makeDonation = async (req: Request, res: Response) => {
 
       if (type == "pet") {
 
-        const user = await PetMemorial.findOne({ _id: to });
+        const pet = await PetMemorial.findOne({ _id: to });
 
-        if (!user) {
+        if (!pet) {
           res.status(402).send({ msg: "User not found" });
         } else {
 
@@ -44,7 +45,7 @@ export const makeDonation = async (req: Request, res: Response) => {
             } else {
               const donate = new DonationModel({
                 from: from,
-                to: user!._id,
+                to: pet!._id,
                 amount: amount,
                 description: description || "Donation",
               });
@@ -52,14 +53,15 @@ export const makeDonation = async (req: Request, res: Response) => {
               await donate.save();
 
               await PetMemorial.updateOne({
-                _id: user!._id,
+                _id: pet!._id,
               }, {
                 $push: {
                   donations: donate._id,
                 },
               });
+              const user = await UserModel.findOne({ _id: pet!.owner });
 
-              addToWallet(to, amount);
+              addToWallet(user!._id, amount);
 
               await UserModel.updateOne({
                 _id: from,
@@ -111,7 +113,9 @@ export const makeDonation = async (req: Request, res: Response) => {
                 },
               });
 
-              addToWallet(to, amount);
+              const mainUser = await UserModel.findOne({ _id: user!.author });
+
+              addToWallet(mainUser!._id, amount);
 
               await UserModel.updateOne({
                 _id: from,
@@ -233,6 +237,9 @@ export const donateFlower = async (req: Request, res: Response) => {
 
             await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
 
+            const mainUser = await UserModel.findOne({ _id: pet!.owner });
+
+            addToWalletFlower(mainUser!._id, amount);
 
             res.status(200).json({ message: "Donated successfully", donateFlower });
           }
@@ -264,6 +271,10 @@ export const donateFlower = async (req: Request, res: Response) => {
             await donateFlower.save();
 
             await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
+
+            const mainUser = await UserModel.findOne({ _id: user!.author });
+
+            addToWalletFlower(mainUser!._id, amount);
 
             res.status(200).json({
               message: "Donated successfully",
@@ -433,4 +444,52 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
+}
+
+export const claimMoneyDonation = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body;
+    const user = await UserModel.findOne({ _id: id });
+    var wallet;
+    wallet = await WalletModel.findOne({ userId: id });
+
+    const transfer = await stripe.transfers.create({
+      amount: wallet!.balance * 100,
+      currency: 'usd',
+      destination: user!.stripeAccountId,
+    });
+
+    wallet = await WalletModel.updateOne({ userId: id }, { $set: { balance: 0 } });
+
+    res.status(200).json({ wallet: wallet, transfer: transfer });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
+  }
+}
+
+
+export const claimFlowerDonation = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body;
+    const user = await UserModel.findOne({ _id: id });
+    var wallet;
+    wallet = await WalletModel.findOne({ userId: id });
+
+    const transfer = await stripe.transfers.create({
+      amount: wallet!.flower * 100,
+      currency: 'usd',
+      destination: user!.stripeAccountId,
+    });
+
+    wallet = await WalletModel.updateOne({ userId: id }, { $set: { flower: 0 } });
+
+    res.status(200).json({ wallet: wallet, transfer: transfer });
+
+
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
+  }
+
 }

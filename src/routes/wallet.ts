@@ -3,7 +3,7 @@ import { addToWalletFunction, getWallet, removeFromWalletFunction, updateWallet,
 
 const router = express.Router();
 
-router.post('/wallet', wallet);
+router.get('/:id', wallet);
 router.put('/update', updateWallet);
 router.get("/getWallet/:id", getWallet);
 

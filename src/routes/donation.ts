@@ -1,5 +1,7 @@
 import express from 'express';
 import {
+  claimFlowerDonation,
+  claimMoneyDonation,
   donateFlower,
   donationHistory,
   flowerDonationHistory,
@@ -21,6 +23,10 @@ router.get('/flowerDonationHistory/:id', flowerDonationHistory);
 // Get Donations
 router.get("/getAll", getAll);
 router.get("/getDonationByUserId/:id", getDonationByUserId);
+
+// Claim
+router.post("/claim/money", claimMoneyDonation);
+router.post("/claim/flower", claimFlowerDonation);
 
 
 export default router;
