@@ -129,3 +129,14 @@ export const getNews = async (req: any, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getRecent3News = async (req: any, res: Response) => {
+  try {
+    const news = await NewsModel.find({}).sort({ createdAt: -1 }).limit(3);
+    res.status(200).json(news);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
