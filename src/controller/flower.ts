@@ -61,6 +61,23 @@ export const getFlowers = async (req: Request, res: Response) => {
   }
 }
 
+export const getById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const flower = await FlowerModel.findById(id);
+
+    if (!flower) {
+      return res.status(404).json({ message: "Flower not found" });
+    }
+
+    res.status(200).json(flower);
+  } catch (error) {
+    console.error(error);
+
+  }
+}
+
 export const getImage = async (req: Request, res: Response) => {
   try {
     const name = req.query.name as string | undefined;
