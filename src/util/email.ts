@@ -16,6 +16,9 @@ export const sendEmail = async (type: string, data: any) => {
     case 'forgotPassword':
       ejsTemplatePath = path.join(__dirname, "../templates/forgotPassword.ejs");
       break;
+    case 'donation-withdrawal':
+      ejsTemplatePath = path.join(__dirname, "../../src/pages/auth/donationWithdrawal.ejs");
+      break;
 
     default:
       ejsTemplatePath = path.join(__dirname, "../templates/signup.ejs");

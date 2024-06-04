@@ -8,6 +8,9 @@ import { PetMemorial } from "../model/petMemorial";
 import FlowerModel from "../model/flowers";
 import { addToWallet, addToWalletFlower } from "../util/wallet";
 import { WalletModel } from "../model/wallet";
+import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
+import { sendEmail } from "../util/email";
+import { DonationClaimOtpModel } from "../model/donationclaimotp";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
@@ -453,6 +456,9 @@ export const claimMoneyDonation = async (req: Request, res: Response) => {
     var wallet;
     wallet = await WalletModel.findOne({ userId: id });
 
+    if (wallet!.balance == 0) {
+      return res.status(403).json({ message: "No balance to claim" });
+    }
     const transfer = await stripe.transfers.create({
       amount: wallet!.balance * 100,
       currency: 'usd',
@@ -467,7 +473,6 @@ export const claimMoneyDonation = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error", msg: error });
   }
 }
-
 
 export const claimFlowerDonation = async (req: Request, res: Response) => {
   try {
@@ -492,4 +497,71 @@ export const claimFlowerDonation = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error", msg: error });
   }
 
+}
+
+export const claimOTP = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body;
+
+    const user = await UserModel.findById(id);
+
+    const firstName = user!.firstName;
+    const lastName = user!.lastName;
+    const email = user!.email;
+    const verificationCode = verificationCodeGenerator(6);
+
+    sendEmail("donation-withdrawal", {
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      verificationCode: verificationCode,
+    }).then(async (response) => {
+      if (response == true) {
+        const checkOTP = await DonationClaimOtpModel.findOne({ email: email });
+
+        if (checkOTP) {
+          await DonationClaimOtpModel.updateOne(
+            { email: email },
+            { $set: { otp: verificationCode } }
+          );
+        } else {
+          await DonationClaimOtpModel.create({
+            otp: verificationCode,
+            email: email
+          })
+        }
+        res.status(200).json({
+          type: "email",
+          email: email,
+          message: "OTP code sent successfully",
+        });
+      } else {
+        res
+          .status(408)
+          .json({ message: "Unable to send Email at the Moment" });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
+  }
+}
+
+export const verifyOTP = async (req: Request, res: Response) => {
+  try {
+    const { id, otp } = req.body;
+
+    const user = await UserModel.findById(id);
+
+    const checkOTP = await DonationClaimOtpModel.findOne({ email: user!.email });
+
+    if (checkOTP!.otp == otp) {
+      res.status(200).json({ message: "OTP verified successfully" });
+    } else {
+      res.status(403).json({ message: "Invalid OTP" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
+  }
 }

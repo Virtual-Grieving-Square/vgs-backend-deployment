@@ -13,7 +13,6 @@ import { RecoverPasswordModel } from "../model/recoverPassword";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import { TempUserModel } from "../model/tempUser";
 
-
 // Functions
 import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import { generateUserAccessToken } from "../util/generateUserAccessToken";

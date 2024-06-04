@@ -65,11 +65,11 @@ export const getNews = async (req: any, res: Response) => {
       });
     } else if (currentTimeMillis - lastFetchTime < 3600000) {
 
-      // 24 Hours haven't passed since last fetch
+      // 1 Hours haven't passed since last fetch
       const news = await NewsModel.find({})
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 });
+        .sort({ publishedAt: -1 });
 
       const total = await NewsModel.countDocuments();
 
