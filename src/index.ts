@@ -4,9 +4,10 @@ import http from "http";
 import dotenv from "dotenv";
 import { connectDB } from "./database/db";
 import firebase from "firebase-admin";
+import cron from "node-cron";
 
 // Scoket.io
-import { Server } from 'socket.io';
+import { Server } from "socket.io";
 
 dotenv.config();
 
@@ -26,16 +27,17 @@ import contact from "./routes/contact";
 import donation from "./routes/donation";
 import product from "./routes/product";
 import Memorial from "./routes/memorial";
-import wordhub from './routes/wordhub';
-import zoom from './routes/zoom';
-import famous from './routes/famous';
+import wordhub from "./routes/wordhub";
+import zoom from "./routes/zoom";
+import famous from "./routes/famous";
 import zoomAuth from "./routes/authZoom";
 import test from "./routes/test";
 import obituaries from "./routes/obituaries";
-import flower from './routes/flower';
-import image from './routes/image';
-import stripe from './routes/stripe';
+import flower from "./routes/flower";
+import image from "./routes/image";
+import stripe from "./routes/stripe";
 import news from "./routes/news";
+import { fetchAndUpdateNews } from "./cron/newsUpdater";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -59,11 +61,15 @@ firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount),
 });
 
-app.post("/webhook", express.raw({ type: "application/json" }), async (req: express.Request, res: express.Response) => {
-  const sig = req.headers['stripe-signature'];
-  let event: any;
-  stripeWebhook(sig, event, res, req);
-});
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  async (req: express.Request, res: express.Response) => {
+    const sig = req.headers["stripe-signature"];
+    let event: any;
+    stripeWebhook(sig, event, res, req);
+  }
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -83,7 +89,13 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 connectDB();
-
+try {
+  console.log("where is it")
+  // Schedule the job to run every hour
+  cron.schedule("0 * * * *", fetchAndUpdateNews);
+} catch (err) {
+  console.log(err);
+}
 // Routes
 app.use("/", index);
 app.use("/admin", admin);
@@ -103,14 +115,13 @@ app.use("/memorial", Memorial);
 app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
 app.use("/famous", famous);
-app.use('/zoom-auth/', zoomAuth);
+app.use("/zoom-auth/", zoomAuth);
 app.use("/testsms", test);
 app.use("/obituaries", obituaries);
 app.use("/flower", flower);
 app.use("/getImage", image);
 app.use("/stripe", stripe);
 app.use("/news", news);
-
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {
@@ -126,11 +137,11 @@ io.on("connection", (socket: any) => {
 
   socket.on("client_new_memorial", () => {
     socket.emit("server_new_memorial");
-  })
+  });
 
   socket.on("client_comment_update", () => {
     socket.emit("server_comment_update");
-  })
+  });
 
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
