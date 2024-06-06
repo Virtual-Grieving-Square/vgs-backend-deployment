@@ -11,9 +11,10 @@ import { WalletModel } from "../model/wallet";
 import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import { sendEmail } from "../util/email";
 import { DonationClaimOtpModel } from "../model/donationclaimotp";
+import { DonationNonUserModel } from "../model/donationNonUser";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
-const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
+const YOUR_DOMAIN = process.env.DOMAIN;
 
 export const makeDonation = async (req: Request, res: Response) => {
   try {
@@ -46,6 +47,7 @@ export const makeDonation = async (req: Request, res: Response) => {
             if (checDonatorBalance!.balance < amount) {
               res.status(405).send({ msg: "Insufficient balance" });
             } else {
+
               const donate = new DonationModel({
                 from: from,
                 to: pet!._id,
@@ -142,7 +144,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
 export const makeDonationNonUser = async (req: Request, res: Response) => {
   try {
-    const { from, to, amount, description } = req.body;
+    const { from, to, amount, note, description } = req.body;
 
     const user = await HumanMemorial.findOne({ _id: to });
 
@@ -152,23 +154,6 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
 
       const checkUser = await HumanMemorial.findOne({
         _id: to
-      });
-
-      const donate = new DonationModel({
-        from: "664b6f476efa78884d3a9af6",
-        to: user!._id,
-        amount: amount,
-        description: description || "Donation",
-      });
-
-      await donate.save();
-
-      await HumanMemorial.updateOne({
-        _id: user!._id,
-      }, {
-        $push: {
-          donations: donate._id,
-        },
       });
 
       const session = await stripe.checkout.sessions.create({
@@ -189,6 +174,17 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
         cancel_url: `${YOUR_DOMAIN}/donation?canceled=true`,
         automatic_tax: { enabled: true },
       });
+
+      const donate = new DonationNonUserModel({
+        paymentId: session.id,
+        from: "664b6f476efa78884d3a9af6",
+        to: user!._id,
+        amount: amount,
+        note: note || "",
+        description: description || "Donation",
+      });
+
+      await donate.save();
 
       res.status(200).json({
         request: "success",
