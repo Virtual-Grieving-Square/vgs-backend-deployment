@@ -144,7 +144,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
 export const makeDonationNonUser = async (req: Request, res: Response) => {
   try {
-    const { from, to, amount, note, description } = req.body;
+    const { from, to, amount, name, relation, note, description } = req.body;
 
     const user = await HumanMemorial.findOne({ _id: to });
 
@@ -180,6 +180,8 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
         from: "664b6f476efa78884d3a9af6",
         to: user!._id,
         amount: amount,
+        name: name || "",
+        relation: relation || "",
         note: note || "",
         description: description || "Donation",
       });

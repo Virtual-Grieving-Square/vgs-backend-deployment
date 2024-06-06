@@ -249,6 +249,9 @@ async function handleCheckoutSessionCompleted(event: any) {
         from: checkNonUserDonation.from,
         to: checkNonUserDonation.to,
         amount: checkNonUserDonation.amount,
+        note: checkNonUserDonation.note || "",
+        name: checkNonUserDonation.name || "",
+        relation: checkNonUserDonation.relation || "",
         description: checkNonUserDonation.description || "Donation",
       });
 

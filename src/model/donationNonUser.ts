@@ -5,6 +5,8 @@ export interface DonationNonUser extends Document {
   from: string;
   to: string;
   amount: number;
+  name: string;
+  relation: string;
   note: string;
   description: string;
   paid: boolean;
@@ -15,6 +17,8 @@ const donationNonUserSchema: Schema = new Schema({
   from: { type: String, required: true },
   to: { type: String, required: true },
   amount: { type: Number, required: true },
+  name: { type: String, default: "" },
+  relation: { type: String, default: "" },
   note: { type: String, default: "" },
   description: { type: String },
   paid: { type: Boolean, default: false },

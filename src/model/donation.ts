@@ -4,6 +4,8 @@ export interface Donation extends Document {
   from: string;
   to: string;
   amount: number;
+  name: string;
+  relation: string;
   note: string;
   description: string;
 }
@@ -13,7 +15,8 @@ const donationSchema: Schema = new Schema({
   to: { type: Schema.Types.ObjectId, ref: "HumanMemorial", required: true },
   amount: { type: Number, required: true },
   note: { type: String, default: "" },
-  // product: [{ type: Schema.Types.ObjectId, ref: "products" }],
+  name: { type: String, default: "" },
+  relation: { type: String, default: "" },
   description: { type: String },
 
   //Timestamp
