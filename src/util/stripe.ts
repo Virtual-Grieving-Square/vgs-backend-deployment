@@ -3,6 +3,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 // Models
 import DepositListModel from "../model/depositList";
+import { DonationModel } from "../model/donation";
 import PaymentListModel from "../model/paymentList";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import UpgreadModel from "../model/upgrade";
@@ -225,5 +226,9 @@ async function handleCheckoutSessionCompleted(event: any) {
         throw "Error fetching users selection";
       }
     }
+
+    // Donation Model 
+    // conW
+
   }
 }
