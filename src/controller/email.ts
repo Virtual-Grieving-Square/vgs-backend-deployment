@@ -39,9 +39,9 @@ export const Test = async (req: Request, res: Response) => {
   try {
     const env = process.env;
 
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/index.html');
+    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/test1.ejs');
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
-    const renderHtml = ejs.render(ejsTemplate, { name: `${"Natnael"} ${"Engeda"}`, code: 123123 });
+    const renderHtml = ejs.render(ejsTemplate, { name: `${"Natnael"} ${"Engeda"}`, code: 938212 });
 
     const transporter = nodemailer.createTransport({
       host: env.NODEMAILER_HOST!,

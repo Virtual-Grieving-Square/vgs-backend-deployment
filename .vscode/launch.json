@@ -1,0 +1,10 @@
+{
+  "configurations": [
+    {
+      "type": "chrome",
+      "name": "http://127.0.0.1:3000/c:/Users/Natnael%20Engeda/Desktop/Hard%20Disk%20Files/email-templates-master/10/index.html",
+      "request": "launch",
+      "url": "http://127.0.0.1:3000/c:/Users/Natnael%20Engeda/Desktop/Hard%20Disk%20Files/email-templates-master/10/index.html"
+    }
+  ]
+}
