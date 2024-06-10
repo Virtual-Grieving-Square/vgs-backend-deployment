@@ -276,7 +276,7 @@ async function handleCheckoutSessionCompleted(event: any) {
 
       console.log("Email Sending Section");
       await sendEmailNonUserDonationSender({
-        name: checkNonUserDonation.from,
+        name: checkNonUserDonation.name,
         email: checkNonUserDonation.email,
         amount: checkNonUserDonation.amount,
         donatedFor: humanMemorial!.name,
