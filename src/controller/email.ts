@@ -39,9 +39,17 @@ export const Test = async (req: Request, res: Response) => {
   try {
     const env = process.env;
 
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/test1.ejs');
+    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-sender.ejs');
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
-    const renderHtml = ejs.render(ejsTemplate, { name: `${"Natnael"} ${"Engeda"}`, code: 938212 });
+    const renderHtml = ejs.render(ejsTemplate, {
+      name: `${"Natnael"} ${"Engeda"}`,
+      email: "nattynengeda@gmail.com",
+      amount: "240",
+      donatedFor: "Some Dead",
+      date: "2024-12-12",
+      type: "Donation",
+      confirmation: "Confirmed"
+    });
 
     const transporter = nodemailer.createTransport({
       host: env.NODEMAILER_HOST!,
@@ -58,7 +66,10 @@ export const Test = async (req: Request, res: Response) => {
       to: "nattynengeda@gmail.com",
       subject: "Virtual Grieving Square Verification",
       html: renderHtml,
-    });
+    }).catch((error) => {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error", error: error });
+    })
 
     return res.status(200).json({ message: "Email sent successfully", info: info });
   } catch (error) {
