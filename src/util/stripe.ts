@@ -10,6 +10,7 @@ import PaymentListModel from "../model/paymentList";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import UpgreadModel from "../model/upgrade";
 import { UserModel } from "../model/user";
+import { sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "./email";
 import { addToWallet } from "./wallet";
 
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET!;
@@ -272,6 +273,37 @@ async function handleCheckoutSessionCompleted(event: any) {
       const mainUser = await UserModel.findOne({ _id: humanMemorial!.author });
 
       addToWallet(mainUser!._id, checkNonUserDonation.amount);
+
+      console.log("Email Sending Section");
+      await sendEmailNonUserDonationSender({
+        name: checkNonUserDonation.name,
+        email: checkNonUserDonation.email,
+        amount: checkNonUserDonation.amount,
+        donatedFor: humanMemorial!.name,
+        date: new Date().toISOString().split("T")[0],
+        type: "Donation",
+        confirmation: "Confirmed"
+      }).then((response: any) => {
+        console.log(response);
+      }).catch((error) => {
+        console.error(error);
+      });
+
+      await sendEmailNonUserDonationReceiver({
+        name: mainUser!.firstName + " " + mainUser!.lastName,
+        email: checkNonUserDonation.email,
+        amount: checkNonUserDonation.amount,
+        donatedFor: humanMemorial!.name,
+        date: new Date().toISOString().split("T")[0],
+        type: "Donation",
+        confirmation: "Confirmed",
+        memorialLink: `${process.env.DOMAIN}/memory/human/${checkNonUserDonation!.to}`,
+        recieverEmail: mainUser!.email,
+      }).then((response) => {
+        console.log(response);
+      }).catch((error) => {
+        console.error(error);
+      });
     }
   }
 }
