@@ -39,16 +39,21 @@ export const Test = async (req: Request, res: Response) => {
   try {
     const env = process.env;
 
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-sender.ejs');
+    console.log("Email Test Route");
+    console.log("Usernaem", process.env.NODEMAILER_USER_DONATION!);
+    console.log("Password", process.env.NODEMAILER_PASS_DONATION!);
+
+    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-reciever.ejs');
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
-      name: `${"Natnael"} ${"Engeda"}`,
-      email: "nattynengeda@gmail.com",
+      name: `${"Bereket"} ${"Isayas"}`,
+      email: "bisayas@brukeylogistics.com",
       amount: "240",
-      donatedFor: "Some Dead",
+      donatedFor: "SomeOne",
       date: "2024-12-12",
       type: "Donation",
-      confirmation: "Confirmed"
+      confirmation: "Confirmed",
+      memorialLink: "http://localhost:3131/memory/human/6666fc46cbce1e5c31bfc0bb"
     });
 
     const transporter = nodemailer.createTransport({
@@ -56,15 +61,15 @@ export const Test = async (req: Request, res: Response) => {
       port: 465,
       secure: true,
       auth: {
-        user: env.NODEMAILER_USER!,
-        pass: env.NODEMAILER_PASS!,
+        user: process.env.NODEMAILER_USER_DONATION!,
+        pass: process.env.NODEMAILER_PASS_DONATION!,
       },
     });
 
     const info = await transporter.sendMail({
-      from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
-      to: "nattynengeda@gmail.com",
-      subject: "Virtual Grieving Square Verification",
+      from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
+      to: ["nattynengeda@gmail.com", "bisayas@brukeylogistics.com"],
+      subject: "Donation Reciept",
       html: renderHtml,
     }).catch((error) => {
       console.error(error);

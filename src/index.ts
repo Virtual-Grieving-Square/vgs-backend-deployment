@@ -37,6 +37,8 @@ import flower from "./routes/flower";
 import image from "./routes/image";
 import stripe from "./routes/stripe";
 import news from "./routes/news";
+import pages from "./routes/pages";
+
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
@@ -96,6 +98,7 @@ try {
 } catch (err) {
   console.log(err);
 }
+
 // Routes
 app.use("/", index);
 app.use("/admin", admin);
@@ -122,6 +125,7 @@ app.use("/flower", flower);
 app.use("/getImage", image);
 app.use("/stripe", stripe);
 app.use("/news", news);
+app.use("/pages", pages);
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {

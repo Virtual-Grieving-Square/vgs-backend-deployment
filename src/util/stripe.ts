@@ -10,7 +10,7 @@ import PaymentListModel from "../model/paymentList";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import UpgreadModel from "../model/upgrade";
 import { UserModel } from "../model/user";
-import { sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "./email";
+import { sendDepositConfirmation, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "./email";
 import { addToWallet } from "./wallet";
 
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET!;
@@ -125,6 +125,20 @@ async function handleCheckoutSessionCompleted(event: any) {
             },
           }
         );
+
+        const user = await UserModel.findOne({ _id: CheckDeposit.userId });
+
+        // Send Deposit Successful Email
+        sendDepositConfirmation({
+          name: user!.firstName + " " + user!.lastName,
+          email: user!.email,
+          amount: CheckDeposit.amount,
+          date: new Date().toISOString().split("T")[0],
+        }).then((response) => {
+          console.log(response);
+        }).catch((error) => {
+          console.error(error);
+        });
       }
     }
 
