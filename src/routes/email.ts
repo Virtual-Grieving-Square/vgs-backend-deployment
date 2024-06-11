@@ -7,4 +7,5 @@ router.post('/subscribe', subscribeEmail);
 
 // Test
 router.get("/test", Test);
+
 export default router;
