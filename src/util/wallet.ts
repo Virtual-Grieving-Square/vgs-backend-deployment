@@ -82,7 +82,9 @@ export const getWalletBalance = async (userId: string) => {
     const wallet = await WalletModel.findOne({ userId });
 
     if (!wallet) {
-      return [{ status: false, msg: "wallet-not-found" }];
+      const wallet = await WalletModel.create({ userId });
+      return [{ status: true, wallet: wallet }];
+      // return [{ status: false, msg: "wallet-not-found" }];
     } else {
       return [{ status: true, wallet: wallet }];
     }

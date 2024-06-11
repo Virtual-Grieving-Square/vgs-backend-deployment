@@ -3,7 +3,6 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface DonationClaimOtp extends Document {
   otp: string;
   email: string;
-
 }
 
 const donationClaimOtpSchema: Schema = new Schema({
