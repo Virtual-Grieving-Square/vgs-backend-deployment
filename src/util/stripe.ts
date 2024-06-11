@@ -51,6 +51,7 @@ async function handleCheckoutSessionCompleted(event: any) {
   console.log("Payment Status: ", paymentStatus);
 
   if (paymentStatus === "paid") {
+
     // Check Subscription Payment
     const CheckSubscriptionPayment = await PaymentListModel.findOne({
       paymentId: checkOutId,
@@ -126,31 +127,100 @@ async function handleCheckoutSessionCompleted(event: any) {
     const CheckUpgrade = await UpgreadModel.findOne({
       paymentId: checkOutId,
     });
+
     if (CheckUpgrade) {
-      const UserInformation = await UserModel.findById(CheckUpgrade.userId);
+      const userInfo = await UserModel.findById(CheckUpgrade.userId);
+
       const subscrptionType = await SubscriptionPlanModel.findOne({
-        name: CheckUpgrade.upgreadType,
+        label: CheckUpgrade.upgreadType,
       });
-      if (UserInformation && subscrptionType) {
-        stripe.subscriptions
-          .cancel(UserInformation.subscriptionId)
-          .then(async (response: any) => {
-            const status = response.status;
-            if (status == "canceled") {
-              await UserModel.updateOne(
-                {
-                  _id: UserInformation.id,
-                },
-                {
-                  subscriptionType: CheckUpgrade.upgreadType,
-                  subscriptionId: event.data.object.subscription,
-                  storage: subscrptionType.storagePerk,
-                }
-              );
-            } else {
-              throw "couldnt cancel request";
+
+
+      if (userInfo && subscrptionType) {
+
+        if (userInfo.subscriptionType == "free") {
+          // Update User Model
+          await UserModel.updateOne(
+            {
+              _id: userInfo.id,
+            },
+            {
+              subscriptionType: CheckUpgrade.upgreadType,
+              subscriptionId: event.data.object.subscription,
+              storage: subscrptionType.storagePerk,
+              paid: true,
+              subscribed: true,
             }
-          });
+          );
+
+          // Update Upgrade Model
+          await UpgreadModel.updateOne(
+            { paymentId: checkOutId },
+            {
+              paid: true
+            }
+          );
+        } else {
+          if (userInfo.subscriptionId != "") {
+
+            stripe.subscriptions
+              .cancel(userInfo.subscriptionId)
+              .then(async (response: any) => {
+                const status = response.status;
+                if (status == "canceled") {
+
+                  // Update User Model
+                  await UserModel.updateOne(
+                    {
+                      _id: userInfo.id,
+                    },
+                    {
+                      subscriptionType: CheckUpgrade.upgreadType,
+                      subscriptionId: event.data.object.subscription,
+                      storage: subscrptionType.storagePerk,
+                      subscribed: true,
+                      paid: true,
+                    }
+                  );
+
+                  // Update User Model
+                  await UpgreadModel.updateOne(
+                    { paymentId: checkOutId },
+                    {
+                      paid: true
+                    }
+                  );
+
+                } else {
+                  throw "couldnt cancel request";
+                }
+              });
+          } else {
+
+            // Update User Model
+            await UserModel.updateOne(
+              {
+                _id: userInfo.id,
+              },
+              {
+                subscriptionType: CheckUpgrade.upgreadType,
+                subscriptionId: event.data.object.subscription,
+                storage: subscrptionType.storagePerk,
+                subscribed: true,
+                paid: true,
+              }
+            );
+
+            // Update Upgrade Model
+            await UpgreadModel.updateOne(
+              { paymentId: checkOutId },
+              {
+                paid: true
+              }
+            );
+          }
+        }
+
       } else {
         throw "Error fetching users selection";
       }

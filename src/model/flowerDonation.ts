@@ -5,6 +5,9 @@ export interface FlowerDonation extends Document {
   to: string;
   amount: number;
   description: string;
+  flowerId: string;
+  flowerImage: string;
+  type: string;
   createdAt: Date;
 }
 
@@ -13,6 +16,9 @@ const FlowerDonationSchema: Schema = new Schema({
   to: { type: Schema.Types.ObjectId, ref: "HumanMemorial", required: true },
   amount: { type: Number, required: true },
   id: { type: String, required: true },
+  flowerId: { type: String, required: true },
+  flowerImage: { type: String, required: true },
+  type: { type: String, required: true },
 
   //Timestamp
   createdAt: { type: Date, default: Date.now },

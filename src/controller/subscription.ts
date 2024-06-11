@@ -207,13 +207,6 @@ export const deposit = async (req: Request, res: Response) => {
   try {
     const { id, amount } = req.body;
 
-    const depostList = [
-      { id: 1, amount: 5 },
-      { id: 2, amount: 10 },
-      { id: 3, amount: 15 },
-      { id: 4, amount: 20 },
-    ];
-
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -222,7 +215,7 @@ export const deposit = async (req: Request, res: Response) => {
             product_data: {
               name: "Deposit",
             },
-            unit_amount: depostList[amount - 1].amount * 100,
+            unit_amount: amount * 100,
           },
           quantity: 1,
         },
@@ -236,7 +229,7 @@ export const deposit = async (req: Request, res: Response) => {
     await DepositListModel.create({
       paymentId: session.id,
       userId: id,
-      amount: depostList[amount - 1].amount,
+      amount: amount,
     }).then(() => {
       res.status(200).json({
         request: "success",
@@ -253,64 +246,76 @@ export const deposit = async (req: Request, res: Response) => {
 };
 
 export const upgrade = async (req: Request, res: Response) => {
-  const { userID, upSubscription } = req.body;
+  const { userID, upSubscription, password } = req.body;
 
-  if (!userID || !upSubscription) {
-    res.status(403).json({ msg: "missing parameter" });
-  }
-  const userInfo = await UserModel.findById(userID);
+  if (!userID || !upSubscription || !password) {
+    return res.status(403).json({ msg: "Fill Up All Fields" });
+  } else {
+    const userInfo = await UserModel.findById(userID);
+    if (!userInfo) {
+      return res.status(404).json({ msg: "User Not Found" });
+    } else {
+      const match = await bcrypt.compare(password, userInfo.password);
 
-  const levels: { [key: string]: number } = {
-    free: 1,
-    silver: 2,
-    gold: 3,
-  };
+      if (!match) {
+        return res.status(403).json({ msg: "Password Incorrect" })
+      } else {
 
-  const currentLevel = levels[userInfo?.subscriptionType ?? ""];
-  const selectedLevel = levels[upSubscription];
-  if (selectedLevel <= currentLevel) {
-    res.status(403).json({ msg: "Wrong upgrading option" });
-  }
+        const levels: { [key: string]: number } = {
+          free: 1,
+          silver: 2,
+          gold: 3,
+        };
 
+<<<<<<< HEAD
+=======
+        const currentLevel = levels[userInfo?.subscriptionType ?? ""];
+        const selectedLevel = levels[upSubscription];
+>>>>>>> 3e38abb286698552ef6fa72d1b6aaf17c16d1fb5
 
-  try {
-    var newPrice: string = "";
-    if (upSubscription == "silver") {
-      newPrice = "price_1PABuPFEZ2nUxcULGeQfmIs7";
-    } else if (upSubscription == "gold") {
-      newPrice = "price_1PABvTFEZ2nUxcULGaj999zd";
+        if (selectedLevel <= currentLevel) {
+          return res.status(403).json({ msg: "Wrong upgrading option" });
+        } else {
+
+          const subscriptionPlan = await SubscriptionPlanModel.findOne({
+            label: upSubscription,
+          });
+
+          var newPrice: string = "";
+          if (upSubscription == "silver") {
+            newPrice = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+          } else if (upSubscription == "gold") {
+            newPrice = "price_1PABvTFEZ2nUxcULGaj999zd";
+          }
+
+          const session = await stripe.checkout.sessions.create({
+            line_items: [
+              {
+                price: newPrice,
+                quantity: 1,
+              },
+            ],
+            mode: "subscription",
+            success_url: `${YOUR_DOMAIN}/account?payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`,
+            cancel_url: `${YOUR_DOMAIN}/account?payment=canceled&id=${userID}&type=upgrade&subscription=${upSubscription}`,
+            automatic_tax: { enabled: true },
+          });
+
+          await UpgreadModel.create({
+            paymentId: session.id,
+            userId: userID,
+            upgreadType: upSubscription,
+          });
+
+          res.status(200).json({
+            request: "success",
+            session: session,
+            client_secret: session.client_secret,
+          });
+
+        }
+      }
     }
-
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price: newPrice,
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${YOUR_DOMAIN}?payment=success&id=${userID}&type=upgrade`,
-      cancel_url: `${YOUR_DOMAIN}?payment=canceled&id=${userID}&type=upgrade`,
-      automatic_tax: { enabled: true },
-    });
-
-    await UpgreadModel.create({
-      paymentId: session.id,
-      userId: userID,
-      upgreadType: upSubscription,
-    });
-
-    res.status(200).json({
-      request: "success",
-      session: session,
-      client_secret: session.client_secret,
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(400).json({
-      message: "strip request error",
-      error: err,
-    });
   }
 };
 

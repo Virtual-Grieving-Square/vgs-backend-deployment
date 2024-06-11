@@ -5,6 +5,7 @@ import { ProductModel } from "../model/Product";
 import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
 import { PetMemorial } from "../model/petMemorial";
+import FlowerModel from "../model/flowers";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = "https://uione.virtualgrievingsquare.com";
@@ -105,6 +106,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                   balance: -amount,
                 },
               });
+
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -154,7 +156,7 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
             price_data: {
               currency: "usd",
               product_data: {
-                name: "Donatino",
+                name: "Donation",
               },
               unit_amount: amount * 100,
             },
@@ -173,8 +175,6 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
         client_secret: session.client_secret,
       });
 
-
-
     }
   } catch (error) {
     console.error(error);
@@ -192,9 +192,7 @@ export const donateFlower = async (req: Request, res: Response) => {
     } else {
 
       if (type == "pet") {
-
         const pet = await PetMemorial.findOne({ _id: to });
-
         if (!pet) {
           res.status(402).send({ msg: "Pet not found" });
         } else {
@@ -204,11 +202,24 @@ export const donateFlower = async (req: Request, res: Response) => {
             res.status(405).send({ msg: "Insufficient balance" });
           } else {
 
+            const flowerType = await FlowerModel.findOne({ _id: id });
+
             const donateFlower = new FlowerDonationModel({
               from: from,
               to: to,
               id: id,
               amount: amount,
+              flowerId: flowerType!._id,
+              flowerImage: flowerType!.photos,
+              type: flowerType!.type,
+            });
+
+            await UserModel.updateOne({
+              _id: from,
+            }, {
+              $inc: {
+                balance: -amount,
+              },
             });
 
             await donateFlower.save();
@@ -227,14 +238,27 @@ export const donateFlower = async (req: Request, res: Response) => {
             res.status(405).send({ msg: "Insufficient balance" });
           } else {
 
+            const flowerType = await FlowerModel.findOne({ _id: id });
+
             const donateFlower = new FlowerDonationModel({
               from: from,
               to: to,
               id: id,
               amount: amount,
+              flowerId: flowerType!._id,
+              flowerImage: flowerType!.photos,
+              type: flowerType!.type,
             });
 
             await donateFlower.save();
+
+            await UserModel.updateOne({
+              _id: from,
+            }, {
+              $inc: {
+                balance: -amount,
+              },
+            });
 
             res.status(200).json({ message: "Donated successfully", donateFlower });
           }
@@ -334,37 +358,60 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
         owner: id,
       });
 
-      for (let i = 0; i < humanMemorial.length; i++) {
-        donation = await DonationModel.find({
-          to: humanMemorial[i]._id,
-        });
-        humanDonation[i] = donation;
+      if (humanMemorial.length > 0) {
+        for (let i = 0; i < humanMemorial.length; i++) {
+          donation = await DonationModel.find({
+            to: humanMemorial[i]._id,
+          });
+          humanDonation[i] = donation;
+        }
+      } else {
+        humanDonation = [];
       }
 
-      for (let i = 0; i < petMemorial.length; i++) {
-        donation = await DonationModel.find({
-          to: petMemorial[i]._id,
-        });
-        petDonation[i] = donation;
+      if (petMemorial.length > 0) {
+        for (let i = 0; i < petMemorial.length; i++) {
+          donation = await DonationModel.find({
+            to: petMemorial[i]._id,
+          });
+          petDonation[i] = donation;
+        }
+      } else {
+        petDonation = [];
       }
 
-      const allDonation = [...humanDonation[0], ...petDonation[0]];
+      const allDonation = [
+        ...(Array.isArray(humanDonation[0]) ? humanDonation[0] : []),
+        ...(Array.isArray(petDonation[0]) ? petDonation[0] : [])
+      ];
 
-      for (let i = 0; i < humanMemorial.length; i++) {
-        flower = await FlowerDonationModel.find({
-          to: humanMemorial[i]._id,
-        });
-        humanFlowerDonation[i] = flower;
+      // Flower Donation
+      if (humanMemorial.length > 0) {
+        for (let i = 0; i < humanMemorial.length; i++) {
+          flower = await FlowerDonationModel.find({
+            to: humanMemorial[i]._id,
+          });
+          humanFlowerDonation[i] = flower;
+        }
+      } else {
+        humanFlowerDonation = [];
       }
 
-      for (let i = 0; i < petMemorial.length; i++) {
-        flower = await FlowerDonationModel.find({
-          to: petMemorial[i]._id,
-        });
-        petFlowerDonation[i] = flower;
+      if (petMemorial.length > 0) {
+        for (let i = 0; i < petMemorial.length; i++) {
+          flower = await FlowerDonationModel.find({
+            to: petMemorial[i]._id,
+          });
+          petFlowerDonation[i] = flower;
+        }
+      } else {
+        petFlowerDonation = [];
       }
 
-      const allFlower = [...humanFlowerDonation[0], ...petFlowerDonation[0]];
+      const allFlower = [
+        ...(Array.isArray(humanFlowerDonation[0]) ? humanFlowerDonation[0] : []),
+        ...(Array.isArray(petFlowerDonation[0]) ? petFlowerDonation[0] : [])
+      ]
 
       const donationTotal = allDonation.reduce((acc, donation) => acc + donation.amount, 0);
       const flowerTotal = allFlower.reduce((acc, flower) => acc + flower.amount, 0);

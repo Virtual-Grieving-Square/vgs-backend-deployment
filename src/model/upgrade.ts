@@ -4,13 +4,14 @@ export interface IUpgread extends Document {
   paymentId: string;
   userId: string;
   upgreadType: string;
+  paid: boolean;
 }
 
 const UpgreadSchema: Schema = new Schema({
   paymentId: { type: String, required: true },
   userId: { type: String, required: true },
   upgreadType: { type: String, required: true },
-
+  paid: { type: Boolean, default: false },
 
   //Timestamp
   createdAt: { type: Date, default: Date.now },
