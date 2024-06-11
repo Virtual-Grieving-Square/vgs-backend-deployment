@@ -24,7 +24,6 @@ export const sendEmail = async (type: string, data: any) => {
       ejsTemplatePath = path.join(__dirname, "../templates/signup.ejs");
   };
 
-
   const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
   const renderHtml = ejs.render(ejsTemplate, { name: `${data.firstName} ${data.lastName}`, code: data.verificationCode });
 
@@ -70,13 +69,13 @@ export const sendEmailNonUserDonationSender = async (data: any) => {
       port: 465,
       secure: true,
       auth: {
-        user: env.NODEMAILER_USER!,
-        pass: env.NODEMAILER_PASS!,
+        user: env.NODEMAILER_USER_DONATION!,
+        pass: env.NODEMAILER_PASS_DONATION!,
       },
     });
 
     const info = await transporter.sendMail({
-      from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
+      from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
       to: data.email,
       subject: "VGS, Donation Reciept",
       html: renderHtml,
@@ -112,15 +111,54 @@ export const sendEmailNonUserDonationReceiver = async (data: any) => {
       port: 465,
       secure: true,
       auth: {
-        user: env.NODEMAILER_USER!,
-        pass: env.NODEMAILER_PASS!,
+        user: env.NODEMAILER_USER_DONATION!,
+        pass: env.NODEMAILER_PASS_DONATION!,
       },
     });
 
     const info = await transporter.sendMail({
-      from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
+      from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
       to: data.recieverEmail,
       subject: "VGS, Donation Notification",
+      html: renderHtml,
+    });
+
+    return [{ status: true, message: "Email sent successfully", info: info }];
+  } catch (error) {
+    console.error(error);
+    return [{ status: false, message: "Internal server error", error: error }];
+  }
+}
+
+export const sendDepositConfirmation = async (data: any) => {
+  try {
+    const env = process.env;
+
+    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/deposit/money-deposit.ejs');
+    const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+    const renderHtml = ejs.render(ejsTemplate, {
+      name: data.name,
+      email: data.email,
+      amount: data.amount,
+      date: data.date,
+      type: "Deposit",
+      confirmation: "Confirmed",
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: env.NODEMAILER_HOST!,
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.NODEMAILER_USER_DONATION!,
+        pass: process.env.NODEMAILER_PASS_DONATION!,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
+      to: "nattynengeda@gmail.com",
+      subject: "Deposit Reciept",
       html: renderHtml,
     });
 

@@ -40,40 +40,43 @@ export const Test = async (req: Request, res: Response) => {
     const env = process.env;
 
     console.log("Email Test Route");
+    console.log("Usernaem", process.env.NODEMAILER_USER_DONATION!);
+    console.log("Password", process.env.NODEMAILER_PASS_DONATION!);
 
-    // var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-sender.ejs');
-    // const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
-    // const renderHtml = ejs.render(ejsTemplate, {
-    //   name: `${"Natnael"} ${"Engeda"}`,
-    //   email: "nattynengeda@gmail.com",
-    //   amount: "240",
-    //   donatedFor: "Some Dead",
-    //   date: "2024-12-12",
-    //   type: "Donation",
-    //   confirmation: "Confirmed"
-    // });
+    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-reciever.ejs');
+    const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+    const renderHtml = ejs.render(ejsTemplate, {
+      name: `${"Bereket"} ${"Isayas"}`,
+      email: "bisayas@brukeylogistics.com",
+      amount: "240",
+      donatedFor: "SomeOne",
+      date: "2024-12-12",
+      type: "Donation",
+      confirmation: "Confirmed",
+      memorialLink: "http://localhost:3131/memory/human/6666fc46cbce1e5c31bfc0bb"
+    });
 
-    // const transporter = nodemailer.createTransport({
-    //   host: env.NODEMAILER_HOST!,
-    //   port: 465,
-    //   secure: true,
-    //   auth: {
-    //     user: "donation@virtualgrievingsquare.com",
-    //     pass: "wD5y-AuQJ$-D&je",
-    //   },
-    // });
+    const transporter = nodemailer.createTransport({
+      host: env.NODEMAILER_HOST!,
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.NODEMAILER_USER_DONATION!,
+        pass: process.env.NODEMAILER_PASS_DONATION!,
+      },
+    });
 
-    // const info = await transporter.sendMail({
-    //   from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
-    //   to: "nattynengeda@gmail.com",
-    //   subject: "Donation Reciept",
-    //   html: renderHtml,
-    // }).catch((error) => {
-    //   console.error(error);
-    //   res.status(500).json({ message: "Internal server error", error: error });
-    // })
+    const info = await transporter.sendMail({
+      from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
+      to: ["nattynengeda@gmail.com", "bisayas@brukeylogistics.com"],
+      subject: "Donation Reciept",
+      html: renderHtml,
+    }).catch((error) => {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error", error: error });
+    })
 
-    // return res.status(200).json({ message: "Email sent successfully", info: info });
+    return res.status(200).json({ message: "Email sent successfully", info: info });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
