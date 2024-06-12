@@ -64,7 +64,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                   donations: donate._id,
                 },
               });
-              const user = await UserModel.findOne({ _id: pet!.owner });
+              const user: any = await UserModel.findOne({ _id: pet!.owner });
 
               addToWallet(user!._id, amount);
 
@@ -118,7 +118,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                 },
               });
 
-              const mainUser = await UserModel.findOne({ _id: user!.author });
+              const mainUser: any = await UserModel.findOne({ _id: user!.author });
 
               addToWallet(mainUser!._id, amount);
 
@@ -239,7 +239,7 @@ export const donateFlower = async (req: Request, res: Response) => {
 
             await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
 
-            const mainUser = await UserModel.findOne({ _id: pet!.owner });
+            const mainUser: any = await UserModel.findOne({ _id: pet!.owner });
 
             addToWalletFlower(mainUser!._id, amount);
 
@@ -274,7 +274,7 @@ export const donateFlower = async (req: Request, res: Response) => {
 
             await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
 
-            const mainUser = await UserModel.findOne({ _id: user!.author });
+            const mainUser: any = await UserModel.findOne({ _id: user!.author });
 
             addToWalletFlower(mainUser!._id, amount);
 

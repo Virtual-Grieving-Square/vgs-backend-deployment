@@ -5,6 +5,9 @@ export interface IUpgread extends Document {
   userId: string;
   upgreadType: string;
   paid: boolean;
+
+  createdAt: string;
+  updatedAt: string;
 }
 
 const UpgreadSchema: Schema = new Schema({

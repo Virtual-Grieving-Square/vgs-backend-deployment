@@ -10,7 +10,8 @@ import PaymentListModel from "../model/paymentList";
 import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import UpgreadModel from "../model/upgrade";
 import { UserModel } from "../model/user";
-import { sendDepositConfirmation, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "./email";
+import { dateGetDate, dateGetTime } from "./date";
+import { sendDepositConfirmation, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender, sendEmailSubscriptionUpgraded } from "./email";
 import { addToWallet } from "./wallet";
 
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET!;
@@ -172,6 +173,8 @@ async function handleCheckoutSessionCompleted(event: any) {
             }
           );
 
+          const user = await UserModel.findById(userInfo.id);
+
           // Update Upgrade Model
           await UpgreadModel.updateOne(
             { paymentId: checkOutId },
@@ -179,6 +182,20 @@ async function handleCheckoutSessionCompleted(event: any) {
               paid: true
             }
           );
+
+          await sendEmailSubscriptionUpgraded({
+            name: userInfo!.firstName + " " + userInfo!.lastName,
+            email: userInfo!.email,
+            subscription: CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
+            date: dateGetDate(CheckUpgrade!.createdAt),
+            payment: CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
+            time: dateGetTime(CheckUpgrade!.createdAt),
+          }).then((response) => {
+            console.log(response);
+          }).catch((error) => {
+            console.error(error);
+          });
+
         } else {
           if (userInfo.subscriptionId != "") {
 
@@ -210,6 +227,19 @@ async function handleCheckoutSessionCompleted(event: any) {
                     }
                   );
 
+                  await sendEmailSubscriptionUpgraded({
+                    name: userInfo!.firstName + " " + userInfo!.lastName,
+                    email: userInfo!.email,
+                    subscription: CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
+                    date: dateGetDate(CheckUpgrade!.createdAt),
+                    payment: CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
+                    time: dateGetTime(CheckUpgrade!.createdAt),
+                  }).then((response) => {
+                    console.log(response);
+                  }).catch((error) => {
+                    console.error(error);
+                  });
+
                 } else {
                   throw "couldnt cancel request";
                 }
@@ -237,6 +267,19 @@ async function handleCheckoutSessionCompleted(event: any) {
                 paid: true
               }
             );
+
+            await sendEmailSubscriptionUpgraded({
+              name: userInfo!.firstName + " " + userInfo!.lastName,
+              email: userInfo!.email,
+              subscription: CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
+              date: dateGetDate(CheckUpgrade!.createdAt),
+              payment: CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
+              time: dateGetTime(CheckUpgrade!.createdAt),
+            }).then((response) => {
+              console.log(response);
+            }).catch((error) => {
+              console.error(error);
+            })
           }
         }
 
@@ -284,11 +327,10 @@ async function handleCheckoutSessionCompleted(event: any) {
 
       const humanMemorial = await HumanMemorial.findOne({ _id: checkNonUserDonation.to });
 
-      const mainUser = await UserModel.findOne({ _id: humanMemorial!.author });
+      const mainUser: any = await UserModel.findOne({ _id: humanMemorial!.author });
 
       addToWallet(mainUser!._id, checkNonUserDonation.amount);
 
-      console.log("Email Sending Section");
       await sendEmailNonUserDonationSender({
         name: checkNonUserDonation.name,
         email: checkNonUserDonation.email,

@@ -6,6 +6,8 @@ import PaymentListModel from "../model/paymentList";
 import DepositListModel from "../model/depositList";
 import { generateOrderNumber } from "../util/generateOrderNumber";
 import bcrypt from "bcrypt";
+import { sendEmailSubscriptionCancel, sendEmailSubscriptionDowngraded } from "../util/email";
+import { dateGetDate, dateGetTime } from "../util/date";
 
 const express = require("express");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
@@ -158,6 +160,7 @@ export const cancelSubscription = async (req: Request, res: Response) => {
   try {
     const { id, password } = req.body;
 
+    const nowdate = new Date();
     console.log(id, password);
 
     const user = await UserModel.findById(id);
@@ -186,6 +189,19 @@ export const cancelSubscription = async (req: Request, res: Response) => {
                   storage: 0,
                 }
               );
+
+              const user = await UserModel.findById(id);
+
+              await sendEmailSubscriptionCancel({
+                name: user!.firstName + " " + user!.lastName,
+                email: user!.email,
+                date: dateGetDate(nowdate.toISOString()),
+                time: dateGetTime(nowdate.toISOString())
+              }).then((response) => {
+                console.log(response);
+              }).catch((error) => {
+                console.error(error);
+              })
 
               res
                 .status(200)
@@ -324,6 +340,7 @@ export const downgrade = async (req: Request, res: Response) => {
     const { id, password } = req.body;
 
     const user = await UserModel.findById(id);
+    const datenow = new Date();
 
     if (!user) {
       return res.status(404).json({ msg: "User Not Found" })
@@ -352,6 +369,19 @@ export const downgrade = async (req: Request, res: Response) => {
             storage: 10000,
           }
         );
+
+        await sendEmailSubscriptionDowngraded({
+          name: user!.firstName + " " + user!.lastName,
+          email: user!.email,
+          subscription: "Silver",
+          date: dateGetDate(datenow.toISOString()),
+          payment: "5.00",
+          time: dateGetTime(datenow.toISOString()),
+        }).then((response) => {
+          console.log(response);
+        }).catch((error) => {
+          console.error(error);
+        })
 
         res.status(200).json({
           status: true,

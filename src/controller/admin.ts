@@ -12,7 +12,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Please fill all fields" });
     }
 
-    const admin = await AdminModel.findOne({
+    const admin: any = await AdminModel.findOne({
       email: email,
     });
 
