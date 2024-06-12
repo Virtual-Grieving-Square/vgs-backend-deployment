@@ -9,7 +9,7 @@ import FlowerModel from "../model/flowers";
 import { addToWallet, addToWalletFlower } from "../util/wallet";
 import { WalletModel } from "../model/wallet";
 import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
-import { sendEmail } from "../util/email";
+import { sendEmail, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "../util/email";
 import { DonationClaimOtpModel } from "../model/donationclaimotp";
 import { DonationNonUserModel } from "../model/donationNonUser";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
@@ -76,6 +76,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                 },
               });
 
+
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -101,6 +102,7 @@ export const makeDonation = async (req: Request, res: Response) => {
             if (checDonatorBalance!.balance < amount) {
               res.status(405).send({ msg: "Insufficient balance" });
             } else {
+
               const donate = new DonationModel({
                 from: from,
                 to: user!._id,
@@ -118,6 +120,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                 },
               });
 
+              const memorial = await HumanMemorial.findOne({ _id: user!._id });
+
               const mainUser: any = await UserModel.findOne({ _id: user!.author });
 
               addToWallet(mainUser!._id, amount);
@@ -128,6 +132,37 @@ export const makeDonation = async (req: Request, res: Response) => {
                 $inc: {
                   balance: -amount,
                 },
+              });
+
+              await sendEmailNonUserDonationSender({
+                name: checDonatorBalance!.firstName + " " + checDonatorBalance!.lastName,
+                email: checDonatorBalance!.email,
+                amount: amount,
+                donatedFor: memorial!.name,
+                date: new Date().toISOString().split("T")[0],
+                type: "Donation",
+                confirmation: "Confirmed"
+              }).then((response: any) => {
+                console.log(response);
+              }).catch((error) => {
+                console.error(error);
+              });
+
+
+              await sendEmailNonUserDonationReceiver({
+                name: mainUser!.firstName + " " + mainUser!.lastName,
+                email: checDonatorBalance!.email,
+                amount: amount,
+                donatedFor: memorial!.name,
+                date: new Date().toISOString().split("T")[0],
+                type: "Donation",
+                confirmation: "Confirmed",
+                memorialLink: `${process.env.DOMAIN}/memory/human/${memorial!._id}`,
+                recieverEmail: mainUser!.email,
+              }).then((response) => {
+                console.log(response);
+              }).catch((error) => {
+                console.error(error);
               });
 
               res.status(200).json({ message: "Donated successfully", donate });
