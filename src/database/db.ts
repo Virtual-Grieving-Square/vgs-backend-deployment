@@ -5,7 +5,7 @@ const mongoURL: string = config.DB_CONNECTION_STRING;
 
 export const connectDB = async (): Promise<void> => {
     try {
-        await mongoose.connect(mongoURL,{dbName: 'vgs_test_db'});
+        await mongoose.connect(mongoURL,{dbName: config.DB_collectionName});
         console.log('Connected to MongoDB');
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);

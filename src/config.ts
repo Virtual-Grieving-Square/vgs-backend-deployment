@@ -3,6 +3,7 @@ dotenv.config();
 
 interface Config {
   DB_CONNECTION_STRING: string;
+  DB_collectionName: string;
   PORT: number;
   Google_API: string;
   Samp_API: string;
@@ -18,6 +19,7 @@ interface Config {
 
 const config: Config = {
   DB_CONNECTION_STRING: process.env.DB_CONNECTION_STRING || "",
+  DB_collectionName: process.env.DB_COLLECTION_NAME || "",
   PORT: parseInt(process.env.PORT || "3000", 10),
   Google_API: process.env.GOOGLE_PRE_API_KEY || "",
   Samp_API: process.env.SAMPLING_API_KEY || "",
@@ -26,9 +28,9 @@ const config: Config = {
   zoomAPI: process.env.ZOOM_API_KEY || "",
   Zoom_sdk_key: process.env.ZOOM_API_KEY || "",
   Zoom_sdk_sec_key: process.env.ZOOM_API_SECRET || "",
-  twilioAccount:process.env.TWILIO_ACCOUNT_SID || "",
+  twilioAccount: process.env.TWILIO_ACCOUNT_SID || "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || "",
-  twilioService: process.env.SERVICETOKEN || ""
+  twilioService: process.env.SERVICETOKEN || "",
 };
 
 export default config;
