@@ -38,6 +38,7 @@ import image from "./routes/image";
 import stripe from "./routes/stripe";
 import news from "./routes/news";
 import pages from "./routes/pages";
+import heroes from "./routes/heroes";
 import tombstone from "./routes/tombstone";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
@@ -128,7 +129,7 @@ app.use("/stripe", stripe);
 app.use("/news", news);
 app.use("/pages", pages);
 app.use("/tombstone", tombstone);
-
+app.use("/heros", heroes);
 // Socket.io Connect
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
