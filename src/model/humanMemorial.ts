@@ -25,7 +25,7 @@ const humanMemorialSchema: Schema = new Schema({
   donations: [{ type: Schema.Types.ObjectId, ref: "Donation" }],
   image: { type: String, required: false },
   relation: { type: String, required: false },
-  memorialNote: { type: String, default: "" }
+  memorialNote: { type: String, default: "" },
   tombstone: { type: Boolean, default: false },
   tombstoneId: { type: String, required: false },
 

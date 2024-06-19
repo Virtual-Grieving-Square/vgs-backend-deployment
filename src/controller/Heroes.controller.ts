@@ -5,6 +5,7 @@ import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 
 import { Stream } from "stream";
+import { UserModel } from "../model/user";
 
 export const getAllHeroes = async (req: any, res: Response) => {
   try {
@@ -236,3 +237,27 @@ export const updateHero = async (req: any, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getUserByHeroId = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const hero = await Heroes.findById(id);
+
+    if (!hero) {
+      return res.status(404).json({ message: "Hero not found" });
+    }
+
+    const user = await UserModel.findById(hero.author);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

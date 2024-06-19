@@ -87,19 +87,19 @@ app.use(
   })
 );
 
-app.use(apiAuthMiddleware);
+// app.use(apiAuthMiddleware);
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 connectDB();
-try {
-  console.log("where is it")
-  // Schedule the job to run every hour
-  cron.schedule("0 * * * *", fetchAndUpdateNews);
-} catch (err) {
-  console.log(err);
-}
+// try {
+//   console.log("where is it")
+//   // Schedule the job to run every hour
+//   cron.schedule("0 * * * *", fetchAndUpdateNews);
+// } catch (err) {
+//   console.log(err);
+// }
 
 // Routes
 app.use("/", index);
@@ -130,6 +130,7 @@ app.use("/news", news);
 app.use("/pages", pages);
 app.use("/tombstone", tombstone);
 app.use("/heros", heroes);
+
 // Socket.io Connect
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
@@ -149,6 +150,10 @@ io.on("connection", (socket: any) => {
   socket.on("client_comment_update", () => {
     socket.emit("server_comment_update");
   });
+
+  socket.on("client_new_hero", () => {
+    socket.emit("server_new_hero");
+  })
 
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
