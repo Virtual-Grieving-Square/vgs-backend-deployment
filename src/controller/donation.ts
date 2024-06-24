@@ -599,3 +599,73 @@ export const verifyOTP = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error", msg: error });
   }
 }
+
+export const fetchComments = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const comments = [];
+
+    const donation: any = await DonationModel.find({ to: id });
+    const nonUserDonation = await DonationNonUserModel.find({ to: id });
+    const flower: any = await FlowerDonationModel.find({ to: id });
+
+    if (donation) {
+      for (let i = 0; i < donation.length; i++) {
+        const user = await UserModel.findOne({ _id: donation[i].from });
+
+        if (!user) {
+          comments.push({
+            name: "Unknown User",
+            note: donation[i].note,
+            type: "Donation"
+          });
+        } else {
+          comments.push({
+            name: user!.firstName + " " + user!.lastName,
+            note: donation[i].note,
+            type: "Donation"
+          });
+        }
+      }
+    }
+
+    if (flower) {
+      for (let i = 0; i < flower.length; i++) {
+        const user = await UserModel.findOne({ _id: flower[i].from });
+
+        if (!user) {
+          comments.push({
+            name: "Unknown User",
+            note: flower[i].note,
+            type: "Flower Donation"
+          });
+        } else {
+          comments.push({
+            name: user!.firstName + " " + user!.lastName,
+            note: flower[i].note,
+            type: "Flower Donation"
+          });
+        }
+      }
+    }
+
+    if (nonUserDonation) {
+      for (let i = 0; i < nonUserDonation.length; i++) {
+        comments.push({
+          name: nonUserDonation[i].name,
+          note: nonUserDonation[i].note,
+          type: "Non User Donation"
+        });
+      }
+    }
+
+    res.status(200).json({
+      comments: comments,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
+  }
+}

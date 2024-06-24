@@ -5,6 +5,7 @@ import {
   claimOTP,
   donateFlower,
   donationHistory,
+  fetchComments,
   flowerDonationHistory,
   getAll,
   getDonationByUserId,
@@ -33,6 +34,9 @@ router.post("/claim/flower", claimFlowerDonation);
 // Claim Verification
 router.post("/claim/otp", claimOTP);
 router.post("/claim/verifyOtp", verifyOTP);
+
+// Comments
+router.get("/comments/:id", fetchComments);
 
 
 export default router;
