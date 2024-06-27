@@ -57,14 +57,11 @@ router.get("/human/search", searchHumanMemorial);
 // Update
 router.post("/human/update", upload.single("image"), updateHumanMemorial);
 
-
-
 // Comment
 router.get("/comment/count/:id", countMemorialComment);
 router.get("/human/comment/:id", getAllMemorialComments);
 router.post("/human/comment/add", checkUserStatus, createMemorialComment);
 router.post("/human/translate", translateMemoComment);
-
 
 
 // Pet Memorial

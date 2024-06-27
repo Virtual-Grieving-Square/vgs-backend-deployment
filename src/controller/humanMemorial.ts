@@ -315,13 +315,15 @@ export const countMemorialComment = async (req: Request, res: Response) => {
 
 export const createMemorialComment = async (req: Request, res: Response) => {
   try {
-    const { authorId, content, memorialId, userId } = req.body;
+    const { content, memorialId, userId } = req.body;
 
-    if (!authorId || !content || !memorialId || !userId) {
+    const memorial = await HumanMemorial.findById(memorialId);
+
+    if (!content || !memorialId || !userId) {
       return res.status(400).json({ error: "content and userId are required" });
     }
     const comment = new MemorialComment({
-      authorId: authorId,
+      authorId: memorial!.author,
       comment: content,
       memorialId: memorialId,
       userId: userId,
@@ -332,7 +334,6 @@ export const createMemorialComment = async (req: Request, res: Response) => {
     const response2: any = await checkCommentUsingBadwords(content);
 
     let user = await UserModel.findById(userId);
-
 
     if (user) {
       var strike = user.blacklistCount;

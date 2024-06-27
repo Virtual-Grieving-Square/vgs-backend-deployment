@@ -12,6 +12,7 @@ import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import { sendEmail, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "../util/email";
 import { DonationClaimOtpModel } from "../model/donationclaimotp";
 import { DonationNonUserModel } from "../model/donationNonUser";
+import { MemorialComment } from "../model/memorialComment";
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = process.env.DOMAIN;
@@ -609,6 +610,7 @@ export const fetchComments = async (req: Request, res: Response) => {
     const donation: any = await DonationModel.find({ to: id });
     const nonUserDonation = await DonationNonUserModel.find({ to: id });
     const flower: any = await FlowerDonationModel.find({ to: id });
+    const memorialComment: any = await MemorialComment.find({ memorialId: id });
 
     if (donation) {
       for (let i = 0; i < donation.length; i++) {
@@ -661,6 +663,18 @@ export const fetchComments = async (req: Request, res: Response) => {
           note: nonUserDonation[i].note,
           type: "Non User Donation",
           date: nonUserDonation[i].createdAt,
+        });
+      }
+    }
+
+    if (memorialComment) {
+      for (let i = 0; i < memorialComment.length; i++) {
+        const user = await UserModel.findOne({ _id: memorialComment[i].userId });
+        comments.push({
+          name: user!.firstName + " " + user!.lastName,
+          note: memorialComment[i].comment,
+          type: "Comment",
+          date: memorialComment[i].createdAt
         });
       }
     }
@@ -735,6 +749,8 @@ export const fetchDonors = async (req: Request, res: Response) => {
         });
       }
     }
+
+
 
     donors = donors.filter((donor, index, self) =>
       index === self.findIndex((t) => (
