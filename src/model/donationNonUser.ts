@@ -11,6 +11,7 @@ export interface DonationNonUser extends Document {
   note: string;
   description: string;
   paid: boolean;
+  createdAt: Date;
 }
 
 const donationNonUserSchema: Schema = new Schema({

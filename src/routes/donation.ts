@@ -6,6 +6,7 @@ import {
   donateFlower,
   donationHistory,
   fetchComments,
+  fetchDonors,
   flowerDonationHistory,
   getAll,
   getDonationByUserId,
@@ -26,6 +27,7 @@ router.get('/flowerDonationHistory/:id', flowerDonationHistory);
 // Get Donations
 router.get("/getAll", getAll);
 router.get("/getDonationByUserId/:id", getDonationByUserId);
+router.get("/donors/:id", fetchDonors);
 
 // Claim
 router.post("/claim/money", claimMoneyDonation);
@@ -37,6 +39,8 @@ router.post("/claim/verifyOtp", verifyOTP);
 
 // Comments
 router.get("/comments/:id", fetchComments);
+
+
 
 
 export default router;

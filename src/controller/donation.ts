@@ -618,13 +618,15 @@ export const fetchComments = async (req: Request, res: Response) => {
           comments.push({
             name: "Unknown User",
             note: donation[i].note,
-            type: "Donation"
+            type: "Donation",
+            date: donation[i].createdAt,
           });
         } else {
           comments.push({
             name: user!.firstName + " " + user!.lastName,
             note: donation[i].note,
-            type: "Donation"
+            type: "Donation",
+            date: donation[i].createdAt,
           });
         }
       }
@@ -638,13 +640,15 @@ export const fetchComments = async (req: Request, res: Response) => {
           comments.push({
             name: "Unknown User",
             note: flower[i].note,
-            type: "Flower Donation"
+            type: "Flower Donation",
+            date: flower[i].createdAt,
           });
         } else {
           comments.push({
             name: user!.firstName + " " + user!.lastName,
             note: flower[i].note,
-            type: "Flower Donation"
+            type: "Flower Donation",
+            date: flower[i].createdAt,
           });
         }
       }
@@ -655,13 +659,91 @@ export const fetchComments = async (req: Request, res: Response) => {
         comments.push({
           name: nonUserDonation[i].name,
           note: nonUserDonation[i].note,
+          type: "Non User Donation",
+          date: nonUserDonation[i].createdAt,
+        });
+      }
+    }
+
+
+    res.status(200).json({
+      comments: comments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error", msg: error });
+  }
+}
+
+export const fetchDonors = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    var donors = [];
+
+    const donation: any = await DonationModel.find({ to: id });
+    const nonUserDonation = await DonationNonUserModel.find({ to: id });
+    const flower: any = await FlowerDonationModel.find({ to: id });
+
+    if (donation) {
+      for (let i = 0; i < donation.length; i++) {
+        const user = await UserModel.findOne({ _id: donation[i].from });
+
+        if (!user) {
+          donors.push({
+            name: "Unknown User",
+            note: donation[i].note,
+            type: "Donation"
+          });
+        } else {
+          donors.push({
+            name: user!.firstName + " " + user!.lastName,
+            note: donation[i].note,
+            type: "Donation"
+          });
+        }
+      }
+    }
+
+    if (flower) {
+      for (let i = 0; i < flower.length; i++) {
+        const user = await UserModel.findOne({ _id: flower[i].from });
+
+        if (!user) {
+          donors.push({
+            name: "Unknown User",
+            note: flower[i].note,
+            type: "Flower Donation"
+          });
+        } else {
+          donors.push({
+            name: user!.firstName + " " + user!.lastName,
+            note: flower[i].note,
+            type: "Flower Donation"
+          });
+        }
+      }
+    }
+
+    if (nonUserDonation) {
+      for (let i = 0; i < nonUserDonation.length; i++) {
+        donors.push({
+          name: nonUserDonation[i].name,
+          note: nonUserDonation[i].note,
           type: "Non User Donation"
         });
       }
     }
 
+    donors = donors.filter((donor, index, self) =>
+      index === self.findIndex((t) => (
+        t.name === donor.name
+      ))
+    );
+
     res.status(200).json({
-      comments: comments,
+      donors: donors,
     });
 
   } catch (error) {
