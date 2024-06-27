@@ -5,8 +5,7 @@ const memorialSchema: Schema = new Schema({
   description: { type: String, required: true },
   coverImage: { type: String, required: false },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  comments: { type: Schema.Types.ObjectId, ref: "MemorialComment" },
-
+  comments: { type: Number, default: 0 },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -17,7 +16,7 @@ export interface Memorial extends Document {
   description: string;
   coverImage: string;
   userId: string;
-  comments: mongoose.Types.ObjectId;
+  comments: number;
 }
 
 export const Memorial = mongoose.model<Memorial>("Memorial", memorialSchema);

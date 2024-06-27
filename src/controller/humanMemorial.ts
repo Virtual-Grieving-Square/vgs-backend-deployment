@@ -5,6 +5,15 @@ import { s3Client } from "../util/awsAccess";
 import { removeSpaces } from "../util/removeSpace";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Stream } from "stream";
+import { Memorial } from "../model/memorial";
+import { MemorialComment } from "../model/memorialComment";
+import { checkCommentUsingBadwords } from "../util/commentFilter";
+import { UserModel } from "../model/user";
+import Filter from "bad-words";
+import config from "../config";
+import axios from "axios";
+
+const filter = new Filter();
 
 export const getAllHumanMemorial = async (req: any, res: Response) => {
   try {
@@ -263,3 +272,155 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
+export const countMemorialComment = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const Mem: any = await Memorial.find({
+      _id: id,
+    });
+
+    res.status(200).json({ comment: Mem[0].comments });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+export const createMemorialComment = async (req: Request, res: Response) => {
+  try {
+    const { authorId, content, memorialId, userId } = req.body;
+
+    if (!authorId || !content || !memorialId || !userId) {
+      return res.status(400).json({ error: "content and userId are required" });
+    }
+    const comment = new MemorialComment({
+      authorId: authorId,
+      comment: content,
+      memorialId: memorialId,
+      userId: userId,
+    });
+
+    // Check if the comment contains bad words from library
+    const response: any = filter.isProfane(content);
+    const response2: any = await checkCommentUsingBadwords(content);
+
+    let user = await UserModel.findById(userId);
+
+
+    if (user) {
+      var strike = user.blacklistCount;
+      console.log("Strike", strike);
+
+      if (filter.isProfane(content) || response2) {
+        try {
+          if (strike < 2) {
+            user.blacklistCount += 1;
+            await user.save();
+            return res
+              .status(402)
+              .json({
+                error: "Inappropriate comment detected",
+                msg: "inappropriate_comment_detected",
+                banMessage: "Inappropriate comment detected"
+              });
+          } else {
+            user.blacklistCount += 1;
+            user.banCount += 1;
+
+            let now = new Date();
+            let banPeriod = 24 * 60 * 60 * 1000; // 24 hours
+
+            if (user.banCount == 2) {
+              banPeriod = 48 * 60 * 60 * 1000; // 48 hours
+            } else if (user.banCount > 2) {
+              banPeriod = 48 * 60 * 60 * 1000; // 48 hours
+              user.flag = "BAN";
+            }
+
+            user.flag = user.banCount > 2 ? "BAN" : "suspended";
+            user.banExpiry = new Date(now.getTime() + banPeriod);
+            await user.save();
+
+            let banMessage =
+              user.banCount > 2
+                ? "Inappropriate comment detected and account banned. You can't comment anymore"
+                : `Inappropriate comment detected and account suspended for ${banPeriod / (60 * 60 * 1000)
+                } Hr`;
+
+            return res.status(402).json({
+              error: banMessage,
+              banMessage: banMessage,
+              msg: user.banCount > 2 ? "account_banned" : "account_suspended"
+            });
+          }
+        } catch (error) {
+          console.error("Error updating user blacklist count:", error);
+        }
+      }
+
+      if (strike > 2) {
+        return res.status(402).json({
+          error: "Account Suspended",
+          msg: "account_suspended",
+          banMessage: "Account Suspended for Bad Comment",
+        });
+      } else {
+        await comment.save();
+        await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
+        res
+          .status(200)
+          .json({
+            msg: "comment_created_successfully",
+            message: "Comment created successfully",
+            comment
+          });
+      }
+    }
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const translateMemoComment = async (req: Request, res: Response) => {
+  const text = req.body.text;
+  const targetLanguage: string = "en";
+
+  const apiKey = config.Google_translate;
+
+  const apiUrl: string = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=${encodeURIComponent(
+    text
+  )}&target=${targetLanguage}`;
+
+  await axios
+    .post(apiUrl)
+    .then((response) => {
+      res.status(200).json({
+        translate: response.data.data.translations[0].translatedText,
+        lan: "eng",
+      });
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      res.status(403).json({
+        error,
+      });
+    });
+};
+
+export const getAllMemorialComments = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const comments = await MemorialComment.find({
+      _id: id,
+    });
+
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

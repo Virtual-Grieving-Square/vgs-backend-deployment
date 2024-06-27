@@ -11,6 +11,10 @@ import {
   searchHumanMemorial,
   deleteHumanMemorial,
   updateHumanMemorial,
+  countMemorialComment,
+  getAllMemorialComments,
+  createMemorialComment,
+  translateMemoComment,
 } from "../controller/humanMemorial";
 
 // Pet Memorial
@@ -25,6 +29,7 @@ import {
 } from "../controller/pet";
 
 import multer from "multer";
+import { checkUserStatus } from "../middleware/userStatus";
 
 const router = express.Router();
 
@@ -51,6 +56,16 @@ router.get("/human/search", searchHumanMemorial);
 
 // Update
 router.post("/human/update", upload.single("image"), updateHumanMemorial);
+
+
+
+// Comment
+router.get("/comment/count/:id", countMemorialComment);
+router.get("/human/comment/:id", getAllMemorialComments);
+router.post("/human/comment/add", checkUserStatus, createMemorialComment);
+router.post("/human/translate", translateMemoComment);
+
+
 
 // Pet Memorial
 router.get('/pet/getAll', getAllPetMemorial);
