@@ -39,7 +39,7 @@ import stripe from "./routes/stripe";
 import news from "./routes/news";
 import pages from "./routes/pages";
 import heroes from "./routes/heroes";
-
+import tombstone from "./routes/tombstone";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
 
@@ -87,19 +87,19 @@ app.use(
   })
 );
 
-app.use(apiAuthMiddleware);
+// app.use(apiAuthMiddleware);
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 connectDB();
-try {
-  console.log("where is it")
-  // Schedule the job to run every hour
-  cron.schedule("0 * * * *", fetchAndUpdateNews);
-} catch (err) {
-  console.log(err);
-}
+// try {
+//   console.log("where is it")
+//   // Schedule the job to run every hour
+//   cron.schedule("0 * * * *", fetchAndUpdateNews);
+// } catch (err) {
+//   console.log(err);
+// }
 
 // Routes
 app.use("/", index);
@@ -128,7 +128,9 @@ app.use("/getImage", image);
 app.use("/stripe", stripe);
 app.use("/news", news);
 app.use("/pages", pages);
+app.use("/tombstone", tombstone);
 app.use("/heros", heroes);
+
 // Socket.io Connect
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
@@ -148,6 +150,10 @@ io.on("connection", (socket: any) => {
   socket.on("client_comment_update", () => {
     socket.emit("server_comment_update");
   });
+
+  socket.on("client_new_hero", () => {
+    socket.emit("server_new_hero");
+  })
 
   socket.on("disconnect", () => {
     console.log("A User Disconnected");

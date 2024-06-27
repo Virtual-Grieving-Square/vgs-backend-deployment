@@ -9,6 +9,7 @@ import {
   searcHeroMemorial,
   deleteHero,
   updateHero,
+  getUserByHeroId,
 } from "../controller/Heroes.controller";
 
 import multer from "multer";
@@ -27,6 +28,7 @@ router.delete("/delete/:id", deleteHero);
 router.get("/getAll", getAllHeroes);
 router.get("/get/userId/:id", getHeroByUserId);
 router.get("/getById/:id", getHeroById);
+router.get("/getUserByHeroId/:id", getUserByHeroId);
 
 // Get Image
 router.get("/getImage", getImage);

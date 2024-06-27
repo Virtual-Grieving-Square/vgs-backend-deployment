@@ -60,7 +60,7 @@ export const getHumanMemorialById = async (req: Request, res: Response) => {
 
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, description, dob, dod, author, relation } = req.body;
+    const { name, age, description, dob, dod, author, relation, memorialNote, tombstone } = req.body;
     console.log(req.body);
     console.log(req.files);
 
@@ -91,22 +91,47 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
         return res.status(402).json({ message: "All fields are required" });
       }
       // const url = coverImage[0].url;
-      const humanMemorial = new HumanMemorial({
-        name: name,
-        age: age,
-        description: description,
-        dob: dob,
-        dod: dod,
-        author: author,
-        image: fileName,
-        relation: relation,
-      });
 
-      await humanMemorial.save();
+      if (tombstone == "true") {
+        const humanMemorial = new HumanMemorial({
+          name: name,
+          age: age,
+          description: description,
+          dob: dob,
+          dod: dod,
+          author: author,
+          image: fileName,
+          memorialNote: memorialNote,
+          relation: relation,
+          tombstone: true,
+          tombstoneId: req.body.tombstoneId,
+        });
 
-      res
-        .status(200)
-        .json({ message: "Human Memory created successfully", humanMemorial });
+        await humanMemorial.save();
+
+        res
+          .status(200)
+          .json({ message: "Human Memory created successfully", humanMemorial });
+      } else {
+        const humanMemorial = new HumanMemorial({
+          name: name,
+          age: age,
+          description: description,
+          dob: dob,
+          dod: dod,
+          author: author,
+          memorialNote: memorialNote,
+          image: fileName,
+          relation: relation,
+        });
+
+        await humanMemorial.save();
+
+        res
+          .status(200)
+          .json({ message: "Human Memory created successfully", humanMemorial });
+      }
+
     }
   } catch (error) {
     console.error("Error Human Memorial:", error);
