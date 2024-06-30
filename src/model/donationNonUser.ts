@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface DonationNonUser extends Document {
   paymentId: string;
-  from: string;
   to: string;
   amount: number;
   name: string;
@@ -11,12 +10,14 @@ export interface DonationNonUser extends Document {
   note: string;
   description: string;
   paid: boolean;
+  blocked: boolean;
+
+  // Timestamp
   createdAt: Date;
 }
 
 const donationNonUserSchema: Schema = new Schema({
   paymentId: { type: String, required: true },
-  from: { type: String, required: true },
   to: { type: String, required: true },
   amount: { type: Number, required: true },
   name: { type: String, default: "" },
@@ -25,6 +26,7 @@ const donationNonUserSchema: Schema = new Schema({
   note: { type: String, default: "" },
   description: { type: String },
   paid: { type: Boolean, default: false },
+  blocked: { type: Boolean, default: false },
 
   //Timestamp
   createdAt: { type: Date, default: Date.now },

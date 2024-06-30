@@ -5,6 +5,7 @@ export interface IComment extends Document {
   postId: string;
   userId: string;
   content: string;
+  blocked: boolean;
   createdAt: Date;
 }
 
@@ -13,6 +14,7 @@ const CommentSchema: Schema = new Schema({
   content: { type: String, required: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
+  blocked: { type: Boolean, default: false },
 
   //Timestamp
   createdAt: { type: Date, default: Date.now },

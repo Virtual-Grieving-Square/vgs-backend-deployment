@@ -1,4 +1,6 @@
 import { Response, Request } from "express";
+
+// Model
 import { DonationModel } from "../model/donation";
 import { UserModel } from "../model/user";
 import { ProductModel } from "../model/Product";
@@ -6,13 +8,20 @@ import { HumanMemorial } from "../model/humanMemorial";
 import { FlowerDonationModel } from "../model/flowerDonation";
 import { PetMemorial } from "../model/petMemorial";
 import FlowerModel from "../model/flowers";
-import { addToWallet, addToWalletFlower } from "../util/wallet";
 import { WalletModel } from "../model/wallet";
-import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
-import { sendEmail, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender } from "../util/email";
 import { DonationClaimOtpModel } from "../model/donationclaimotp";
 import { DonationNonUserModel } from "../model/donationNonUser";
-import { MemorialComment } from "../model/memorialComment";
+
+// Utils
+import { addToWallet, addToWalletFlower } from "../util/wallet";
+import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
+
+import {
+  sendEmail,
+  sendEmailNonUserDonationReceiver,
+  sendEmailNonUserDonationSender
+} from "../util/email";
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = process.env.DOMAIN;
@@ -180,7 +189,7 @@ export const makeDonation = async (req: Request, res: Response) => {
 
 export const makeDonationNonUser = async (req: Request, res: Response) => {
   try {
-    const { from, to, amount, name, email, relation, note, description } = req.body;
+    const { to, amount, name, email, relation, note, description } = req.body;
 
     const user = await HumanMemorial.findOne({ _id: to });
 
@@ -213,7 +222,6 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
 
       const donate = new DonationNonUserModel({
         paymentId: session.id,
-        from: "664b6f476efa78884d3a9af6",
         to: user!._id,
         amount: amount,
         name: name || "",
@@ -601,94 +609,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
   }
 }
 
-export const fetchComments = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
 
-    const comments = [];
-
-    const donation: any = await DonationModel.find({ to: id });
-    const nonUserDonation = await DonationNonUserModel.find({ to: id });
-    const flower: any = await FlowerDonationModel.find({ to: id });
-    const memorialComment: any = await MemorialComment.find({ memorialId: id });
-
-    if (donation) {
-      for (let i = 0; i < donation.length; i++) {
-        const user = await UserModel.findOne({ _id: donation[i].from });
-
-        if (!user) {
-          comments.push({
-            name: "Unknown User",
-            note: donation[i].note,
-            type: "Donation",
-            date: donation[i].createdAt,
-          });
-        } else {
-          comments.push({
-            name: user!.firstName + " " + user!.lastName,
-            note: donation[i].note,
-            type: "Donation",
-            date: donation[i].createdAt,
-          });
-        }
-      }
-    }
-
-    if (flower) {
-      for (let i = 0; i < flower.length; i++) {
-        const user = await UserModel.findOne({ _id: flower[i].from });
-
-        if (!user) {
-          comments.push({
-            name: "Unknown User",
-            note: flower[i].note,
-            type: "Flower Donation",
-            date: flower[i].createdAt,
-          });
-        } else {
-          comments.push({
-            name: user!.firstName + " " + user!.lastName,
-            note: flower[i].note,
-            type: "Flower Donation",
-            date: flower[i].createdAt,
-          });
-        }
-      }
-    }
-
-    if (nonUserDonation) {
-      for (let i = 0; i < nonUserDonation.length; i++) {
-        comments.push({
-          name: nonUserDonation[i].name,
-          note: nonUserDonation[i].note,
-          type: "Non User Donation",
-          date: nonUserDonation[i].createdAt,
-        });
-      }
-    }
-
-    if (memorialComment) {
-      for (let i = 0; i < memorialComment.length; i++) {
-        const user = await UserModel.findOne({ _id: memorialComment[i].userId });
-        comments.push({
-          name: user!.firstName + " " + user!.lastName,
-          note: memorialComment[i].comment,
-          type: "Comment",
-          date: memorialComment[i].createdAt
-        });
-      }
-    }
-
-
-    res.status(200).json({
-      comments: comments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error", msg: error });
-  }
-}
 
 export const fetchDonors = async (req: Request, res: Response) => {
   try {

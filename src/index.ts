@@ -40,6 +40,7 @@ import news from "./routes/news";
 import pages from "./routes/pages";
 import heroes from "./routes/heroes";
 import tombstone from "./routes/tombstone";
+import comment from "./routes/comment";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
 
@@ -130,6 +131,7 @@ app.use("/news", news);
 app.use("/pages", pages);
 app.use("/tombstone", tombstone);
 app.use("/heros", heroes);
+app.use("/comment", comment);
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {

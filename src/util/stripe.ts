@@ -304,7 +304,6 @@ async function handleCheckoutSessionCompleted(event: any) {
       );
 
       const donate = new DonationModel({
-        from: checkNonUserDonation.from,
         to: checkNonUserDonation.to,
         amount: checkNonUserDonation.amount,
         note: checkNonUserDonation.note || "",
