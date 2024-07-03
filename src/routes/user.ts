@@ -9,6 +9,7 @@ import {
   getProfileImagebyID,
   updateCoverImage,
   updateDetails,
+  updateStripeSetup,
   uploadProfileImage
 } from "../controller/user";
 
@@ -30,5 +31,8 @@ router.post("/updateCoverImage/:id", upload.single("image"), updateCoverImage);
 // Get Image
 router.get('/getImage', getProfileImage);
 router.get('/getImageById', getProfileImagebyID);
+
+// Update Stripe Setup
+router.put("/update/stripe-account-setup/:id", updateStripeSetup);
 
 export default router;

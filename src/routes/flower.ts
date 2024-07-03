@@ -6,7 +6,8 @@ import {
   getFlowers,
   getImage,
   update,
-  updateFlower
+  updateFlower,
+  getById,
 } from '../controller/flower';
 
 const router = express.Router();
@@ -15,6 +16,7 @@ const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
 router.get("/getAll", getFlowers);
+router.get("/getById/:id", getById);
 router.post('/create', upload.single("image"), addFlower);
 router.delete("/delete/:id", deleteFlower);
 

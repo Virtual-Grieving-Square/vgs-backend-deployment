@@ -21,7 +21,10 @@ export const getDetails = async (req: Request, res: Response) => {
     const user = await UserModel.findById(id);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        msg: "user-not-found",
+        message: "User not found"
+      });
     }
 
     res.status(200).json({ user });
@@ -166,6 +169,26 @@ export const updateCoverImage = async (req: Request, res: Response) => {
     const newuser = await UserModel.findById(id);
 
     res.status(200).json({ message: "Profile image uploaded successfully", user: newuser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const updateStripeSetup = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await UserModel.findByIdAndUpdate(id, {
+      stripeAccountCompleted: true
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Stripe setup completed" });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

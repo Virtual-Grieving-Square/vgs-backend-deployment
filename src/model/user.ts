@@ -26,6 +26,9 @@ const userSchema: Schema = new Schema({
   profileImage: { type: String, required: false },
   coverImage: { type: String, required: false, default: "https://picsum.photos/1000/350?random=222" },
   storage: { type: Number, default: 0 },
+  stripeAccountId: { type: String, default: "" },
+  stripeAccountCompleted: { type: Boolean, default: false },
+
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -56,6 +59,8 @@ export interface User extends Document {
   subscriptionId: string;
   profileImage: string;
   coverImage: string;
+  stripeAccountId: string;
+  stripeAccountCompleted: boolean;
 }
 
 export const UserModel = mongoose.model<User>("User", userSchema);

@@ -13,7 +13,8 @@ export function apiAuthMiddleware(req: Request, res: Response, next: NextFunctio
   const allowedPaths = [
     "/getImage",
     "/webhook",
-    "/getRandom"
+    "/getRandom",
+    "/pages"
   ];
 
   if (
