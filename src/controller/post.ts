@@ -219,6 +219,7 @@ export const likePost = async (req: Request, res: Response) => {
       postId: postId,
       likerId: likerId,
     });
+    let user = await UserModel.findById(likerId);
 
     if (likes.length > 0) {
       await LikeModel.deleteMany({
@@ -234,6 +235,7 @@ export const likePost = async (req: Request, res: Response) => {
     } else {
       const like = new LikeModel({
         postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
         likerId: likerId,
       });
 
@@ -290,8 +292,11 @@ export const createComment = async (req: Request, res: Response) => {
     if (!authorId || !content || !postId || !userId) {
       return res.status(400).json({ error: "content and userId are required" });
     }
+    let user = await UserModel.findById(userId);
+
     const comment = new CommentModel({
       authorId: authorId,
+      cname: user?.firstName + " " + user?.lastName,
       content: content,
       postId: postId,
       userId: userId,
@@ -300,9 +305,6 @@ export const createComment = async (req: Request, res: Response) => {
     // Check if the comment contains bad words from library
     const response: any = filter.isProfane(content);
     const response2: any = await checkCommentUsingBadwords(content);
-
-    let user = await UserModel.findById(userId);
-
 
     if (user) {
       var strike = user.blacklistCount;
@@ -313,13 +315,11 @@ export const createComment = async (req: Request, res: Response) => {
           if (strike < 2) {
             user.blacklistCount += 1;
             await user.save();
-            return res
-              .status(402)
-              .json({
-                error: "Inappropriate comment detected",
-                msg: "inappropriate_comment_detected",
-                banMessage: "Inappropriate comment detected"
-              });
+            return res.status(402).json({
+              error: "Inappropriate comment detected",
+              msg: "inappropriate_comment_detected",
+              banMessage: "Inappropriate comment detected",
+            });
           } else {
             user.blacklistCount += 1;
             user.banCount += 1;
@@ -341,13 +341,14 @@ export const createComment = async (req: Request, res: Response) => {
             let banMessage =
               user.banCount > 2
                 ? "Inappropriate comment detected and account banned. You can't comment anymore"
-                : `Inappropriate comment detected and account suspended for ${banPeriod / (60 * 60 * 1000)
-                } Hr`;
+                : `Inappropriate comment detected and account suspended for ${
+                    banPeriod / (60 * 60 * 1000)
+                  } Hr`;
 
             return res.status(402).json({
               error: banMessage,
               banMessage: banMessage,
-              msg: user.banCount > 2 ? "account_banned" : "account_suspended"
+              msg: user.banCount > 2 ? "account_banned" : "account_suspended",
             });
           }
         } catch (error) {
@@ -364,13 +365,11 @@ export const createComment = async (req: Request, res: Response) => {
       } else {
         await comment.save();
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
-        res
-          .status(200)
-          .json({
-            msg: "comment_created_successfully",
-            message: "Comment created successfully",
-            comment
-          });
+        res.status(200).json({
+          msg: "comment_created_successfully",
+          message: "Comment created successfully",
+          comment,
+        });
       }
     }
   } catch (error) {
@@ -403,6 +402,48 @@ export const translateComment = async (req: Request, res: Response) => {
         error,
       });
     });
+};
+
+export const likeComment = async (req: Request, res: Response) => {
+  try {
+    const { commentId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: commentId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: commentId,
+        likerId: likerId,
+      });
+
+      await CommentModel.findByIdAndUpdate(commentId, { $inc: { likes: -1 } });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Comment unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: commentId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      await like.save();
+
+      await PostModel.findByIdAndUpdate(commentId, { $inc: { likes: 1 } });
+
+      return res
+        .status(200)
+        .json({ like: true, message: "Comment liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const makeReaction = async (req: Request, res: Response) => {

@@ -12,6 +12,7 @@ import { UserModel } from "../model/user";
 import Filter from "bad-words";
 import config from "../config";
 import axios from "axios";
+import LikeModel from "../model/like";
 
 const filter = new Filter();
 
@@ -20,7 +21,6 @@ export const getAllHumanMemorial = async (req: any, res: Response) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
-
 
     const allhumanMemorials = await HumanMemorial.find()
       .skip(skip)
@@ -34,9 +34,8 @@ export const getAllHumanMemorial = async (req: any, res: Response) => {
       page: page,
       limit: limit,
       totalPages: Math.ceil(total / limit),
-      memorials: allhumanMemorials
+      memorials: allhumanMemorials,
     });
-
   } catch (error) {
     res.status(500).json({ message: "error fetching pet memorial ", error });
   }
@@ -60,7 +59,17 @@ export const getHumanMemorialById = async (req: Request, res: Response) => {
 
 export const createHumanMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, description, dob, dod, author, relation, memorialNote, tombstone } = req.body;
+    const {
+      name,
+      age,
+      description,
+      dob,
+      dod,
+      author,
+      relation,
+      memorialNote,
+      tombstone,
+    } = req.body;
     console.log(req.body);
     console.log(req.files);
 
@@ -74,7 +83,9 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
       // );
 
       const fileOrgnName = req.file?.originalname || "";
-      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(fileOrgnName)}`;
+      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(
+        fileOrgnName
+      )}`;
 
       // Upload file to S3
       const uploadParams = {
@@ -109,9 +120,10 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
 
         await humanMemorial.save();
 
-        res
-          .status(200)
-          .json({ message: "Human Memory created successfully", humanMemorial });
+        res.status(200).json({
+          message: "Human Memory created successfully",
+          humanMemorial,
+        });
       } else {
         const humanMemorial = new HumanMemorial({
           name: name,
@@ -127,11 +139,11 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
 
         await humanMemorial.save();
 
-        res
-          .status(200)
-          .json({ message: "Human Memory created successfully", humanMemorial });
+        res.status(200).json({
+          message: "Human Memory created successfully",
+          humanMemorial,
+        });
       }
-
     }
   } catch (error) {
     console.error("Error Human Memorial:", error);
@@ -165,7 +177,6 @@ export const getImage = async (req: Request, res: Response) => {
       return res.status(403).send("Image name is not provided");
     }
 
-
     const command = new GetObjectCommand({
       Bucket: "vgs-upload",
       Key: name,
@@ -182,7 +193,6 @@ export const getImage = async (req: Request, res: Response) => {
     } else {
       res.status(500).json({ error: "Failed to fetch image from S3" });
     }
-
   } catch (error) {
     res.status(500).json({ message: "Error fetching pet memorial ", error });
   }
@@ -240,7 +250,7 @@ export const deleteHumanMemorial = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const updateHumanMemorial = async (req: any, res: Response) => {
   try {
@@ -268,7 +278,9 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
       }
     } else {
       const fileOrgnName = req.file?.originalname || "";
-      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(fileOrgnName)}`;
+      const fileName = `uploads/image/human/${Date.now()}-${removeSpaces(
+        fileOrgnName
+      )}`;
 
       // Upload file to S3
       const uploadParams = {
@@ -291,12 +303,11 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
 
       res.status(200).json({ msg: "Memorial Updated" });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const countMemorialComment = async (req: Request, res: Response) => {
   try {
@@ -322,8 +333,10 @@ export const createMemorialComment = async (req: Request, res: Response) => {
     if (!content || !memorialId || !userId) {
       return res.status(400).json({ error: "content and userId are required" });
     }
+    let user = await UserModel.findById(userId);
     const comment = new MemorialComment({
       authorId: memorial!.author,
+      cname: user?.firstName + " " + user?.lastName,
       comment: content,
       memorialId: memorialId,
       userId: userId,
@@ -332,8 +345,6 @@ export const createMemorialComment = async (req: Request, res: Response) => {
     // Check if the comment contains bad words from library
     const response: any = filter.isProfane(content);
     const response2: any = await checkCommentUsingBadwords(content);
-
-    let user = await UserModel.findById(userId);
 
     if (user) {
       var strike = user.blacklistCount;
@@ -344,13 +355,11 @@ export const createMemorialComment = async (req: Request, res: Response) => {
           if (strike < 2) {
             user.blacklistCount += 1;
             await user.save();
-            return res
-              .status(402)
-              .json({
-                error: "Inappropriate comment detected",
-                msg: "inappropriate_comment_detected",
-                banMessage: "Inappropriate comment detected"
-              });
+            return res.status(402).json({
+              error: "Inappropriate comment detected",
+              msg: "inappropriate_comment_detected",
+              banMessage: "Inappropriate comment detected",
+            });
           } else {
             user.blacklistCount += 1;
             user.banCount += 1;
@@ -372,13 +381,14 @@ export const createMemorialComment = async (req: Request, res: Response) => {
             let banMessage =
               user.banCount > 2
                 ? "Inappropriate comment detected and account banned. You can't comment anymore"
-                : `Inappropriate comment detected and account suspended for ${banPeriod / (60 * 60 * 1000)
-                } Hr`;
+                : `Inappropriate comment detected and account suspended for ${
+                    banPeriod / (60 * 60 * 1000)
+                  } Hr`;
 
             return res.status(402).json({
               error: banMessage,
               banMessage: banMessage,
-              msg: user.banCount > 2 ? "account_banned" : "account_suspended"
+              msg: user.banCount > 2 ? "account_banned" : "account_suspended",
             });
           }
         } catch (error) {
@@ -395,13 +405,11 @@ export const createMemorialComment = async (req: Request, res: Response) => {
       } else {
         await comment.save();
         await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
-        res
-          .status(200)
-          .json({
-            msg: "comment_created_successfully",
-            message: "Comment created successfully",
-            comment
-          });
+        res.status(200).json({
+          msg: "comment_created_successfully",
+          message: "Comment created successfully",
+          comment,
+        });
       }
     }
   } catch (error) {
@@ -434,6 +442,48 @@ export const translateMemoComment = async (req: Request, res: Response) => {
         error,
       });
     });
+};
+
+export const likeComment = async (req: Request, res: Response) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await MemorialComment.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Comment unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      await like.save();
+
+      await MemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+
+      return res
+        .status(200)
+        .json({ like: true, message: "Comment liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const getAllMemorialComments = async (req: Request, res: Response) => {

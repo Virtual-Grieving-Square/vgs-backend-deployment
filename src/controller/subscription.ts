@@ -286,11 +286,8 @@ export const upgrade = async (req: Request, res: Response) => {
           gold: 3,
         };
 
-<<<<<<< HEAD
-=======
         const currentLevel = levels[userInfo?.subscriptionType ?? ""];
         const selectedLevel = levels[upSubscription];
->>>>>>> 3e38abb286698552ef6fa72d1b6aaf17c16d1fb5
 
         if (selectedLevel <= currentLevel) {
           return res.status(403).json({ msg: "Wrong upgrading option" });

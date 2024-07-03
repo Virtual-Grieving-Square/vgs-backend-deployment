@@ -8,7 +8,6 @@ import { DonationNonUserModel } from "../model/donationNonUser";
 import { MemorialComment } from "../model/memorialComment";
 import { HumanMemorial } from "../model/humanMemorial";
 
-
 export const fetchComments = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -27,11 +26,12 @@ export const fetchComments = async (req: Request, res: Response) => {
         if (!user) {
           comments.push({
             id: donation[i]._id,
-            name: "Unknown User",
+            name: donation[i].name,
             note: donation[i].note,
             type: "donation",
             blocked: donation[i].blocked,
             date: donation[i].createdAt,
+            likes: donation[i].likes,
           });
         } else {
           comments.push({
@@ -41,6 +41,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             type: "donation",
             blocked: donation[i].blocked,
             date: donation[i].createdAt,
+            likes: donation[i].likes,
           });
         }
       }
@@ -53,11 +54,12 @@ export const fetchComments = async (req: Request, res: Response) => {
         if (!user) {
           comments.push({
             id: flower[i]._id,
-            name: "Unknown User",
+            name: flower[i].name,
             note: flower[i].note,
             type: "flower-donation",
             blocked: flower[i].blocked,
             date: flower[i].createdAt,
+            likes: flower[i].likes,
           });
         } else {
           comments.push({
@@ -67,6 +69,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             type: "flower-donation",
             blocked: flower[i].blocked,
             date: flower[i].createdAt,
+            likes: flower[i].likes,
           });
         }
       }
@@ -87,28 +90,31 @@ export const fetchComments = async (req: Request, res: Response) => {
 
     if (memorialComment) {
       for (let i = 0; i < memorialComment.length; i++) {
-        const user = await UserModel.findOne({ _id: memorialComment[i].userId });
+        const user = await UserModel.findOne({
+          _id: memorialComment[i].userId,
+        });
         comments.push({
           id: memorialComment[i]._id,
-          name: user!.firstName + " " + user!.lastName,
+          name: memorialComment[i].cname,
           note: memorialComment[i].comment,
           type: "comment",
           blocked: memorialComment[i].blocked,
-          date: memorialComment[i].createdAt
+          date: memorialComment[i].createdAt,
+          likes: memorialComment[i].likes,
         });
       }
     }
 
     res.status(200).json({
-      comments: comments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+      comments: comments.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      ),
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-}
-
+};
 
 export const blockComment = async (req: Request, res: Response) => {
   try {
@@ -119,7 +125,9 @@ export const blockComment = async (req: Request, res: Response) => {
     switch (type) {
       case "donation":
         const donation = await DonationModel.findOne({ _id: commentId });
-        const donationMemorial = await HumanMemorial.findOne({ _id: donation!.to });
+        const donationMemorial = await HumanMemorial.findOne({
+          _id: donation!.to,
+        });
 
         if (userId != donationMemorial!.author) {
           return res.status(402).json({ message: "Unauthorized" });
@@ -129,19 +137,16 @@ export const blockComment = async (req: Request, res: Response) => {
           return res.status(404).json({ message: "Donation not found" });
         }
 
-        await DonationModel.updateOne(
-          { _id: commentId },
-          { blocked: true }
-        );
+        await DonationModel.updateOne({ _id: commentId }, { blocked: true });
 
-        res.status(200).json({ donation: donation, message: "Donation blocked" });
+        res
+          .status(200)
+          .json({ donation: donation, message: "Donation blocked" });
 
         break;
       case "flower-donation":
-
         const flower = await FlowerDonationModel.findById(commentId);
         const flowerMemorial = await HumanMemorial.findById(flower!.to);
-
 
         if (userId != flowerMemorial!.author) {
           return res.status(402).json({ message: "Unauthorized" });
@@ -156,21 +161,27 @@ export const blockComment = async (req: Request, res: Response) => {
           { blocked: true }
         );
 
-        res.status(200).json({ donation: flower, message: "Flower donation blocked" });
+        res
+          .status(200)
+          .json({ donation: flower, message: "Flower donation blocked" });
 
         break;
       case "non-user-donation":
-
-        const nonUserDonation = await DonationNonUserModel.findOne({ _id: commentId });
-        const nonUserMemorial = await HumanMemorial.findOne({ _id: nonUserDonation!.to });
-
+        const nonUserDonation = await DonationNonUserModel.findOne({
+          _id: commentId,
+        });
+        const nonUserMemorial = await HumanMemorial.findOne({
+          _id: nonUserDonation!.to,
+        });
 
         if (userId != nonUserMemorial!.author) {
           return res.status(402).json({ message: "Unauthorized" });
         }
 
         if (!nonUserDonation) {
-          return res.status(404).json({ message: "Non user donation not found" });
+          return res
+            .status(404)
+            .json({ message: "Non user donation not found" });
         }
 
         await DonationNonUserModel.updateOne(
@@ -178,7 +189,10 @@ export const blockComment = async (req: Request, res: Response) => {
           { blocked: true }
         );
 
-        res.status(200).json({ comment: nonUserDonation, message: "Non user donation blocked" });
+        res.status(200).json({
+          comment: nonUserDonation,
+          message: "Non user donation blocked",
+        });
         break;
       case "comment":
         const comment = await MemorialComment.findOne({ _id: commentId });
@@ -191,10 +205,7 @@ export const blockComment = async (req: Request, res: Response) => {
           return res.status(404).json({ message: "Comment not found" });
         }
 
-        await MemorialComment.updateOne(
-          { _id: commentId },
-          { blocked: true }
-        );
+        await MemorialComment.updateOne({ _id: commentId }, { blocked: true });
 
         res.status(200).json({ comment: comment, message: "Comment blocked" });
 
@@ -203,12 +214,11 @@ export const blockComment = async (req: Request, res: Response) => {
         res.status(400).json({ message: "Invalid type" });
         break;
     }
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const unblockComment = async (req: Request, res: Response) => {
   try {
@@ -219,7 +229,9 @@ export const unblockComment = async (req: Request, res: Response) => {
     switch (type) {
       case "donation":
         const donation = await DonationModel.findOne({ _id: commentId });
-        const donationMemorial = await HumanMemorial.findOne({ _id: donation!.to });
+        const donationMemorial = await HumanMemorial.findOne({
+          _id: donation!.to,
+        });
 
         if (userId != donation!.from) {
           return res.status(402).json({ message: "Unauthorized" });
@@ -229,19 +241,16 @@ export const unblockComment = async (req: Request, res: Response) => {
           return res.status(404).json({ message: "Donation not found" });
         }
 
-        await DonationModel.updateOne(
-          { _id: commentId },
-          { blocked: false }
-        );
+        await DonationModel.updateOne({ _id: commentId }, { blocked: false });
 
-        res.status(200).json({ donation: donation, message: "Donation Comment Unblocked" });
+        res
+          .status(200)
+          .json({ donation: donation, message: "Donation Comment Unblocked" });
 
         break;
       case "flower-donation":
-
         const flower = await FlowerDonationModel.findById(commentId);
         const flowerMemorial = await HumanMemorial.findById(flower!.to);
-
 
         if (userId != flowerMemorial!.author) {
           return res.status(402).json({ message: "Unauthorized" });
@@ -256,21 +265,28 @@ export const unblockComment = async (req: Request, res: Response) => {
           { blocked: false }
         );
 
-        res.status(200).json({ donation: flower, message: "Flower donation Comment Unblocked" });
+        res.status(200).json({
+          donation: flower,
+          message: "Flower donation Comment Unblocked",
+        });
 
         break;
       case "non-user-donation":
-
-        const nonUserDonation = await DonationNonUserModel.findOne({ _id: commentId });
-        const nonUserMemorial = await HumanMemorial.findOne({ _id: nonUserDonation!.to });
-
+        const nonUserDonation = await DonationNonUserModel.findOne({
+          _id: commentId,
+        });
+        const nonUserMemorial = await HumanMemorial.findOne({
+          _id: nonUserDonation!.to,
+        });
 
         if (userId != nonUserMemorial!.author) {
           return res.status(402).json({ message: "Unauthorized" });
         }
 
         if (!nonUserDonation) {
-          return res.status(404).json({ message: "Non user donation not found" });
+          return res
+            .status(404)
+            .json({ message: "Non user donation not found" });
         }
 
         await DonationNonUserModel.updateOne(
@@ -278,7 +294,10 @@ export const unblockComment = async (req: Request, res: Response) => {
           { blocked: false }
         );
 
-        res.status(200).json({ comment: nonUserDonation, message: "Non user donation Comment Unblocked" });
+        res.status(200).json({
+          comment: nonUserDonation,
+          message: "Non user donation Comment Unblocked",
+        });
         break;
       case "comment":
         const comment = await MemorialComment.findOne({ _id: commentId });
@@ -291,12 +310,11 @@ export const unblockComment = async (req: Request, res: Response) => {
           return res.status(404).json({ message: "Comment not found" });
         }
 
-        await MemorialComment.updateOne(
-          { _id: commentId },
-          { blocked: false }
-        );
+        await MemorialComment.updateOne({ _id: commentId }, { blocked: false });
 
-        res.status(200).json({ comment: comment, message: "Comment Unblocked" });
+        res
+          .status(200)
+          .json({ comment: comment, message: "Comment Unblocked" });
 
         break;
       default:
@@ -307,4 +325,4 @@ export const unblockComment = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};

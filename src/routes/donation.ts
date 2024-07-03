@@ -9,6 +9,8 @@ import {
   flowerDonationHistory,
   getAll,
   getDonationByUserId,
+  likeDonationComment,
+  likeFlowerDonationComment,
   makeDonation,
   makeDonationNonUser,
   verifyOTP,
@@ -22,7 +24,8 @@ router.post('/donateFlower', donateFlower);
 router.post('/fetchDonation', donationHistory);
 router.get('/donationHistory/:id', donationHistory);
 router.get('/flowerDonationHistory/:id', flowerDonationHistory);
-
+router.post("/likeDonation", likeDonationComment)
+router.post("/likeFlowerDonation", likeFlowerDonationComment)
 // Get Donations
 router.get("/getAll", getAll);
 router.get("/getDonationByUserId/:id", getDonationByUserId);

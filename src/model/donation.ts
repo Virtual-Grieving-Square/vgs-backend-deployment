@@ -12,7 +12,12 @@ export interface Donation extends Document {
 }
 
 const donationSchema: Schema = new Schema({
-  from: { type: Schema.Types.ObjectId, ref: "User", required: false, default: "" },
+  from: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+    default: "",
+  },
   to: { type: Schema.Types.ObjectId, ref: "HumanMemorial", required: true },
   amount: { type: Number, required: true },
   note: { type: String, default: "" },
@@ -20,7 +25,7 @@ const donationSchema: Schema = new Schema({
   relation: { type: String, default: "" },
   description: { type: String },
   blocked: { type: Boolean, default: false },
-
+  likes: { type: Number, default: 0 },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

@@ -17,7 +17,8 @@ import {
   makeReaction,
   profanityChecker,
   translateComment,
-  searchPost
+  searchPost,
+  likeComment
 } from '../controller/post';
 import { checkUserStatus } from '../middleware/userStatus'
 
@@ -44,7 +45,7 @@ router.get('/checkLike/:id/:userId', checkLike);
 router.get("/comment/:id", getAllComments);
 router.post("/comment/add", checkUserStatus, createComment);
 router.post("/translate", translateComment);
-
+router.post("/likeComment", likeComment);
 // Get Image
 router.get("/getImage", getPostImage);
 

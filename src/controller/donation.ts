@@ -19,8 +19,9 @@ import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
 import {
   sendEmail,
   sendEmailNonUserDonationReceiver,
-  sendEmailNonUserDonationSender
+  sendEmailNonUserDonationSender,
 } from "../util/email";
+import LikeModel from "../model/like";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -28,136 +29,149 @@ const YOUR_DOMAIN = process.env.DOMAIN;
 
 export const makeDonation = async (req: Request, res: Response) => {
   try {
-    const { from, to, amount, description } = req.body;
+    const { from, to, amount, description, note, name } = req.body;
     const { type } = req.query || "";
 
-    console.log(req.body, req.query)
+    console.log(req.body, req.query);
     if (!from || !to || !amount) {
       res.status(403).send({ msg: "required field missing" });
     } else {
-
       if (type == "pet") {
-
         const pet = await PetMemorial.findOne({ _id: to });
 
         if (!pet) {
           res.status(402).send({ msg: "User not found" });
         } else {
-
           const checkUser = await PetMemorial.findOne({
-            _id: to
+            _id: to,
           });
 
           if (checkUser!.owner == from) {
             res.status(402).send({ msg: "You can't donate to yourself" });
           } else {
-
             const checDonatorBalance = await UserModel.findOne({ _id: from });
 
             if (checDonatorBalance!.balance < amount) {
               res.status(405).send({ msg: "Insufficient balance" });
             } else {
-
+              const userFrom = await UserModel.findById(from);
               const donate = new DonationModel({
                 from: from,
                 to: pet!._id,
                 amount: amount,
                 description: description || "Donation",
+                note: note,
+                name: userFrom?.firstName + " " + userFrom?.lastName,
               });
 
               await donate.save();
 
-              await PetMemorial.updateOne({
-                _id: pet!._id,
-              }, {
-                $push: {
-                  donations: donate._id,
+              await PetMemorial.updateOne(
+                {
+                  _id: pet!._id,
                 },
-              });
+                {
+                  $push: {
+                    donations: donate._id,
+                  },
+                }
+              );
               const user: any = await UserModel.findOne({ _id: pet!.owner });
 
               addToWallet(user!._id, amount);
 
-              await UserModel.updateOne({
-                _id: from,
-              }, {
-                $inc: {
-                  balance: -amount,
+              await UserModel.updateOne(
+                {
+                  _id: from,
                 },
-              });
-
+                {
+                  $inc: {
+                    balance: -amount,
+                  },
+                }
+              );
 
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
         }
       } else {
-
         const user = await HumanMemorial.findOne({ _id: to });
-
+        const userFrom = await UserModel.findById(from);
         if (!user) {
           res.status(402).send({ msg: "User not found" });
         } else {
-
           const checkUser = await HumanMemorial.findOne({
-            _id: to
+            _id: to,
           });
 
           if (checkUser!.author == from) {
             res.status(402).send({ msg: "You can't donate to yourself" });
           } else {
-
             const checDonatorBalance = await UserModel.findOne({ _id: from });
 
             if (checDonatorBalance!.balance < amount) {
               res.status(405).send({ msg: "Insufficient balance" });
             } else {
-
               const donate = new DonationModel({
                 from: from,
                 to: user!._id,
                 amount: amount,
                 description: description || "Donation",
+                note: note,
+                name: userFrom?.firstName + " " + userFrom?.lastName,
               });
 
               await donate.save();
 
-              await HumanMemorial.updateOne({
-                _id: user!._id,
-              }, {
-                $push: {
-                  donations: donate._id,
+              await HumanMemorial.updateOne(
+                {
+                  _id: user!._id,
                 },
-              });
+                {
+                  $push: {
+                    donations: donate._id,
+                  },
+                }
+              );
 
               const memorial = await HumanMemorial.findOne({ _id: user!._id });
 
-              const mainUser: any = await UserModel.findOne({ _id: user!.author });
+              const mainUser: any = await UserModel.findOne({
+                _id: user!.author,
+              });
 
               addToWallet(mainUser!._id, amount);
 
-              await UserModel.updateOne({
-                _id: from,
-              }, {
-                $inc: {
-                  balance: -amount,
+              await UserModel.updateOne(
+                {
+                  _id: from,
                 },
-              });
+                {
+                  $inc: {
+                    balance: -amount,
+                  },
+                }
+              );
 
               await sendEmailNonUserDonationSender({
-                name: checDonatorBalance!.firstName + " " + checDonatorBalance!.lastName,
+                name:
+                  checDonatorBalance!.firstName +
+                  " " +
+                  checDonatorBalance!.lastName,
                 email: checDonatorBalance!.email,
                 amount: amount,
                 donatedFor: memorial!.name,
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
-                confirmation: "Confirmed"
-              }).then((response: any) => {
-                console.log(response);
-              }).catch((error) => {
-                console.error(error);
-              });
-
+                confirmation: "Confirmed",
+              })
+                .then((response: any) => {
+                  console.log(response);
+                })
+                .catch((error) => {
+                  console.error(error);
+                });
 
               await sendEmailNonUserDonationReceiver({
                 name: mainUser!.firstName + " " + mainUser!.lastName,
@@ -167,13 +181,17 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/memory/human/${memorial!._id}`,
+                memorialLink: `${process.env.DOMAIN}/memory/human/${
+                  memorial!._id
+                }`,
                 recieverEmail: mainUser!.email,
-              }).then((response) => {
-                console.log(response);
-              }).catch((error) => {
-                console.error(error);
-              });
+              })
+                .then((response) => {
+                  console.log(response);
+                })
+                .catch((error) => {
+                  console.error(error);
+                });
 
               res.status(200).json({ message: "Donated successfully", donate });
             }
@@ -196,9 +214,8 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
     if (!user) {
       res.status(402).send({ msg: "User not found" });
     } else {
-
       const checkUser = await HumanMemorial.findOne({
-        _id: to
+        _id: to,
       });
 
       const session = await stripe.checkout.sessions.create({
@@ -238,13 +255,12 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
         session: session,
         client_secret: session.client_secret,
       });
-
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const donateFlower = async (req: Request, res: Response) => {
   try {
@@ -254,7 +270,6 @@ export const donateFlower = async (req: Request, res: Response) => {
     if (!from || !to || !id || !amount) {
       res.status(403).send({ msg: "required field missing" });
     } else {
-
       if (type == "pet") {
         const pet = await PetMemorial.findOne({ _id: to });
         if (!pet) {
@@ -265,7 +280,6 @@ export const donateFlower = async (req: Request, res: Response) => {
           if (checDonatorBalance!.balance < amount) {
             res.status(405).send({ msg: "Insufficient balance" });
           } else {
-
             const flowerType = await FlowerModel.findOne({ _id: id });
 
             const donateFlower = new FlowerDonationModel({
@@ -276,18 +290,24 @@ export const donateFlower = async (req: Request, res: Response) => {
               flowerId: flowerType!._id,
               flowerImage: flowerType!.photos,
               note: note,
+              name: checDonatorBalance?.firstName + " " + checDonatorBalance?.lastName,
               type: flowerType!.type,
             });
 
             await donateFlower.save();
 
-            await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
+            await UserModel.findOneAndUpdate(
+              { _id: from },
+              { $inc: { balance: -amount } }
+            );
 
             const mainUser: any = await UserModel.findOne({ _id: pet!.owner });
 
             addToWalletFlower(mainUser!._id, amount);
 
-            res.status(200).json({ message: "Donated successfully", donateFlower });
+            res
+              .status(200)
+              .json({ message: "Donated successfully", donateFlower });
           }
         }
       } else {
@@ -300,7 +320,6 @@ export const donateFlower = async (req: Request, res: Response) => {
           if (checDonatorBalance!.balance < amount) {
             res.status(405).send({ msg: "Insufficient balance" });
           } else {
-
             const flowerType = await FlowerModel.findOne({ _id: id });
 
             const donateFlower = new FlowerDonationModel({
@@ -310,43 +329,49 @@ export const donateFlower = async (req: Request, res: Response) => {
               amount: amount,
               flowerId: flowerType!._id,
               note: note,
+              name: checDonatorBalance?.firstName + " " + checDonatorBalance?.lastName,
               flowerImage: flowerType!.photos,
               type: flowerType!.type,
             });
 
             await donateFlower.save();
 
-            await UserModel.findOneAndUpdate({ _id: from }, { $inc: { balance: -amount } });
+            await UserModel.findOneAndUpdate(
+              { _id: from },
+              { $inc: { balance: -amount } }
+            );
 
-            const mainUser: any = await UserModel.findOne({ _id: user!.author });
+            const mainUser: any = await UserModel.findOne({
+              _id: user!.author,
+            });
 
             addToWalletFlower(mainUser!._id, amount);
 
             res.status(200).json({
               message: "Donated successfully",
-              donateFlower
+              donateFlower,
             });
           }
         }
       }
-
-
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 async function fetchDonationHistory(userId: string) {
   try {
     const donationHistory = await DonationModel.find({ to: userId });
 
-
-    const populatedDonationHistory = await DonationModel.populate(donationHistory, {
-      path: "product",
-      model: ProductModel,
-    });
+    const populatedDonationHistory = await DonationModel.populate(
+      donationHistory,
+      {
+        path: "product",
+        model: ProductModel,
+      }
+    );
     return populatedDonationHistory;
   } catch (error) {
     console.error("Error fetching donation history:", error);
@@ -384,7 +409,98 @@ export const flowerDonationHistory = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
+
+export const likeDonationComment = async (req: Request, res: Response) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Note unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      await like.save();
+
+      await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+
+      return res
+        .status(200)
+        .json({ like: true, message: "Note liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const likeFlowerDonationComment = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await FlowerDonationModel.findByIdAndUpdate(postId, {
+        $inc: { likes: -1 },
+      });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Note unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      await like.save();
+
+      await FlowerDonationModel.findByIdAndUpdate(postId, {
+        $inc: { likes: 1 },
+      });
+
+      return res
+        .status(200)
+        .json({ like: true, message: "Note liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 export const getAll = async (req: Request, res: Response) => {
   try {
@@ -395,7 +511,7 @@ export const getAll = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const getDonationByUserId = async (req: Request, res: Response) => {
   try {
@@ -413,7 +529,6 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(403).json({ msg: "User not Found" });
-
     } else {
       const humanMemorial = await HumanMemorial.find({
         author: id,
@@ -447,7 +562,7 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
 
       const allDonation = [
         ...(Array.isArray(humanDonation[0]) ? humanDonation[0] : []),
-        ...(Array.isArray(petDonation[0]) ? petDonation[0] : [])
+        ...(Array.isArray(petDonation[0]) ? petDonation[0] : []),
       ];
 
       // Flower Donation
@@ -474,12 +589,20 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
       }
 
       const allFlower = [
-        ...(Array.isArray(humanFlowerDonation[0]) ? humanFlowerDonation[0] : []),
-        ...(Array.isArray(petFlowerDonation[0]) ? petFlowerDonation[0] : [])
-      ]
+        ...(Array.isArray(humanFlowerDonation[0])
+          ? humanFlowerDonation[0]
+          : []),
+        ...(Array.isArray(petFlowerDonation[0]) ? petFlowerDonation[0] : []),
+      ];
 
-      const donationTotal = allDonation.reduce((acc, donation) => acc + donation.amount, 0);
-      const flowerTotal = allFlower.reduce((acc, flower) => acc + flower.amount, 0);
+      const donationTotal = allDonation.reduce(
+        (acc, donation) => acc + donation.amount,
+        0
+      );
+      const flowerTotal = allFlower.reduce(
+        (acc, flower) => acc + flower.amount,
+        0
+      );
 
       res.status(200).json({
         allDonation: donationTotal,
@@ -490,7 +613,7 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-}
+};
 
 export const claimMoneyDonation = async (req: Request, res: Response) => {
   try {
@@ -504,18 +627,21 @@ export const claimMoneyDonation = async (req: Request, res: Response) => {
     }
     const transfer = await stripe.transfers.create({
       amount: wallet!.balance * 100,
-      currency: 'usd',
+      currency: "usd",
       destination: user!.stripeAccountId,
     });
 
-    wallet = await WalletModel.updateOne({ userId: id }, { $set: { balance: 0 } });
+    wallet = await WalletModel.updateOne(
+      { userId: id },
+      { $set: { balance: 0 } }
+    );
 
     res.status(200).json({ wallet: wallet, transfer: transfer });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-}
+};
 
 export const claimFlowerDonation = async (req: Request, res: Response) => {
   try {
@@ -526,21 +652,21 @@ export const claimFlowerDonation = async (req: Request, res: Response) => {
 
     const transfer = await stripe.transfers.create({
       amount: wallet!.flower * 100,
-      currency: 'usd',
+      currency: "usd",
       destination: user!.stripeAccountId,
     });
 
-    wallet = await WalletModel.updateOne({ userId: id }, { $set: { flower: 0 } });
+    wallet = await WalletModel.updateOne(
+      { userId: id },
+      { $set: { flower: 0 } }
+    );
 
     res.status(200).json({ wallet: wallet, transfer: transfer });
-
-
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-
-}
+};
 
 export const claimOTP = async (req: Request, res: Response) => {
   try {
@@ -570,8 +696,8 @@ export const claimOTP = async (req: Request, res: Response) => {
         } else {
           await DonationClaimOtpModel.create({
             otp: verificationCode,
-            email: email
-          })
+            email: email,
+          });
         }
         res.status(200).json({
           type: "email",
@@ -579,16 +705,14 @@ export const claimOTP = async (req: Request, res: Response) => {
           message: "OTP code sent successfully",
         });
       } else {
-        res
-          .status(408)
-          .json({ message: "Unable to send Email at the Moment" });
+        res.status(408).json({ message: "Unable to send Email at the Moment" });
       }
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-}
+};
 
 export const verifyOTP = async (req: Request, res: Response) => {
   try {
@@ -596,7 +720,9 @@ export const verifyOTP = async (req: Request, res: Response) => {
 
     const user = await UserModel.findById(id);
 
-    const checkOTP = await DonationClaimOtpModel.findOne({ email: user!.email });
+    const checkOTP = await DonationClaimOtpModel.findOne({
+      email: user!.email,
+    });
 
     if (checkOTP!.otp == otp) {
       res.status(200).json({ message: "OTP verified successfully" });
@@ -607,9 +733,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-}
-
-
+};
 
 export const fetchDonors = async (req: Request, res: Response) => {
   try {
@@ -629,13 +753,13 @@ export const fetchDonors = async (req: Request, res: Response) => {
           donors.push({
             name: "Unknown User",
             note: donation[i].note,
-            type: "Donation"
+            type: "Donation",
           });
         } else {
           donors.push({
             name: user!.firstName + " " + user!.lastName,
             note: donation[i].note,
-            type: "Donation"
+            type: "Donation",
           });
         }
       }
@@ -649,13 +773,13 @@ export const fetchDonors = async (req: Request, res: Response) => {
           donors.push({
             name: "Unknown User",
             note: flower[i].note,
-            type: "Flower Donation"
+            type: "Flower Donation",
           });
         } else {
           donors.push({
             name: user!.firstName + " " + user!.lastName,
             note: flower[i].note,
-            type: "Flower Donation"
+            type: "Flower Donation",
           });
         }
       }
@@ -666,25 +790,21 @@ export const fetchDonors = async (req: Request, res: Response) => {
         donors.push({
           name: nonUserDonation[i].name,
           note: nonUserDonation[i].note,
-          type: "Non User Donation"
+          type: "Non User Donation",
         });
       }
     }
 
-
-
-    donors = donors.filter((donor, index, self) =>
-      index === self.findIndex((t) => (
-        t.name === donor.name
-      ))
+    donors = donors.filter(
+      (donor, index, self) =>
+        index === self.findIndex((t) => t.name === donor.name)
     );
 
     res.status(200).json({
       donors: donors,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error", msg: error });
   }
-}
+};

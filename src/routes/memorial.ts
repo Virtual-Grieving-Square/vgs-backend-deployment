@@ -15,6 +15,7 @@ import {
   getAllMemorialComments,
   createMemorialComment,
   translateMemoComment,
+  likeComment,
 } from "../controller/humanMemorial";
 
 // Pet Memorial
@@ -62,7 +63,7 @@ router.get("/comment/count/:id", countMemorialComment);
 router.get("/human/comment/:id", getAllMemorialComments);
 router.post("/human/comment/add", checkUserStatus, createMemorialComment);
 router.post("/human/translate", translateMemoComment);
-
+router.post("/human/likeComment", likeComment)
 
 // Pet Memorial
 router.get('/pet/getAll', getAllPetMemorial);
