@@ -252,10 +252,33 @@ export const deleteHumanMemorial = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+export const updateHumanNote = async (req: any, res: Response) => {
+  try {
+    const { note, memorialId } = req.body;
+
+    if (!note || !memorialId) {
+      res.status(400).json({ Msg: "field required" });
+    }
+
+    const humanMemorial = await HumanMemorial.findById(memorialId);
+
+    if (!humanMemorial) {
+      res.status(400).json({ Msg: "memorial not found" });
+    }
+
+    await HumanMemorial.findByIdAndUpdate(memorialId, {
+      memorialNote: note,
+    });
+    res.status(200).json({ msg: "Memorial Updated" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 export const updateHumanMemorial = async (req: any, res: Response) => {
   try {
-    const { id, name, description, dob, dod, author } = req.body;
+    const { id, name, description, dob, dod, note, author } = req.body;
     if (req.files?.length === 0) {
       const humanMemorial = await HumanMemorial.findById(id);
       if (!humanMemorial) {
@@ -264,7 +287,7 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
         if (
           name == humanMemorial.name &&
           description == humanMemorial.description &&
-          dob == humanMemorial.dob
+          dob == humanMemorial.dob && note == humanMemorial.memorialNote
         ) {
           return res.status(402).json({ message: "No changes made" });
         } else {
@@ -273,6 +296,7 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
             description: description,
             dob: dob,
             dod: dod,
+            memorialNote: note
           });
           res.status(200).json({ msg: "Memorial Updated" });
         }
@@ -300,6 +324,7 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
         dob: dob,
         dod: dod,
         image: fileName,
+        memorialNote: note
       });
 
       res.status(200).json({ msg: "Memorial Updated" });

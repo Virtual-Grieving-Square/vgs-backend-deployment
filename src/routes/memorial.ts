@@ -17,6 +17,7 @@ import {
   translateMemoComment,
   likeComment,
   updateHumanTombstone,
+  updateHumanNote,
 } from "../controller/humanMemorial";
 
 // Pet Memorial
@@ -58,7 +59,7 @@ router.get("/human/search", searchHumanMemorial);
 
 // Update
 router.post("/human/update", upload.single("image"), updateHumanMemorial);
-
+router.post("/human/updateNote", updateHumanNote);
 // Comment
 router.get("/comment/count/:id", countMemorialComment);
 router.get("/human/comment/:id", getAllMemorialComments);
