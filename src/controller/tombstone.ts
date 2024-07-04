@@ -8,6 +8,7 @@ import UsersTombstoneModel from "../model/usersTombstone";
 import { removeSpaces } from "../util/removeSpace";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
+import { UserModel } from "../model/user";
 
 export const getAll = async (req: Request, res: Response) => {
   try {
@@ -38,13 +39,14 @@ export const getById = async (req: Request, res: Response) => {
 };
 export const create = async (req: Request, res: Response) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, type, userId } = req.body;
 
+ 
     const fileOrgnName = req.file?.originalname || "";
     const fileName = `uploads/image/tombstone/${Date.now()}-${removeSpaces(
       fileOrgnName
     )}`;
-
+    let user = await UserModel.findById(userId);
     // Upload file to S3
     const uploadParams = {
       Bucket: "vgs-upload",
@@ -60,6 +62,9 @@ export const create = async (req: Request, res: Response) => {
       name,
       description,
       image: fileName,
+      type,
+      userId,
+      creator: user?.firstName + " " + user?.lastName,
     });
 
     res.status(200).json({
