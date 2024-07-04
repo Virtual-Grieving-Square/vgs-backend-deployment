@@ -181,9 +181,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/memory/human/${
-                  memorial!._id
-                }`,
+                memorialLink: `${process.env.DOMAIN}/memory/human/${memorial!._id
+                  }`,
                 recieverEmail: mainUser!.email,
               })
                 .then((response) => {
@@ -753,12 +752,14 @@ export const fetchDonors = async (req: Request, res: Response) => {
           donors.push({
             name: "Unknown User",
             note: donation[i].note,
+            amount: donation[i].amount,
             type: "Donation",
           });
         } else {
           donors.push({
             name: user!.firstName + " " + user!.lastName,
             note: donation[i].note,
+            amount: donation[i].amount,
             type: "Donation",
           });
         }
@@ -773,12 +774,14 @@ export const fetchDonors = async (req: Request, res: Response) => {
           donors.push({
             name: "Unknown User",
             note: flower[i].note,
+            amount: flower[i].amount,
             type: "Flower Donation",
           });
         } else {
           donors.push({
             name: user!.firstName + " " + user!.lastName,
             note: flower[i].note,
+            amount: flower[i].amount,
             type: "Flower Donation",
           });
         }
@@ -790,6 +793,7 @@ export const fetchDonors = async (req: Request, res: Response) => {
         donors.push({
           name: nonUserDonation[i].name,
           note: nonUserDonation[i].note,
+          amount: nonUserDonation[i].amount,
           type: "Non User Donation",
         });
       }
