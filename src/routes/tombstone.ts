@@ -1,5 +1,5 @@
 import multer from "multer";
-import { Router } from 'express';
+import { Router } from "express";
 
 // Controllers
 import {
@@ -7,7 +7,9 @@ import {
   getAll,
   getById,
   deleteTombstone,
-} from '../controller/tombstone';
+  usersTombstone,
+  fetchUsersTombstone,
+} from "../controller/tombstone";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -18,5 +20,9 @@ router.get("/getAll", getAll);
 router.get("/getById/:id", getById);
 router.post("/create", upload.single("image"), create);
 router.delete("/delete/:id", deleteTombstone);
+
+//users tombstone
+router.post("/users/create", upload.single("image"), usersTombstone);
+router.get("/users/tombstone:userId", fetchUsersTombstone);
 
 export default router;
