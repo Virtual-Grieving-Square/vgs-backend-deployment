@@ -16,6 +16,7 @@ import {
   createMemorialComment,
   translateMemoComment,
   likeComment,
+  updateHumanTombstone,
 } from "../controller/humanMemorial";
 
 // Pet Memorial
@@ -82,5 +83,7 @@ router.delete("/pet/delete/:id", deletePetMemorial);
 // Get Obituaries 
 router.get("/obituaries", getObituaries);
 
+//change tombstone
+router.post("/human/update/tombstone", updateHumanTombstone);
 
 export default router;

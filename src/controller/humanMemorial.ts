@@ -13,6 +13,7 @@ import Filter from "bad-words";
 import config from "../config";
 import axios from "axios";
 import LikeModel from "../model/like";
+import TombstoneModel from "../model/tombstone";
 
 const filter = new Filter();
 
@@ -306,6 +307,28 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateHumanTombstone = async (req: any, res: Response) => {
+  try {
+    const { memorialID, tombstoneId } = req.body;
+
+    let memorial = await HumanMemorial.findById(memorialID);
+    if (!memorial) {
+      return res.status(400).json({ msg: "no memory found with that Id" });
+    }
+    const update = await HumanMemorial.findByIdAndUpdate(memorialID, {
+      tombstoneId: tombstoneId,
+    });
+
+    res.status(200).json({
+      tombstone: update,
+      message: "Tombstone updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 };
 
