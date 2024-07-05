@@ -327,19 +327,45 @@ export const unblockComment = async (req: Request, res: Response) => {
   }
 };
 
+export const editComment = async (req: Request, res: Response) => {
+  const { commentId, type, note } = req.body;
+  try {
+    let memoriaID = await MemorialComment.findByIdAndUpdate(commentId, {
+      comment: note,
+    });
 
-// export const editComment = async (req: Request, res: Response) => {
-//   const { commentId, type } = req.body;
+    res.status(200).json({ message: "Comment edited" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const editDonationComment = async (req: Request, res: Response) => {
+  const { commentId, type, note } = req.body;
+  try {
+    let memoriaID = await DonationModel.findByIdAndUpdate(commentId, {
+      note: note,
+    });
 
-//   let memoriaID = await 
-// }
-// export const editDonationComment = async (req: Request, res: Response) => {
-//   const { commentId, type , note } = req.body;
+    res.status(200).json({ message: "Comment edited" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const editFlowerDonationComment = async (
+  req: Request,
+  res: Response
+) => {
+  const { commentId, type, note } = req.body;
+  try {
+    let memoriaID = await FlowerDonationModel.findByIdAndUpdate(commentId, {
+      note: note,
+    });
 
-//   let memoriaID = await  DonationModel.findByIdAndUpdate(commentId, {note: note})
-// }
-// export const editFlowerDonationComment = async (req: Request, res: Response) => {
-//   const { commentId, type , note } = req.body;
-
-//   let memoriaID = await  FlowerDonationModel.findByIdAndUpdate(commentId, {note: note})
-// }
+    res.status(200).json({ message: "Comment edited" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
