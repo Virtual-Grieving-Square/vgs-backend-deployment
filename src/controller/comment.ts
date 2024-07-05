@@ -327,7 +327,7 @@ export const unblockComment = async (req: Request, res: Response) => {
   }
 };
 
-export const editComment = async (req: Request, res: Response) => {
+export const editMemorialComment = async (req: Request, res: Response) => {
   const { commentId, type, note } = req.body;
   try {
     let memoriaID = await MemorialComment.findByIdAndUpdate(commentId, {
