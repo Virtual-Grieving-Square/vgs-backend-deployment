@@ -38,11 +38,11 @@ router.post(
   "/Comments/edit",
   async (req: Request, res: Response, next: NextFunction) => {
     const { commentId, type } = req.body;
-    if (type == "FlowerDonation") {
+    if (type == "flower-donation") {
       await editFlowerDonationComment(req, res);
-    } else if (type == "Donation") {
+    } else if (type == "donation") {
       await editDonationComment(req, res);
-    } else if (type == "Memorial") {
+    } else if (type == "memorial") {
       await editMemorialComment(req, res);
     } else {
       res.status(400).json({ msg: "Unknown type" });
