@@ -31,6 +31,22 @@ router.post(
   }
 );
 
+// router.post(
+//   "/Comments/edit",
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const { commentId, type } = req.body;
+//     if (type == "FlowerDonation") {
+//       await editFlowerDonationComment(req, res);
+//     } else if (type == "Donation") {
+//       await editDonationComment(req, res);
+//     } else if (type == "Memorial") {
+//       await editComment(req, res);
+//     } else {
+//       res.status(400).json({ msg: "Unknown type" });
+//     }
+//   }
+// );
+
 router.put("/block", blockComment);
 router.put("/unblock", unblockComment);
 

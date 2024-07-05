@@ -328,3 +328,18 @@ export const unblockComment = async (req: Request, res: Response) => {
 };
 
 
+// export const editComment = async (req: Request, res: Response) => {
+//   const { commentId, type } = req.body;
+
+//   let memoriaID = await 
+// }
+// export const editDonationComment = async (req: Request, res: Response) => {
+//   const { commentId, type , note } = req.body;
+
+//   let memoriaID = await  DonationModel.findByIdAndUpdate(commentId, {note: note})
+// }
+// export const editFlowerDonationComment = async (req: Request, res: Response) => {
+//   const { commentId, type , note } = req.body;
+
+//   let memoriaID = await  FlowerDonationModel.findByIdAndUpdate(commentId, {note: note})
+// }

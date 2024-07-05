@@ -48,7 +48,9 @@ export const create = async (req: Request, res: Response) => {
     )}`;
     if (type == "admin") {
       let admins = await AdminModel.findById(adminId);
-
+      const modfied = Array.isArray(description)
+        ? description.join(", ")
+        : description;
       if (!admins) {
         return res.status(404).send("Admin not found");
       }
@@ -65,7 +67,7 @@ export const create = async (req: Request, res: Response) => {
 
       const tombstone = await TombstoneModel.create({
         name,
-        description,
+        description: modfied,
         image: fileName,
         type,
         userId,
@@ -78,7 +80,9 @@ export const create = async (req: Request, res: Response) => {
       });
     } else if (type == "user") {
       let user = await UserModel.findById(userId);
-
+      const modfied = Array.isArray(description)
+        ? description.join(", ")
+        : description;
       // Upload file to S3
       const uploadParams = {
         Bucket: "vgs-upload",
@@ -92,7 +96,7 @@ export const create = async (req: Request, res: Response) => {
 
       const tombstone = await TombstoneModel.create({
         name,
-        description,
+        description: modfied,
         image: fileName,
         type,
         userId,
