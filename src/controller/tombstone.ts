@@ -40,14 +40,14 @@ export const getById = async (req: Request, res: Response) => {
 };
 export const create = async (req: Request, res: Response) => {
   try {
-    const { name, description, type, userId, adminId } = req.body;
+    const { name, description, type, userId } = req.body;
 
     const fileOrgnName = req.file?.originalname || "";
     const fileName = `uploads/image/tombstone/${Date.now()}-${removeSpaces(
       fileOrgnName
     )}`;
     if (type == "admin") {
-      let admins = await AdminModel.findById(adminId);
+      let admins = await AdminModel.findById(userId);
       const modfied = Array.isArray(description)
         ? description.join(", ")
         : description;
