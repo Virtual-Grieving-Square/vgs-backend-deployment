@@ -9,6 +9,7 @@ import { removeSpaces } from "../util/removeSpace";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { UserModel } from "../model/user";
+import { AdminModel } from "../model/admin";
 
 export const getAll = async (req: Request, res: Response) => {
   try {
@@ -39,38 +40,70 @@ export const getById = async (req: Request, res: Response) => {
 };
 export const create = async (req: Request, res: Response) => {
   try {
-    const { name, description, type, userId } = req.body;
+    const { name, description, type, userId, adminId } = req.body;
 
- 
     const fileOrgnName = req.file?.originalname || "";
     const fileName = `uploads/image/tombstone/${Date.now()}-${removeSpaces(
       fileOrgnName
     )}`;
-    let user = await UserModel.findById(userId);
-    // Upload file to S3
-    const uploadParams = {
-      Bucket: "vgs-upload",
-      Key: fileName,
-      Body: req.file?.buffer,
-      ContentType: req.file?.mimetype,
-    };
+    if (type == "admin") {
+      let admins = await AdminModel.findById(adminId);
 
-    const command = new PutObjectCommand(uploadParams);
-    await s3Client.send(command);
+      if (!admins) {
+        return res.status(404).send("Admin not found");
+      }
+      // Upload file to S3
+      const uploadParams = {
+        Bucket: "vgs-upload",
+        Key: fileName,
+        Body: req.file?.buffer,
+        ContentType: req.file?.mimetype,
+      };
 
-    const tombstone = await TombstoneModel.create({
-      name,
-      description,
-      image: fileName,
-      type,
-      userId,
-      creator: user?.firstName + " " + user?.lastName,
-    });
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
 
-    res.status(200).json({
-      tombstone: tombstone,
-      message: "Tombstone created successfully",
-    });
+      const tombstone = await TombstoneModel.create({
+        name,
+        description,
+        image: fileName,
+        type,
+        userId,
+        creator: `${admins.fname} ${admins.lname}`,
+      });
+
+      res.status(200).json({
+        tombstone: tombstone,
+        message: "Tombstone created successfully",
+      });
+    } else if (type == "user") {
+      let user = await UserModel.findById(userId);
+
+      // Upload file to S3
+      const uploadParams = {
+        Bucket: "vgs-upload",
+        Key: fileName,
+        Body: req.file?.buffer,
+        ContentType: req.file?.mimetype,
+      };
+
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
+
+      const tombstone = await TombstoneModel.create({
+        name,
+        description,
+        image: fileName,
+        type,
+        userId,
+        creator: user?.firstName + " " + user?.lastName,
+      });
+
+      res.status(200).json({
+        tombstone: tombstone,
+        message: "Tombstone created successfully",
+      });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
