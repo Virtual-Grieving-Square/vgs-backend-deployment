@@ -1,6 +1,9 @@
 import { Router } from "express";
 import {
   blockComment,
+  deleteDonationComment,
+  deleteFlowerDonationComment,
+  deleteMemorialComment,
   editDonationComment,
   editFlowerDonationComment,
   editMemorialComment,
@@ -53,4 +56,20 @@ router.post(
 router.put("/block", blockComment);
 router.put("/unblock", unblockComment);
 
+//delete
+router.post(
+  "/Comments/delete",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { authorID, commentId, type } = req.body;
+    if (type == "flower-donation") {
+      await deleteFlowerDonationComment(req, res);
+    } else if (type == "donation") {
+      await deleteDonationComment(req, res);
+    } else if (type == "comment") {
+      await deleteMemorialComment(req, res);
+    } else {
+      res.status(400).json({ msg: "Unknown type" });
+    }
+  }
+);
 export default router;

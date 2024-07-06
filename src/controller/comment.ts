@@ -393,3 +393,66 @@ export const editFlowerDonationComment = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+export const deleteMemorialComment = async (req: Request, res: Response) => {
+  const { authorID, commentId, type, note } = req.body;
+  try {
+    let memorial = await MemorialComment.find({
+      userId: authorID,
+      _id: commentId,
+    });
+
+    if (!memorial) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
+    let memoriaID = await MemorialComment.findByIdAndUpdate(commentId, {
+      comment: "",
+    });
+
+    res.status(200).json({ message: "Comment deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const deleteDonationComment = async (req: Request, res: Response) => {
+  const { authorID, commentId, type } = req.body;
+  try {
+    let memorial = await DonationModel.findById(commentId);
+
+    if (memorial?.from?.toString() !== authorID) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
+    let memoriaID = await DonationModel.findByIdAndUpdate(commentId, {
+      note: "",
+    });
+
+    res.status(200).json({ message: "Comment deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteFlowerDonationComment = async (
+  req: Request,
+  res: Response
+) => {
+  const { authorID, commentId, type, note } = req.body;
+  try {
+    let memorial = await FlowerDonationModel.findById(commentId);
+
+    if (memorial?.from.toString() !== authorID) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
+    let memoriaID = await FlowerDonationModel.findByIdAndUpdate(commentId, {
+      note: "",
+    });
+
+    res.status(200).json({ message: "Comment deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
