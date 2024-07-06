@@ -279,7 +279,9 @@ export const updateHumanNote = async (req: any, res: Response) => {
 export const updateHumanMemorial = async (req: any, res: Response) => {
   try {
     const { id, name, description, dob, dod, note, author } = req.body;
-    if (req.files?.length === 0) {
+    
+    if (!req.file) {
+     
       const humanMemorial = await HumanMemorial.findById(id);
       if (!humanMemorial) {
         return res.status(404).json({ message: "Memorial not found" });
@@ -287,7 +289,8 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
         if (
           name == humanMemorial.name &&
           description == humanMemorial.description &&
-          dob == humanMemorial.dob && note == humanMemorial.memorialNote
+          dob == humanMemorial.dob &&
+          note == humanMemorial.memorialNote
         ) {
           return res.status(402).json({ message: "No changes made" });
         } else {
@@ -296,7 +299,7 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
             description: description,
             dob: dob,
             dod: dod,
-            memorialNote: note
+            memorialNote: note,
           });
           res.status(200).json({ msg: "Memorial Updated" });
         }
@@ -324,7 +327,7 @@ export const updateHumanMemorial = async (req: any, res: Response) => {
         dob: dob,
         dod: dod,
         image: fileName,
-        memorialNote: note
+        memorialNote: note,
       });
 
       res.status(200).json({ msg: "Memorial Updated" });
