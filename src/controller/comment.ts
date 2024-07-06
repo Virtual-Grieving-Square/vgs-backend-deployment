@@ -43,7 +43,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             blocked: donation[i].blocked,
             date: donation[i].createdAt,
             likes: donation[i].likes,
-            creator: donation[i].from  
+            creator: donation[i].from
           });
         }
       }
@@ -379,7 +379,7 @@ export const editFlowerDonationComment = async (
   const { authorID, commentId, type, note } = req.body;
   try {
     let memorial = await FlowerDonationModel.findById(commentId);
-  
+
     if (memorial?.from.toString() !== authorID) {
       return res.status(400).json({ message: "You are not the author" });
     }
