@@ -37,7 +37,7 @@ router.post(
 router.post(
   "/Comments/edit",
   async (req: Request, res: Response, next: NextFunction) => {
-    const { commentId, type } = req.body;
+    const { authorID, commentId, type } = req.body;
     if (type == "flower-donation") {
       await editFlowerDonationComment(req, res);
     } else if (type == "donation") {

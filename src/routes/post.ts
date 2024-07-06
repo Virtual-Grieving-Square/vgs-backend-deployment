@@ -18,7 +18,8 @@ import {
   profanityChecker,
   translateComment,
   searchPost,
-  likeComment
+  likeComment,
+  viewLikers
 } from '../controller/post';
 import { checkUserStatus } from '../middleware/userStatus'
 
@@ -38,6 +39,7 @@ router.get("/getUserPost/:id", getUserPost);
 // Like, Comment, Share
 router.put('/like', likePost);
 router.get('/like/count/:id', countLike);
+router.get('/like/getusers/:id', viewLikers); // Id => postId/ Memorial Id / ComentId ...
 router.get("/comment/count/:id", countComment);
 router.get('/checkLike/:id/:userId', checkLike);
 

@@ -32,6 +32,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             blocked: donation[i].blocked,
             date: donation[i].createdAt,
             likes: donation[i].likes,
+            creator: donation[i].from // new the one who commented Id
           });
         } else {
           comments.push({
@@ -42,6 +43,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             blocked: donation[i].blocked,
             date: donation[i].createdAt,
             likes: donation[i].likes,
+            creator: donation[i].from  
           });
         }
       }
@@ -60,6 +62,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             blocked: flower[i].blocked,
             date: flower[i].createdAt,
             likes: flower[i].likes,
+            creator: flower[i].from
           });
         } else {
           comments.push({
@@ -70,6 +73,7 @@ export const fetchComments = async (req: Request, res: Response) => {
             blocked: flower[i].blocked,
             date: flower[i].createdAt,
             likes: flower[i].likes,
+            creator: flower[i].from
           });
         }
       }
@@ -101,6 +105,7 @@ export const fetchComments = async (req: Request, res: Response) => {
           blocked: memorialComment[i].blocked,
           date: memorialComment[i].createdAt,
           likes: memorialComment[i].likes,
+          creator: memorialComment[i].authorId
         });
       }
     }
@@ -328,8 +333,16 @@ export const unblockComment = async (req: Request, res: Response) => {
 };
 
 export const editMemorialComment = async (req: Request, res: Response) => {
-  const { commentId, type, note } = req.body;
+  const { authorID, commentId, type, note } = req.body;
   try {
+    let memorial = await MemorialComment.find({
+      authorId: authorID,
+      _id: commentId,
+    });
+
+    if (!memorial) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
     let memoriaID = await MemorialComment.findByIdAndUpdate(commentId, {
       comment: note,
     });
@@ -341,8 +354,13 @@ export const editMemorialComment = async (req: Request, res: Response) => {
   }
 };
 export const editDonationComment = async (req: Request, res: Response) => {
-  const { commentId, type, note } = req.body;
+  const { authorID, commentId, type, note } = req.body;
   try {
+    let memorial = await DonationModel.findById(commentId);
+
+    if (memorial?.from?.toString() !== authorID) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
     let memoriaID = await DonationModel.findByIdAndUpdate(commentId, {
       note: note,
     });
@@ -353,12 +371,18 @@ export const editDonationComment = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const editFlowerDonationComment = async (
   req: Request,
   res: Response
 ) => {
-  const { commentId, type, note } = req.body;
+  const { authorID, commentId, type, note } = req.body;
   try {
+    let memorial = await FlowerDonationModel.findById(commentId);
+  
+    if (memorial?.from.toString() !== authorID) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
     let memoriaID = await FlowerDonationModel.findByIdAndUpdate(commentId, {
       note: note,
     });

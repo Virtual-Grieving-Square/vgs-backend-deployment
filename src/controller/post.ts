@@ -176,6 +176,21 @@ export const countLike = async (req: Request, res: Response) => {
   }
 };
 
+export const viewLikers = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const Likers: any = await LikeModel.find({
+      postId: id,
+    });
+
+    res.status(200).json({ Likers: Likers });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const countComment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
