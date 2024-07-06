@@ -105,7 +105,7 @@ export const fetchComments = async (req: Request, res: Response) => {
           blocked: memorialComment[i].blocked,
           date: memorialComment[i].createdAt,
           likes: memorialComment[i].likes,
-          creator: memorialComment[i].authorId
+          creator: memorialComment[i].userId
         });
       }
     }
@@ -336,7 +336,7 @@ export const editMemorialComment = async (req: Request, res: Response) => {
   const { authorID, commentId, type, note } = req.body;
   try {
     let memorial = await MemorialComment.find({
-      authorId: authorID,
+      userId: authorID,
       _id: commentId,
     });
 
