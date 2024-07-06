@@ -26,7 +26,7 @@ router.post(
       await likeFlowerDonationComment(req, res);
     } else if (type == "donation") {
       await likeDonationComment(req, res);
-    } else if (type == "memorial") {
+    } else if (type == "comment") {
       await likeComment(req, res);
     } else {
       res.status(400).json({ msg: "Unknown type" });
@@ -42,7 +42,7 @@ router.post(
       await editFlowerDonationComment(req, res);
     } else if (type == "donation") {
       await editDonationComment(req, res);
-    } else if (type == "memorial") {
+    } else if (type == "comment") {
       await editMemorialComment(req, res);
     } else {
       res.status(400).json({ msg: "Unknown type" });
