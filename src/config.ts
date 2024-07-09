@@ -15,6 +15,7 @@ interface Config {
   twilioAccount: string;
   twilioAuthToken: string;
   twilioService: string;
+  JWT_TOKEN: string;
 }
 
 const config: Config = {
@@ -31,6 +32,7 @@ const config: Config = {
   twilioAccount: process.env.TWILIO_ACCOUNT_SID || "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || "",
   twilioService: process.env.SERVICETOKEN || "",
+  JWT_TOKEN: process.env.JWT_SECRET || "",
 };
 
 export default config;

@@ -47,7 +47,7 @@ import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
 import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 import { stripeWebhook } from "./util/stripe";
-
+import { handleAuthentication } from "./util/socketAuthentication";
 var serviceAccount = require("../serviceAccountKey.json");
 
 const app = express();
@@ -135,6 +135,18 @@ app.use("/comment", comment);
 // Socket.io Connect
 io.on("connection", (socket: any) => {
   console.log("A User Connected", socket.id);
+
+  socket.on("authenticate", async (token: string) => {
+    try {
+      console.log("Authenticateion Sockiet.io");
+      console.log(token);
+      await handleAuthentication(socket, token);
+
+      socket.emit("authenticated");
+    } catch (error) {
+      socket.emit("authentication_failed");
+    }
+  });
 
   socket.on("client_like_update", (data: any) => {
     socket.emit("server_update_like", data);

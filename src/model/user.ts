@@ -24,11 +24,15 @@ const userSchema: Schema = new Schema({
   firstTimePaid: { type: Boolean, default: false },
   donations: [{ type: Schema.Types.ObjectId, ref: "donation" }],
   profileImage: { type: String, required: false },
-  coverImage: { type: String, required: false, default: "https://picsum.photos/1000/350?random=222" },
+  coverImage: {
+    type: String,
+    required: false,
+    default: "https://picsum.photos/1000/350?random=222",
+  },
   storage: { type: Number, default: 0 },
   stripeAccountId: { type: String, default: "" },
   stripeAccountCompleted: { type: Boolean, default: false },
-
+  socketId: { type: String, default: "" },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -61,6 +65,7 @@ export interface User extends Document {
   coverImage: string;
   stripeAccountId: string;
   stripeAccountCompleted: boolean;
+  socketId: string;
 }
 
 export const UserModel = mongoose.model<User>("User", userSchema);
