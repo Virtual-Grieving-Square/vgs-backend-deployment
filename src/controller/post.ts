@@ -22,6 +22,8 @@ import {
   updateUserStorageOnPost,
   restoreStoragePost,
 } from "../util/storageTracker";
+import { FCMModel } from "../model/fcmTokens";
+import { sendNotification } from "../middleware/notification";
 
 // import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -234,6 +236,7 @@ export const likePost = async (req: Request, res: Response) => {
       postId: postId,
       likerId: likerId,
     });
+
     let user = await UserModel.findById(likerId);
 
     if (likes.length > 0) {
@@ -258,6 +261,19 @@ export const likePost = async (req: Request, res: Response) => {
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
+      const post = await PostModel.findById(postId);
+      if (post) {
+        const authorTokens = await FCMModel.find({ userId: post.author });
+
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your post got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your post.`,
+            data: { postId: postId.toString(), likerId: likerId.toString() },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+      }
       return res
         .status(200)
         .json({ like: true, message: "Post liked successfully" });

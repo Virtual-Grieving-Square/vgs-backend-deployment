@@ -4,6 +4,7 @@ import path from "path";
 import { removeSpaces } from "../util/removeSpace";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
+import { FCMModel } from "../model/fcmTokens";
 
 export const getAll = async (req: Request, res: Response) => {
   try {
@@ -11,6 +12,42 @@ export const getAll = async (req: Request, res: Response) => {
     res.status(200).json({ users });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const saveFCMToken = async (req: Request, res: Response) => {
+  try {
+    const { userID, token } = req.body;
+
+    if (!userID || !token) {
+      return res.status(400).send("userId and FCM token are required");
+    }
+    const user = await UserModel.findById(userID);
+    const tokens = await FCMModel.find({
+      userId: userID,
+      token: token,
+    });
+    if (!user) {
+      return res.status(404).json({
+        msg: "user-not-found",
+        message: "User not found",
+      });
+    }
+
+    if (tokens) {
+      return res.status(404).json({
+        msg: "token already regestered",
+      });
+    }
+
+    const userUpdated = await FCMModel.create({
+      userId: userID,
+      token: token,
+    });
+    res.status(200).json({ msg: "user token updated", data: userUpdated });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -23,7 +60,7 @@ export const getDetails = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({
         msg: "user-not-found",
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -85,7 +122,9 @@ export const uploadProfileImage = async (req: Request, res: Response) => {
 
     const newuser = await UserModel.findById(id);
 
-    res.status(200).json({ message: "Profile image uploaded successfully", user: newuser });
+    res
+      .status(200)
+      .json({ message: "Profile image uploaded successfully", user: newuser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -156,7 +195,7 @@ export const updateCoverImage = async (req: Request, res: Response) => {
     const command = new PutObjectCommand(uploadParams);
     await s3Client.send(command);
 
-    // 
+    //
 
     const user = await UserModel.findByIdAndUpdate(id, {
       coverImage: fileName,
@@ -168,19 +207,21 @@ export const updateCoverImage = async (req: Request, res: Response) => {
 
     const newuser = await UserModel.findById(id);
 
-    res.status(200).json({ message: "Profile image uploaded successfully", user: newuser });
+    res
+      .status(200)
+      .json({ message: "Profile image uploaded successfully", user: newuser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const updateStripeSetup = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const user = await UserModel.findByIdAndUpdate(id, {
-      stripeAccountCompleted: true
+      stripeAccountCompleted: true,
     });
 
     if (!user) {
@@ -188,9 +229,8 @@ export const updateStripeSetup = async (req: Request, res: Response) => {
     }
 
     res.status(200).json({ message: "Stripe setup completed" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};

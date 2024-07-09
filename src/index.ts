@@ -3,9 +3,8 @@ import cors from "cors";
 import http from "http";
 import dotenv from "dotenv";
 import { connectDB } from "./database/db";
-import firebase from "firebase-admin";
 import cron from "node-cron";
-
+import { initializeFirebase } from "./firebase";
 // Scoket.io
 import { Server } from "socket.io";
 
@@ -62,10 +61,10 @@ const io = new Server(server, {
   },
 });
 
-firebase.initializeApp({
-  credential: firebase.credential.cert(serviceAccount),
-});
-
+// firebase.initializeApp({
+//   credential: firebase.credential.cert(serviceAccount),
+// });
+initializeFirebase();
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -155,7 +154,7 @@ io.on("connection", (socket: any) => {
 
   socket.on("client_new_hero", () => {
     socket.emit("server_new_hero");
-  })
+  });
 
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
