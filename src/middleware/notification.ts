@@ -16,6 +16,7 @@ const sendNotification = async ({
   token,
   payload,
 }: SendNotificationOptions) => {
+ 
   try {
     console.log(token);
     const message = {
