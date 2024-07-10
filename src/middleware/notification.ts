@@ -1,6 +1,5 @@
 // src/middleware/notification.ts
-import { messaging } from '../firebase';
-
+import { messaging } from "../firebase";
 
 interface NotificationPayload {
   title: string;
@@ -13,8 +12,12 @@ interface SendNotificationOptions {
   payload: NotificationPayload;
 }
 
-const sendNotification = async ({ token, payload }: SendNotificationOptions) => {
+const sendNotification = async ({
+  token,
+  payload,
+}: SendNotificationOptions) => {
   try {
+    console.log(token);
     const message = {
       notification: {
         title: payload.title,
@@ -25,9 +28,9 @@ const sendNotification = async ({ token, payload }: SendNotificationOptions) => 
     };
 
     const response = await messaging.send(message);
-    console.log('Successfully sent message:', response);
+    console.log("Successfully sent message:", response);
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error("Error sending message:", error);
   }
 };
 

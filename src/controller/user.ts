@@ -28,6 +28,7 @@ export const saveFCMToken = async (req: Request, res: Response) => {
       userId: userID,
       token: token,
     });
+    console.log(tokens);
     if (!user) {
       return res.status(404).json({
         msg: "user-not-found",
@@ -35,7 +36,7 @@ export const saveFCMToken = async (req: Request, res: Response) => {
       });
     }
 
-    if (tokens) {
+    if (tokens.length !== 0) {
       return res.status(404).json({
         msg: "token already regestered",
       });
