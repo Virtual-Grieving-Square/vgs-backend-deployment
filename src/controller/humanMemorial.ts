@@ -543,6 +543,7 @@ export const likeComment = async (req: Request, res: Response) => {
 
       const memo = await MemorialComment.findById(postId);
       const memopost = await HumanMemorial.findById(memo?.memorialId);
+      console.log(memopost);
       if (memopost) {
         const authorTokens = await FCMModel.find({ userId: memopost.author });
 
