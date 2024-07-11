@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-var serviceAccount = require("../serviceAccountKey.json");
+var serviceAccount = require("../prod.json");
 
 // Ensure this path is correct
 
