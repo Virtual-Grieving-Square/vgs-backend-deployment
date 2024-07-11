@@ -61,7 +61,7 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
-
+export { io };
 // firebase.initializeApp({
 //   credential: firebase.credential.cert(serviceAccount),
 // });

@@ -16,6 +16,7 @@ import LikeModel from "../model/like";
 import TombstoneModel from "../model/tombstone";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
+import { emitLikeUpdate } from "../util/event";
 
 const filter = new Filter();
 
@@ -542,9 +543,12 @@ export const likeComment = async (req: Request, res: Response) => {
       await MemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
       const memo = await MemorialComment.findById(postId);
+      const memopost = await HumanMemorial.findById(memo?.memorialId);
+      console.log(memo);
+      // console.log(memopost);
       if (memo) {
-        const authorTokens = await FCMModel.find({ userId: memo.authorId });
-
+        const authorTokens = await FCMModel.find({ userId: memo?.userId });
+        console.log(authorTokens);
         for (const tokenData of authorTokens) {
           const payload = {
             title: "Your comment got a new like!",
@@ -554,6 +558,7 @@ export const likeComment = async (req: Request, res: Response) => {
           await sendNotification({ token: tokenData.token, payload });
         }
       }
+      await emitLikeUpdate(memo?.userId, `${user?.firstName} ${user?.lastName} liked your comment.`)
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });

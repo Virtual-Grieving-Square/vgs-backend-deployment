@@ -158,8 +158,11 @@ export const makeDonation = async (req: Request, res: Response) => {
               const reciver = await HumanMemorial.findOne({
                 _id: to,
               });
+              console.log(reciver);
               if (reciver) {
-                const authorTokens = await FCMModel.find({ userId: to });
+                const authorTokens = await FCMModel.find({
+                  userId: reciver.author,
+                });
 
                 for (const tokenData of authorTokens) {
                   const payload = {
@@ -373,7 +376,9 @@ export const donateFlower = async (req: Request, res: Response) => {
               _id: to,
             });
             if (reciver) {
-              const authorTokens = await FCMModel.find({ userId: to });
+              const authorTokens = await FCMModel.find({
+                userId: reciver.author,
+              });
 
               for (const tokenData of authorTokens) {
                 const payload = {
@@ -481,8 +486,10 @@ export const likeDonationComment = async (req: Request, res: Response) => {
       await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
       const donation = await DonationModel.findById(postId);
+      // const donator = await HumanMemorial.findById(donation?.to);
+      console.log(donation);
       if (donation) {
-        const authorTokens = await FCMModel.find({ userId: donation.to });
+        const authorTokens = await FCMModel.find({ userId: donation.from });
 
         for (const tokenData of authorTokens) {
           const payload = {
@@ -543,8 +550,9 @@ export const likeFlowerDonationComment = async (
       });
 
       const flower = await FlowerDonationModel.findById(postId);
+      // const donator = await HumanMemorial.findById(flower?.to);
       if (flower) {
-        const authorTokens = await FCMModel.find({ userId: flower.to });
+        const authorTokens = await FCMModel.find({ userId: flower?.to });
 
         for (const tokenData of authorTokens) {
           const payload = {

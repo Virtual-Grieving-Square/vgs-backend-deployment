@@ -10,7 +10,7 @@ export interface INotif extends Document {
 
 const NotificationSchema: Schema = new Schema({
   seen: { type: String, required: true },
-  Note: { type: Number, default: 0 },
+  Note: { type: String, default: 0 },
   userID: { type: Schema.Types.ObjectId, ref: "User", required: true },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
