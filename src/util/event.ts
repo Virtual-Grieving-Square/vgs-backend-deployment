@@ -56,7 +56,7 @@ export const emitLikeUpdate = async (
     }
 
     const dataToSend = constructDataToSend(user, data, "like");
-    io.to(user.socketId).emit("server_update_like", dataToSend);
+    io.to(user.socketId).emit("realtime-notification", dataToSend);
     await saveNotification(userId, data, 'like');
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -76,7 +76,7 @@ export const emitCommentUpdate = async (
     }
 
     const dataToSend = constructDataToSend(user, data, "comment");
-    io.to(user.socketId).emit("server_update_comment", dataToSend);
+    io.to(user.socketId).emit("realtime-notification", dataToSend);
     await saveNotification(userId, data, 'comment');
   } catch (error) {
     console.error("Error fetching user:", error);
