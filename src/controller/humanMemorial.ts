@@ -542,8 +542,9 @@ export const likeComment = async (req: Request, res: Response) => {
       await MemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
       const memo = await MemorialComment.findById(postId);
-      if (memo) {
-        const authorTokens = await FCMModel.find({ userId: memo.authorId });
+      const memopost = await HumanMemorial.findById(memo?.memorialId);
+      if (memopost) {
+        const authorTokens = await FCMModel.find({ userId: memopost.author });
 
         for (const tokenData of authorTokens) {
           const payload = {
