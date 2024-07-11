@@ -49,7 +49,7 @@ export const emitLikeUpdate = async (
   data: string
 ): Promise<void> => {
   try {
-    const user = await UserModel.findById(userId);
+    const user: User | null = await UserModel.findById(userId);
     if (!user) {
       console.error("User not found");
       return;
@@ -69,7 +69,7 @@ export const emitCommentUpdate = async (
   data: string
 ): Promise<void> => {
   try {
-    const user = await UserModel.findById(userId);
+    const user: User | null = await UserModel.findById(userId);
     if (!user) {
       console.error("User not found");
       return;
