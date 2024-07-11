@@ -481,8 +481,9 @@ export const likeDonationComment = async (req: Request, res: Response) => {
       await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
       const donation = await DonationModel.findById(postId);
-      if (donation) {
-        const authorTokens = await FCMModel.find({ userId: donation.to });
+      const donator = await HumanMemorial.findById(donation?.to);
+      if (donator) {
+        const authorTokens = await FCMModel.find({ userId: donator.author });
 
         for (const tokenData of authorTokens) {
           const payload = {
@@ -543,8 +544,9 @@ export const likeFlowerDonationComment = async (
       });
 
       const flower = await FlowerDonationModel.findById(postId);
-      if (flower) {
-        const authorTokens = await FCMModel.find({ userId: flower.to });
+      const donator = await HumanMemorial.findById(flower?.to);
+      if (donator) {
+        const authorTokens = await FCMModel.find({ userId: donator.author });
 
         for (const tokenData of authorTokens) {
           const payload = {
