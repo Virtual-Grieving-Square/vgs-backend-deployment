@@ -36,7 +36,7 @@ export const saveFCMToken = async (req: Request, res: Response) => {
       });
     }
 
-    if (tokens) {
+    if (tokens.length !== 0) {
       return res.status(201).json({
         msg: "token already regestered",
       });
