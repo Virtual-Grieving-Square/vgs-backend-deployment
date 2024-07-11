@@ -547,7 +547,7 @@ export const likeComment = async (req: Request, res: Response) => {
       console.log(memo);
       // console.log(memopost);
       if (memo) {
-        const authorTokens = await FCMModel.find({ userId: memo?.userId });
+        const authorTokens = await FCMModel.find({ userId: memo?.authorId });
         console.log(authorTokens);
         for (const tokenData of authorTokens) {
           const payload = {
