@@ -22,6 +22,8 @@ import {
   sendEmailNonUserDonationSender,
 } from "../util/email";
 import LikeModel from "../model/like";
+import { FCMModel } from "../model/fcmTokens";
+import { sendNotification } from "../middleware/notification";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -153,7 +155,21 @@ export const makeDonation = async (req: Request, res: Response) => {
                   },
                 }
               );
+              const reciver = await HumanMemorial.findOne({
+                _id: to,
+              });
+              if (reciver) {
+                const authorTokens = await FCMModel.find({ userId: to });
 
+                for (const tokenData of authorTokens) {
+                  const payload = {
+                    title: "Your memorial got donation!",
+                    body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
+                    data: { sender: from },
+                  };
+                  await sendNotification({ token: tokenData.token, payload });
+                }
+              }
               await sendEmailNonUserDonationSender({
                 name:
                   checDonatorBalance!.firstName +
@@ -181,8 +197,9 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/memory/human/${memorial!._id
-                  }`,
+                memorialLink: `${process.env.DOMAIN}/memory/human/${
+                  memorial!._id
+                }`,
                 recieverEmail: mainUser!.email,
               })
                 .then((response) => {
@@ -289,7 +306,10 @@ export const donateFlower = async (req: Request, res: Response) => {
               flowerId: flowerType!._id,
               flowerImage: flowerType!.photos,
               note: note,
-              name: checDonatorBalance?.firstName + " " + checDonatorBalance?.lastName,
+              name:
+                checDonatorBalance?.firstName +
+                " " +
+                checDonatorBalance?.lastName,
               type: flowerType!.type,
             });
 
@@ -328,7 +348,10 @@ export const donateFlower = async (req: Request, res: Response) => {
               amount: amount,
               flowerId: flowerType!._id,
               note: note,
-              name: checDonatorBalance?.firstName + " " + checDonatorBalance?.lastName,
+              name:
+                checDonatorBalance?.firstName +
+                " " +
+                checDonatorBalance?.lastName,
               flowerImage: flowerType!.photos,
               type: flowerType!.type,
             });
@@ -346,6 +369,21 @@ export const donateFlower = async (req: Request, res: Response) => {
 
             addToWalletFlower(mainUser!._id, amount);
 
+            const reciver = await HumanMemorial.findOne({
+              _id: to,
+            });
+            if (reciver) {
+              const authorTokens = await FCMModel.find({ userId: to });
+
+              for (const tokenData of authorTokens) {
+                const payload = {
+                  title: "Your memorial got donation!",
+                  body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+                  data: { sender: from },
+                };
+                await sendNotification({ token: tokenData.token, payload });
+              }
+            }
             res.status(200).json({
               message: "Donated successfully",
               donateFlower,
@@ -442,6 +480,19 @@ export const likeDonationComment = async (req: Request, res: Response) => {
 
       await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
+      const donation = await DonationModel.findById(postId);
+      if (donation) {
+        const authorTokens = await FCMModel.find({ userId: donation.to });
+
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+            data: { postId: postId.toString(), likerId: likerId.toString() },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+      }
       return res
         .status(200)
         .json({ like: true, message: "Note liked successfully" });
@@ -491,6 +542,19 @@ export const likeFlowerDonationComment = async (
         $inc: { likes: 1 },
       });
 
+      const flower = await FlowerDonationModel.findById(postId);
+      if (flower) {
+        const authorTokens = await FCMModel.find({ userId: flower.to });
+
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+            data: { postId: postId.toString(), likerId: likerId.toString() },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+      }
       return res
         .status(200)
         .json({ like: true, message: "Note liked successfully" });

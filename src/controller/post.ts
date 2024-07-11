@@ -396,6 +396,23 @@ export const createComment = async (req: Request, res: Response) => {
       } else {
         await comment.save();
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
+
+        const reciver = await PostModel.findOne({
+          _id: postId,
+        });
+        const senderId = user._id?.toString();
+        if (reciver) {
+          const authorTokens = await FCMModel.find({ userId: reciver.author });
+
+          for (const tokenData of authorTokens) {
+            const payload = {
+              title: "Your post got comment!",
+              body: `${user?.firstName} ${user?.lastName} commented to your post.`,
+              data: { sender: senderId || "" },
+            };
+            await sendNotification({ token: tokenData.token, payload });
+          }
+        }
         res.status(200).json({
           msg: "comment_created_successfully",
           message: "Comment created successfully",

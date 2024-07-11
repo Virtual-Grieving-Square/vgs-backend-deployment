@@ -40,6 +40,7 @@ import pages from "./routes/pages";
 import heroes from "./routes/heroes";
 import tombstone from "./routes/tombstone";
 import comment from "./routes/comment";
+import notification from "./routes/notificatons";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
 
@@ -106,31 +107,33 @@ app.use("/", index);
 app.use("/admin", admin);
 app.use("/auth", auth);
 app.use("/user", users);
-app.use("/post", post);
+app.use("/post", post);   // here 
 app.use("/streaming", streaming);
-app.use("/subscription", subsciption);
+app.use("/subscription", subsciption);  
 app.use("/group", group);
 app.use("/admin", admins);
-app.use("/wallet", wallet);
+app.use("/wallet", wallet);   // here 
 app.use("/email", email);
-app.use("/contact", contact);
-app.use("/donation", donation);
+app.use("/contact", contact);   
+app.use("/donation", donation);  
 app.use("/product", product);
-app.use("/memorial", Memorial);
+app.use("/memorial", Memorial); 
 app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
 app.use("/famous", famous);
 app.use("/zoom-auth/", zoomAuth);
 app.use("/testsms", test);
 app.use("/obituaries", obituaries);
-app.use("/flower", flower);
+app.use("/flower", flower); 
 app.use("/getImage", image);
 app.use("/stripe", stripe);
 app.use("/news", news);
 app.use("/pages", pages);
 app.use("/tombstone", tombstone);
 app.use("/heros", heroes);
-app.use("/comment", comment);
+app.use("/comment", comment); 
+app.use("/realTime", notification);
+
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {

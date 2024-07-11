@@ -14,6 +14,8 @@ import config from "../config";
 import axios from "axios";
 import LikeModel from "../model/like";
 import TombstoneModel from "../model/tombstone";
+import { FCMModel } from "../model/fcmTokens";
+import { sendNotification } from "../middleware/notification";
 
 const filter = new Filter();
 
@@ -279,9 +281,8 @@ export const updateHumanNote = async (req: any, res: Response) => {
 export const updateHumanMemorial = async (req: any, res: Response) => {
   try {
     const { id, name, description, dob, dod, note, author } = req.body;
-    
+
     if (!req.file) {
-     
       const humanMemorial = await HumanMemorial.findById(id);
       if (!humanMemorial) {
         return res.status(404).json({ message: "Memorial not found" });
@@ -456,6 +457,19 @@ export const createMemorialComment = async (req: Request, res: Response) => {
       } else {
         await comment.save();
         await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
+        const memo = await HumanMemorial.findById(memorialId);
+        if (memo) {
+          const authorTokens = await FCMModel.find({ userId: memo.author });
+
+          for (const tokenData of authorTokens) {
+            const payload = {
+              title: "Your comment got new comment!",
+              body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+              data: {},
+            };
+            await sendNotification({ token: tokenData.token, payload });
+          }
+        }
         res.status(200).json({
           msg: "comment_created_successfully",
           message: "Comment created successfully",
@@ -527,6 +541,19 @@ export const likeComment = async (req: Request, res: Response) => {
 
       await MemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
+      const memo = await MemorialComment.findById(postId);
+      if (memo) {
+        const authorTokens = await FCMModel.find({ userId: memo.authorId });
+
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+            data: { postId: postId.toString(), likerId: likerId.toString() },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+      }
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });

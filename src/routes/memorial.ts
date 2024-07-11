@@ -36,8 +36,8 @@ import { checkUserStatus } from "../middleware/userStatus";
 
 const router = express.Router();
 
-const storage = multer.memoryStorage()
-const upload = multer({ storage: storage })
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Human Memorial
 // Create
@@ -65,16 +65,14 @@ router.get("/comment/count/:id", countMemorialComment);
 router.get("/human/comment/:id", getAllMemorialComments);
 router.post("/human/comment/add", checkUserStatus, createMemorialComment);
 router.post("/human/translate", translateMemoComment);
-router.post("/human/likeComment", likeComment)
-
+router.post("/human/likeComment", likeComment);
 
 // Pet Memorial
-router.get('/pet/getAll', getAllPetMemorial);
-router.get('/pet/getById/:id', getPetById);
+router.get("/pet/getAll", getAllPetMemorial);
+router.get("/pet/getById/:id", getPetById);
 router.post("/pet/create", upload.single("image"), createPetMemorial);
 router.get("/pet/get/userId/:id", getPetMemorialByUserId);
 router.get("/pet/getImage", fetchpetImage);
-
 
 // Delete
 router.delete("/pet/delete/:id", deletePetMemorial);
@@ -82,7 +80,7 @@ router.delete("/pet/delete/:id", deletePetMemorial);
 // Search Pet
 // router.get("/pet/search", searchPetMemorial);
 
-// Get Obituaries 
+// Get Obituaries
 router.get("/obituaries", getObituaries);
 
 //change tombstone

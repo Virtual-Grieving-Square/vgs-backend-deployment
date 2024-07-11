@@ -5,6 +5,7 @@ export const urlList = [
   "http://localhost:3132",
   "http://192.168.0.108:3131",
   "http://localhost:3000",
+  "http://192.168.0.105:3131",
 
   // Production
   "https://uione.virtualgrievingsquare.com",
