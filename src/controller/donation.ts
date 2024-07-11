@@ -376,7 +376,9 @@ export const donateFlower = async (req: Request, res: Response) => {
               _id: to,
             });
             if (reciver) {
-              const authorTokens = await FCMModel.find({ userId: to });
+              const authorTokens = await FCMModel.find({
+                userId: reciver.author,
+              });
 
               for (const tokenData of authorTokens) {
                 const payload = {
