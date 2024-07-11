@@ -132,3 +132,5 @@ dist
 # Upload Files 
 uploads
 serviceAccountKey.json
+prod.json
+serviceAccountKey.json
