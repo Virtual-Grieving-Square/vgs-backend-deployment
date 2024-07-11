@@ -545,10 +545,10 @@ export const likeComment = async (req: Request, res: Response) => {
       const memo = await MemorialComment.findById(postId);
       const memopost = await HumanMemorial.findById(memo?.memorialId);
       console.log(memo);
-      console.log(memopost);
+      // console.log(memopost);
       if (memo) {
         const authorTokens = await FCMModel.find({ userId: memo?.userId });
-
+        console.log(authorTokens);
         for (const tokenData of authorTokens) {
           const payload = {
             title: "Your comment got a new like!",
