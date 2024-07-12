@@ -172,6 +172,10 @@ export const makeDonation = async (req: Request, res: Response) => {
                     data: { sender: from },
                   };
                   await sendNotification({ token: tokenData.token, payload });
+                  await emitLikeUpdate(
+                    reciver.author,
+                    `${userFrom?.firstName} ${userFrom?.lastName} liked your comment.`
+                  );
                 }
               }
               await sendEmailNonUserDonationSender({
@@ -388,6 +392,10 @@ export const donateFlower = async (req: Request, res: Response) => {
                   data: { sender: from },
                 };
                 await sendNotification({ token: tokenData.token, payload });
+                await emitLikeUpdate(
+                  reciver.author,
+                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`
+                );
               }
             }
             res.status(200).json({
