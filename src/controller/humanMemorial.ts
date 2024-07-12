@@ -469,6 +469,7 @@ export const createMemorialComment = async (req: Request, res: Response) => {
               data: {},
             };
             await sendNotification({ token: tokenData.token, payload });
+            await emitLikeUpdate(memo.author, `${user?.firstName} ${user?.lastName} liked your comment.`)
           }
         }
         res.status(200).json({
@@ -547,7 +548,7 @@ export const likeComment = async (req: Request, res: Response) => {
       console.log(memo);
       // console.log(memopost);
       if (memo) {
-        const authorTokens = await FCMModel.find({ userId: memo?.authorId });
+        const authorTokens = await FCMModel.find({ userId: memo?.userId });
         console.log(authorTokens);
         for (const tokenData of authorTokens) {
           const payload = {

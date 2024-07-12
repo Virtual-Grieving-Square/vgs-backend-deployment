@@ -61,7 +61,7 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
-export { io };
+
 // firebase.initializeApp({
 //   credential: firebase.credential.cert(serviceAccount),
 // });
@@ -107,33 +107,32 @@ app.use("/", index);
 app.use("/admin", admin);
 app.use("/auth", auth);
 app.use("/user", users);
-app.use("/post", post);   // here 
+app.use("/post", post); // here
 app.use("/streaming", streaming);
-app.use("/subscription", subsciption);  
+app.use("/subscription", subsciption);
 app.use("/group", group);
 app.use("/admin", admins);
-app.use("/wallet", wallet);   // here 
+app.use("/wallet", wallet); // here
 app.use("/email", email);
-app.use("/contact", contact);   
-app.use("/donation", donation);  
+app.use("/contact", contact);
+app.use("/donation", donation);
 app.use("/product", product);
-app.use("/memorial", Memorial); 
+app.use("/memorial", Memorial);
 app.use("/words", wordhub);
 app.use("/meetings", tokenCheck, zoom);
 app.use("/famous", famous);
 app.use("/zoom-auth/", zoomAuth);
 app.use("/testsms", test);
 app.use("/obituaries", obituaries);
-app.use("/flower", flower); 
+app.use("/flower", flower);
 app.use("/getImage", image);
 app.use("/stripe", stripe);
 app.use("/news", news);
 app.use("/pages", pages);
 app.use("/tombstone", tombstone);
 app.use("/heros", heroes);
-app.use("/comment", comment); 
+app.use("/comment", comment);
 app.use("/realTime", notification);
-
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {
@@ -179,6 +178,8 @@ io.on("connection", (socket: any) => {
     socket.emit("server-stripe-account-setup-complete");
   });
 });
+
+export { io };
 
 server.listen(PORT, () => {
   console.log(

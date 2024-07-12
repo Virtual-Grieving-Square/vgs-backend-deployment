@@ -24,6 +24,7 @@ import {
 import LikeModel from "../model/like";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
+import { emitLikeUpdate } from "../util/event";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -487,7 +488,7 @@ export const likeDonationComment = async (req: Request, res: Response) => {
 
       const donation = await DonationModel.findById(postId);
       // const donator = await HumanMemorial.findById(donation?.to);
-      console.log(donation);
+
       if (donation) {
         const authorTokens = await FCMModel.find({ userId: donation.from });
 
@@ -498,6 +499,10 @@ export const likeDonationComment = async (req: Request, res: Response) => {
             data: { postId: postId.toString(), likerId: likerId.toString() },
           };
           await sendNotification({ token: tokenData.token, payload });
+          await emitLikeUpdate(
+            donation.from,
+            `${user?.firstName} ${user?.lastName} liked your comment.`
+          );
         }
       }
       return res
@@ -552,7 +557,7 @@ export const likeFlowerDonationComment = async (
       const flower = await FlowerDonationModel.findById(postId);
       // const donator = await HumanMemorial.findById(flower?.to);
       if (flower) {
-        const authorTokens = await FCMModel.find({ userId: flower?.to });
+        const authorTokens = await FCMModel.find({ userId: flower?.from });
 
         for (const tokenData of authorTokens) {
           const payload = {
@@ -561,6 +566,10 @@ export const likeFlowerDonationComment = async (
             data: { postId: postId.toString(), likerId: likerId.toString() },
           };
           await sendNotification({ token: tokenData.token, payload });
+          await emitLikeUpdate(
+            flower?.from,
+            `${user?.firstName} ${user?.lastName} liked your comment.`
+          );
         }
       }
       return res

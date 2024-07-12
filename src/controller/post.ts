@@ -24,6 +24,7 @@ import {
 } from "../util/storageTracker";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
+import { emitLikeUpdate } from "../util/event";
 
 // import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -269,9 +270,13 @@ export const likePost = async (req: Request, res: Response) => {
           const payload = {
             title: "Your post got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your post.`,
-            data: { postId: postId.toString(), likerId: likerId.toString() },
+            data: {},
           };
           await sendNotification({ token: tokenData.token, payload });
+          await emitLikeUpdate(
+            post.author,
+            `${user?.firstName} ${user?.lastName} liked your comment.`
+          );
         }
       }
       return res
@@ -411,6 +416,10 @@ export const createComment = async (req: Request, res: Response) => {
               data: { sender: senderId || "" },
             };
             await sendNotification({ token: tokenData.token, payload });
+            await emitLikeUpdate(
+              reciver.author,
+              `${user?.firstName} ${user?.lastName} liked your comment.`
+            );
           }
         }
         res.status(200).json({

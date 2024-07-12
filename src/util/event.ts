@@ -11,7 +11,7 @@ interface DataToSend {
 
 // Helper function to construct the data to send
 const constructDataToSend = (
-  user: User,
+  user: any,
   message: string,
   type: "like" | "comment"
 ): DataToSend => {
