@@ -16,7 +16,7 @@ import LikeModel from "../model/like";
 import TombstoneModel from "../model/tombstone";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
-import { emitLikeUpdate } from "../util/event";
+import { emitCommentUpdate, emitLikeUpdate } from "../util/event";
 
 const filter = new Filter();
 
@@ -469,7 +469,7 @@ export const createMemorialComment = async (req: Request, res: Response) => {
               data: {},
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitLikeUpdate(memo.author, `${user?.firstName} ${user?.lastName} liked your comment.`)
+            await emitCommentUpdate(memo.author, `${user?.firstName} ${user?.lastName} commented on your memorial.`)
           }
         }
         res.status(200).json({
