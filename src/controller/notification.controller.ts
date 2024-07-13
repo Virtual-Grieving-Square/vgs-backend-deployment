@@ -39,7 +39,8 @@ export const viewNotificationsByUserID = async (
 ) => {
   try {
     const { userID } = req.params;
-    const notifications = await NotifModel.find({ userID });
+    // const notifications = await NotifModel.find({ userID });
+    const notifications = await NotifModel.find({ userID }).sort({ createdAt: -1 });
     res.status(200).json(notifications);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving notifications", error });
