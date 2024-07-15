@@ -19,6 +19,7 @@ export const fetchComments = async (req: Request, res: Response) => {
     const nonUserDonation = await DonationNonUserModel.find({ to: id });
     const flower: any = await FlowerDonationModel.find({ to: id });
     const memorialComment: any = await MemorialComment.find({ memorialId: id });
+    const petmemorialComment: any = await PetMemorialComment.find({ memorialId: id });
 
     if (donation) {
       for (let i = 0; i < donation.length; i++) {
@@ -107,6 +108,24 @@ export const fetchComments = async (req: Request, res: Response) => {
           date: memorialComment[i].createdAt,
           likes: memorialComment[i].likes,
           creator: memorialComment[i].userId
+        });
+      }
+    }
+
+    if (petmemorialComment) {
+      for (let i = 0; i < petmemorialComment.length; i++) {
+        const user = await UserModel.findOne({
+          _id: petmemorialComment[i].userId,
+        });
+        comments.push({
+          id: petmemorialComment[i]._id,
+          name: petmemorialComment[i].cname,
+          note: petmemorialComment[i].comment,
+          type: "comment",
+          blocked: petmemorialComment[i].blocked,
+          date: petmemorialComment[i].createdAt,
+          likes: petmemorialComment[i].likes,
+          creator: petmemorialComment[i].userId
         });
       }
     }

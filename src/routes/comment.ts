@@ -23,6 +23,7 @@ import { likePetComment } from "../controller/pet";
 const router = Router();
 
 router.get("/:id", fetchComments);
+
 router.post(
   "/likeComments",
   async (req: Request, res: Response, next: NextFunction) => {
