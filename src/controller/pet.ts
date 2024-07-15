@@ -113,6 +113,91 @@ export const createPetMemorial = async (req: Request, res: Response) => {
   }
 };
 
+export const updatePetMemorial = async (req: any, res: Response) => {
+  try {
+    const { id, name, description, dob, dod, note, author } = req.body;
+
+    if (!req.file) {
+      const petMemorial = await PetMemorial.findById(id);
+      if (!petMemorial) {
+        return res.status(404).json({ message: "Memorial not found" });
+      } else {
+        if (
+          name == petMemorial.name &&
+          description == petMemorial.description &&
+          dob == petMemorial.DOB &&
+          note == petMemorial.petmemorialNote
+        ) {
+          return res.status(402).json({ message: "No changes made" });
+        } else {
+          await PetMemorial.findByIdAndUpdate(id, {
+            name: name,
+            description: description,
+            DOB: dob,
+            DOD: dod,
+            petmemorialNote: note,
+          });
+          res.status(200).json({ msg: "Memorial Updated" });
+        }
+      }
+    } else {
+      const fileOrgnName = req.file?.originalname || "";
+      const fileName = `uploads/image/Memorial/PetMemorial/${Date.now()}-${removeSpaces(
+        fileOrgnName
+      )}`;
+
+      // Upload file to S3
+      const uploadParams = {
+        Bucket: "vgs-upload",
+        Key: fileName,
+        Body: req.file?.buffer,
+        ContentType: req.file?.mimetype,
+      };
+
+      const command = new PutObjectCommand(uploadParams);
+      await s3Client.send(command);
+
+      await PetMemorial.findByIdAndUpdate(id, {
+        name: name,
+        description: description,
+        DOB: dob,
+        DOD: dod,
+        coverImage: fileName,
+        memorialNote: note,
+      });
+
+      res.status(200).json({ msg: "Memorial Updated" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updatePetNote = async (req: any, res: Response) => {
+  try {
+    const { note, memorialId } = req.body;
+
+    if (!note || !memorialId) {
+      res.status(400).json({ Msg: "field required" });
+    }
+
+    const petMemorial = await PetMemorial.findById(memorialId);
+
+    if (!petMemorial) {
+      res.status(400).json({ Msg: "memorial not found" });
+    }
+
+    await PetMemorial.findByIdAndUpdate(memorialId, {
+      petmemorialNote: note,
+    });
+    res.status(200).json({ msg: "Memorial Updated" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const createPetMemorialComment = async (req: Request, res: Response) => {
   try {
     const { content, memorialId, userId } = req.body;

@@ -31,6 +31,8 @@ import {
   createPetMemorialComment,
   likePetComment,
   getAllPetMemorialComments,
+  updatePetMemorial,
+  updatePetNote,
   // searchPetMemorial,
 } from "../controller/pet";
 
@@ -77,7 +79,6 @@ router.post("/pet/create", upload.single("image"), createPetMemorial);
 router.get("/pet/get/userId/:id", getPetMemorialByUserId);
 router.get("/pet/getImage", fetchpetImage);
 
-
 // Pet Comment
 
 router.get("/pet/comment/:id", getAllPetMemorialComments);
@@ -88,6 +89,10 @@ router.delete("/pet/delete/:id", deletePetMemorial);
 
 // Search Pet
 // router.get("/pet/search", searchPetMemorial);
+
+// pet update
+router.post("/pet/update", upload.single("image"), updatePetMemorial);
+router.post("/pet/updateNote", updatePetNote);
 
 // Get Obituaries
 router.get("/obituaries", getObituaries);
