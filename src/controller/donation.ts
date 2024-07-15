@@ -93,7 +93,28 @@ export const makeDonation = async (req: Request, res: Response) => {
                   },
                 }
               );
+              const reciver = await PetMemorial.findOne({
+                _id: to,
+              });
+              console.log(reciver);
+              if (reciver) {
+                const authorTokens = await FCMModel.find({
+                  userId: reciver.owner,
+                });
 
+                for (const tokenData of authorTokens) {
+                  const payload = {
+                    title: "Your memorial got donation!",
+                    body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
+                    data: { sender: from },
+                  };
+                  await sendNotification({ token: tokenData.token, payload });
+                  await emitLikeUpdate(
+                    reciver.owner,
+                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`
+                  );
+                }
+              }
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -174,7 +195,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                   await sendNotification({ token: tokenData.token, payload });
                   await emitLikeUpdate(
                     reciver.author,
-                    `${userFrom?.firstName} ${userFrom?.lastName} liked your comment.`
+                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`
                   );
                 }
               }
@@ -331,7 +352,28 @@ export const donateFlower = async (req: Request, res: Response) => {
             const mainUser: any = await UserModel.findOne({ _id: pet!.owner });
 
             addToWalletFlower(mainUser!._id, amount);
+            const reciver = await PetMemorial.findOne({
+              _id: to,
+            });
+            console.log(reciver);
+            if (reciver) {
+              const authorTokens = await FCMModel.find({
+                userId: reciver.owner,
+              });
 
+              for (const tokenData of authorTokens) {
+                const payload = {
+                  title: "Your memorial got donation!",
+                  body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+                  data: { sender: from },
+                };
+                await sendNotification({ token: tokenData.token, payload });
+                await emitLikeUpdate(
+                  reciver.owner,
+                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`
+                );
+              }
+            }
             res
               .status(200)
               .json({ message: "Donated successfully", donateFlower });
