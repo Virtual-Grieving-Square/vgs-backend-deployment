@@ -41,5 +41,4 @@ router.post("/claim/verifyOtp", verifyOTP);
 
 // get money bank
 
-
 export default router;
