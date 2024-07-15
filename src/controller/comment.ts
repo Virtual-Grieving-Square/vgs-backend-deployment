@@ -7,6 +7,7 @@ import { FlowerDonationModel } from "../model/flowerDonation";
 import { DonationNonUserModel } from "../model/donationNonUser";
 import { MemorialComment } from "../model/memorialComment";
 import { HumanMemorial } from "../model/humanMemorial";
+import { PetMemorialComment } from "../model/petMemorialComment";
 
 export const fetchComments = async (req: Request, res: Response) => {
   try {
@@ -371,6 +372,31 @@ export const editDonationComment = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+export const editPetMemorialComment = async (req: Request, res: Response) => {
+  const { authorID, commentId, type, note } = req.body;
+  try {
+    let memorial = await PetMemorialComment.find({
+      userId: authorID,
+      _id: commentId,
+    });
+
+    if (!memorial) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
+    let memoriaID = await PetMemorialComment.findByIdAndUpdate(commentId, {
+      comment: note,
+    });
+
+    res.status(200).json({ message: "Comment edited" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 export const editFlowerDonationComment = async (
   req: Request,
