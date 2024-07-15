@@ -240,7 +240,13 @@ export const deposit = async (req: Request, res: Response) => {
         },
       ],
       mode: "payment",
-      success_url: req.body.from && req.body.from == "memorial" ? `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance` : `${YOUR_DOMAIN}/account?success=true`,
+      success_url: req.body.from && req.body.from == "memorial" ?
+        (
+          req.body.type && req.body.type == "pet" ?
+            `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance` :
+            `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
+        ) :
+        `${YOUR_DOMAIN}/account?success=true`,
       cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
       automatic_tax: { enabled: true },
     });
@@ -312,7 +318,13 @@ export const upgrade = async (req: Request, res: Response) => {
               },
             ],
             mode: "subscription",
-            success_url: req.body.from && req.body.from == "memorial" ? `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}` : `${YOUR_DOMAIN}/account?payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`,
+            success_url: req.body.from && req.body.from == "memorial" ?
+              (
+                req.body.type && req.body.type == "pet" ?
+                  `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}` :
+                  `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`
+              ) :
+              `${YOUR_DOMAIN}/account?payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`,
             cancel_url: `${YOUR_DOMAIN}/account?payment=canceled&id=${userID}&type=upgrade&subscription=${upSubscription}`,
             automatic_tax: { enabled: true },
           });
