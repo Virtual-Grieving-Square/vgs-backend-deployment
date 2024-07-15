@@ -7,6 +7,16 @@ import {
 } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { Stream } from "stream";
+import { UserModel } from "../model/user";
+import { PetMemorialComment } from "../model/petMemorialComment";
+import { checkCommentUsingBadwords } from "../util/commentFilter";
+import Filter from "bad-words";
+import { FCMModel } from "../model/fcmTokens";
+import { sendNotification } from "../middleware/notification";
+import { emitCommentUpdate, emitLikeUpdate } from "../util/event";
+import LikeModel from "../model/like";
+
+const filter = new Filter();
 
 export const getAllPetMemorial = async (req: any, res: Response) => {
   try {
@@ -103,6 +113,194 @@ export const createPetMemorial = async (req: Request, res: Response) => {
   }
 };
 
+export const createPetMemorialComment = async (req: Request, res: Response) => {
+  try {
+    const { content, memorialId, userId } = req.body;
+
+    const memorial = await PetMemorial.findById(memorialId);
+
+    if (!content || !memorialId || !userId) {
+      return res.status(400).json({ error: "content and userId are required" });
+    }
+    let user = await UserModel.findById(userId);
+    const comment = new PetMemorialComment({
+      authorId: memorial!.owner,
+      cname: user?.firstName + " " + user?.lastName,
+      comment: content,
+      memorialId: memorialId,
+      userId: userId,
+    });
+
+    // Check if the comment contains bad words from library
+    const response: any = filter.isProfane(content);
+    const response2: any = await checkCommentUsingBadwords(content);
+
+    if (user) {
+      var strike = user.blacklistCount;
+      console.log("Strike", strike);
+
+      if (filter.isProfane(content) || response2) {
+        try {
+          if (strike < 2) {
+            user.blacklistCount += 1;
+            await user.save();
+            return res.status(402).json({
+              error: "Inappropriate comment detected",
+              msg: "inappropriate_comment_detected",
+              banMessage: "Inappropriate comment detected",
+            });
+          } else {
+            user.blacklistCount += 1;
+            user.banCount += 1;
+
+            let now = new Date();
+            let banPeriod = 24 * 60 * 60 * 1000; // 24 hours
+
+            if (user.banCount == 2) {
+              banPeriod = 48 * 60 * 60 * 1000; // 48 hours
+            } else if (user.banCount > 2) {
+              banPeriod = 48 * 60 * 60 * 1000; // 48 hours
+              user.flag = "BAN";
+            }
+
+            user.flag = user.banCount > 2 ? "BAN" : "suspended";
+            user.banExpiry = new Date(now.getTime() + banPeriod);
+            await user.save();
+
+            let banMessage =
+              user.banCount > 2
+                ? "Inappropriate comment detected and account banned. You can't comment anymore"
+                : `Inappropriate comment detected and account suspended for ${
+                    banPeriod / (60 * 60 * 1000)
+                  } Hr`;
+
+            return res.status(402).json({
+              error: banMessage,
+              banMessage: banMessage,
+              msg: user.banCount > 2 ? "account_banned" : "account_suspended",
+            });
+          }
+        } catch (error) {
+          console.error("Error updating user blacklist count:", error);
+        }
+      }
+
+      if (strike > 2) {
+        return res.status(402).json({
+          error: "Account Suspended",
+          msg: "account_suspended",
+          banMessage: "Account Suspended for Bad Comment",
+        });
+      } else {
+        await comment.save();
+        // await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
+        const memo = await PetMemorial.findById(memorialId);
+        if (memo) {
+          const authorTokens = await FCMModel.find({ userId: memo.owner });
+
+          for (const tokenData of authorTokens) {
+            const payload = {
+              title: "Your Memorial got new comment!",
+              body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+              data: {},
+            };
+            await sendNotification({ token: tokenData.token, payload });
+            await emitCommentUpdate(memo.owner, `${user?.firstName} ${user?.lastName} commented on your memorial.`)
+          }
+        }
+        res.status(200).json({
+          msg: "comment_created_successfully",
+          message: "Comment created successfully",
+          comment,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const likePetComment = async (req: Request, res: Response) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await PetMemorialComment.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Comment unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      await like.save();
+
+      await PetMemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+
+      const memo = await PetMemorialComment.findById(postId);
+      console.log(memo);
+      // console.log(memopost);
+      if (memo) {
+        const authorTokens = await FCMModel.find({ userId: memo?.userId });
+        console.log(authorTokens);
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+            data: { postId: postId.toString(), likerId: likerId.toString() },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+      }
+      await emitLikeUpdate(memo?.userId, `${user?.firstName} ${user?.lastName} liked your comment.`)
+      return res
+        .status(200)
+        .json({ like: true, message: "Comment liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updatePetTombstone = async (req: any, res: Response) => {
+  try {
+    const { memorialID, tombstoneId } = req.body;
+
+    let memorial = await PetMemorial.findById(memorialID);
+    if (!memorial) {
+      return res.status(400).json({ msg: "no memory found with that Id" });
+    }
+    const update = await PetMemorial.findByIdAndUpdate(memorialID, {
+      tombstoneId: tombstoneId,
+    });
+
+    res.status(200).json({
+      tombstone: update,
+      message: "Tombstone updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 export const getPetMemorialByUserId = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
@@ -167,4 +365,37 @@ export const deletePetMemorial = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+} 
+
+// new ones
+
+export const countPetComment = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const PetMem: any = await PetMemorial.find({
+      _id: id,
+    });
+
+    res.status(200).json({ comment: PetMem[0].comments });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+
+export const getAllPetMemorialComments = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const comments = await PetMemorialComment.find({
+      _id: id,
+    });
+
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
