@@ -469,7 +469,10 @@ export const createMemorialComment = async (req: Request, res: Response) => {
               data: {},
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitCommentUpdate(memo.author, `${user?.firstName} ${user?.lastName} commented on your memorial.`)
+            await emitCommentUpdate(
+              memo.author,
+              `${user?.firstName} ${user?.lastName} commented on your memorial.`
+            );
           }
         }
         res.status(200).json({
@@ -520,7 +523,11 @@ export const likeComment = async (req: Request, res: Response) => {
       likerId: likerId,
     });
     let user = await UserModel.findById(likerId);
-
+    // if (user?._id == likerId) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "You cant like your own comment" });
+    // }
     if (likes.length > 0) {
       await LikeModel.deleteMany({
         postId: postId,
@@ -547,7 +554,7 @@ export const likeComment = async (req: Request, res: Response) => {
       const memopost = await HumanMemorial.findById(memo?.memorialId);
       console.log(memo);
       // console.log(memopost);
-      if (memo) {
+      if (memo && user?._id !== likerId) {
         const authorTokens = await FCMModel.find({ userId: memo?.userId });
         console.log(authorTokens);
         for (const tokenData of authorTokens) {
@@ -559,7 +566,10 @@ export const likeComment = async (req: Request, res: Response) => {
           await sendNotification({ token: tokenData.token, payload });
         }
       }
-      await emitLikeUpdate(memo?.userId, `${user?.firstName} ${user?.lastName} liked your comment.`)
+      await emitLikeUpdate(
+        memo?.userId,
+        `${user?.firstName} ${user?.lastName} liked your comment.`
+      );
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });

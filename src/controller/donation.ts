@@ -539,7 +539,7 @@ export const likeDonationComment = async (req: Request, res: Response) => {
       const donation = await DonationModel.findById(postId);
       // const donator = await HumanMemorial.findById(donation?.to);
 
-      if (donation) {
+      if (donation && user?._id !== likerId) {
         const authorTokens = await FCMModel.find({ userId: donation.from });
 
         for (const tokenData of authorTokens) {
@@ -606,7 +606,7 @@ export const likeFlowerDonationComment = async (
 
       const flower = await FlowerDonationModel.findById(postId);
       // const donator = await HumanMemorial.findById(flower?.to);
-      if (flower) {
+      if (flower && user?._id !== likerId) {
         const authorTokens = await FCMModel.find({ userId: flower?.from });
 
         for (const tokenData of authorTokens) {
