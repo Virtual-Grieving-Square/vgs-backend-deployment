@@ -464,7 +464,7 @@ export const createMemorialComment = async (req: Request, res: Response) => {
 
           for (const tokenData of authorTokens) {
             const payload = {
-              title: "Your Memorial got new comment!",
+              title: "Your memorial got new comment!",
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
               data: {},
             };
