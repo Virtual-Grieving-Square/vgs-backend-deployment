@@ -459,7 +459,7 @@ export const createMemorialComment = async (req: Request, res: Response) => {
         await comment.save();
         await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
         const memo = await HumanMemorial.findById(memorialId);
-        if (memo) {
+        if (memo && user?._id !== memo.author) {
           const authorTokens = await FCMModel.find({ userId: memo.author });
 
           for (const tokenData of authorTokens) {
