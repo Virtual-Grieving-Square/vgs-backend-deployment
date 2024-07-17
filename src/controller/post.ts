@@ -275,7 +275,9 @@ export const likePost = async (req: Request, res: Response) => {
           await sendNotification({ token: tokenData.token, payload });
           await emitLikeUpdate(
             post.author,
-            `${user?.firstName} ${user?.lastName} liked your comment.`
+            `${user?.firstName} ${user?.lastName} liked your comment.`,
+            "Post comment Like",
+            likerId
           );
         }
       }
@@ -418,7 +420,9 @@ export const createComment = async (req: Request, res: Response) => {
             await sendNotification({ token: tokenData.token, payload });
             await emitLikeUpdate(
               reciver.author,
-              `${user?.firstName} ${user?.lastName} commented to your post.`
+              `${user?.firstName} ${user?.lastName} commented to your post.`,
+              "Post Comment",
+              userId
             );
           }
         }

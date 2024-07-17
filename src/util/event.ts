@@ -7,32 +7,43 @@ interface DataToSend {
   userID: string;
   msg: string;
   type: "like" | "comment";
+  notificationtype: string;
+  senderId: string;
 }
 
 // Helper function to construct the data to send
 const constructDataToSend = (
   user: any,
   message: string,
-  type: "like" | "comment"
+  type: "like" | "comment",
+  notificationtype: string,
+  senderId: string
 ): DataToSend => {
   return {
     user: `${user.firstName} ${user.lastName}`,
     userID: user._id.toString(),
     msg: message,
     type: type,
+    senderId,
+    notificationtype,
   };
 };
 
 const saveNotification = async (
   userId: string,
   message: string,
-  type: "like" | "comment"
+  type: "like" | "comment",
+  notificationtype: string,
+  senderId: string
 ): Promise<void> => {
   try {
     const notification: Partial<INotif> = {
       userID: userId,
       Note: message,
       seen: false,
+      senderId,
+      type,
+      notificationtype,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -46,7 +57,9 @@ const saveNotification = async (
 // Emit like update
 export const emitLikeUpdate = async (
   userId: any,
-  data: string
+  data: string,
+  type: string,
+  senderId: string
 ): Promise<void> => {
   try {
     const user: User | null = await UserModel.findById(userId);
@@ -55,9 +68,9 @@ export const emitLikeUpdate = async (
       return;
     }
 
-    const dataToSend = constructDataToSend(user, data, "like");
+    const dataToSend = constructDataToSend(user, data, "like", senderId, type);
     io.to(user.socketId).emit("realtime-notification", dataToSend);
-    await saveNotification(userId, data, 'like');
+    await saveNotification(userId, data, "like",type, senderId);
   } catch (error) {
     console.error("Error fetching user:", error);
   }
@@ -66,7 +79,9 @@ export const emitLikeUpdate = async (
 // Emit comment update
 export const emitCommentUpdate = async (
   userId: any,
-  data: string
+  data: string,
+  type: string,
+  senderId: string
 ): Promise<void> => {
   try {
     const user: User | null = await UserModel.findById(userId);
@@ -75,9 +90,15 @@ export const emitCommentUpdate = async (
       return;
     }
 
-    const dataToSend = constructDataToSend(user, data, "comment");
+    const dataToSend = constructDataToSend(
+      user,
+      data,
+      "comment",
+      senderId,
+      type
+    );
     io.to(user.socketId).emit("realtime-notification", dataToSend);
-    await saveNotification(userId, data, 'comment');
+    await saveNotification(userId, data, "comment", type, senderId);
   } catch (error) {
     console.error("Error fetching user:", error);
   }

@@ -471,7 +471,9 @@ export const createMemorialComment = async (req: Request, res: Response) => {
             await sendNotification({ token: tokenData.token, payload });
             await emitCommentUpdate(
               memo.author,
-              `${user?.firstName} ${user?.lastName} commented on your memorial.`
+              `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+              "Memorial comment ",
+              userId
             );
           }
         }
@@ -568,7 +570,9 @@ export const likeComment = async (req: Request, res: Response) => {
       }
       await emitLikeUpdate(
         memo?.userId,
-        `${user?.firstName} ${user?.lastName} liked your comment.`
+        `${user?.firstName} ${user?.lastName} liked your comment.`,
+        "Memorial comment Like",
+        likerId
       );
       return res
         .status(200)

@@ -3,13 +3,19 @@ import NotifModel, { INotif } from "../model/notification";
 
 export async function addNotificationFunction(
   Note: string,
-  userID: string
+  userID: string,
+  type: string,
+  sendeId: string,
+  notificationtype: string
 ): Promise<INotif> {
   try {
     const newNotification: INotif = new NotifModel({
       Note,
       userID,
       seen: false,
+      type,
+      sendeId,
+      notificationtype
     });
     const savedNotification = await newNotification.save();
     return savedNotification;
@@ -40,7 +46,9 @@ export const viewNotificationsByUserID = async (
   try {
     const { userID } = req.params;
     // const notifications = await NotifModel.find({ userID });
-    const notifications = await NotifModel.find({ userID }).sort({ createdAt: -1 });
+    const notifications = await NotifModel.find({ userID }).sort({
+      createdAt: -1,
+    });
     res.status(200).json(notifications);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving notifications", error });

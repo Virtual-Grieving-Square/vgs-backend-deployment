@@ -111,7 +111,9 @@ export const makeDonation = async (req: Request, res: Response) => {
                   await sendNotification({ token: tokenData.token, payload });
                   await emitLikeUpdate(
                     reciver.owner,
-                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`
+                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
+                    "Memorial Donation",
+                    from
                   );
                 }
               }
@@ -195,7 +197,9 @@ export const makeDonation = async (req: Request, res: Response) => {
                   await sendNotification({ token: tokenData.token, payload });
                   await emitLikeUpdate(
                     reciver.author,
-                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`
+                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
+                    "Memorial Donation",
+                    from
                   );
                 }
               }
@@ -370,7 +374,9 @@ export const donateFlower = async (req: Request, res: Response) => {
                 await sendNotification({ token: tokenData.token, payload });
                 await emitLikeUpdate(
                   reciver.owner,
-                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`
+                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`,
+                  "Memorial Donation",
+                  from
                 );
               }
             }
@@ -436,7 +442,9 @@ export const donateFlower = async (req: Request, res: Response) => {
                 await sendNotification({ token: tokenData.token, payload });
                 await emitLikeUpdate(
                   reciver.author,
-                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`
+                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+                  "Memorial donation",
+                  from
                 );
               }
             }
@@ -551,7 +559,9 @@ export const likeDonationComment = async (req: Request, res: Response) => {
           await sendNotification({ token: tokenData.token, payload });
           await emitLikeUpdate(
             donation.from,
-            `${user?.firstName} ${user?.lastName} liked your comment.`
+            `${user?.firstName} ${user?.lastName} liked your comment.`,
+            "Memorial Donation",
+            likerId
           );
         }
       }
@@ -618,7 +628,9 @@ export const likeFlowerDonationComment = async (
           await sendNotification({ token: tokenData.token, payload });
           await emitLikeUpdate(
             flower?.from,
-            `${user?.firstName} ${user?.lastName} liked your comment.`
+            `${user?.firstName} ${user?.lastName} liked your comment.`,
+            "Memorial comment Like",
+            likerId
           );
         }
       }

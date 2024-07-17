@@ -290,7 +290,10 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
               data: {},
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitCommentUpdate(memo.owner, `${user?.firstName} ${user?.lastName} commented on your memorial.`)
+            await emitCommentUpdate(memo.owner, `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+              "Pet Memorial comment ",
+              userId
+            )
           }
         }
         res.status(200).json({
@@ -353,7 +356,8 @@ export const likePetComment = async (req: Request, res: Response) => {
           await sendNotification({ token: tokenData.token, payload });
         }
       }
-      await emitLikeUpdate(memo?.userId, `${user?.firstName} ${user?.lastName} liked your comment.`)
+      await emitLikeUpdate(memo?.userId, `${user?.firstName} ${user?.lastName} liked your comment.`,  "Pet Memorial comment Like",
+        likerId)
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });
