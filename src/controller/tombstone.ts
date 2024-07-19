@@ -10,6 +10,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { UserModel } from "../model/user";
 import { AdminModel } from "../model/admin";
+import PetTombstoneModel from "../model/petTombstone";
 
 export const getAll = async (req: Request, res: Response) => {
   try {
@@ -151,6 +152,110 @@ export const usersTombstone = async (req: Request, res: Response) => {
   }
 };
 
+export const petTombstone = async (req: Request, res: Response) => {
+  try {
+    
+    const {
+      userId,
+      name,
+      description,
+      image,
+      namePostion,
+      descPostion,
+      imagePostion,
+      datePostion,
+    } = req.body;
+    const fileOrgnName = req.file?.originalname || "";
+    const fileName = `uploads/image/tombstone/pet/${Date.now()}-${removeSpaces(
+      fileOrgnName
+    )}`;
+
+    // Upload file to S3
+    const uploadParams = {
+      Bucket: "vgs-upload",
+      Key: fileName,
+      Body: req.file?.buffer,
+      ContentType: req.file?.mimetype,
+    };
+
+    const command = new PutObjectCommand(uploadParams);
+    await s3Client.send(command);
+
+    const namePostionStr = JSON.stringify(namePostion);
+    const descPostionStr = JSON.stringify(descPostion);
+    const imagePostionStr = JSON.stringify(imagePostion);
+    const datePostionStr = JSON.stringify(datePostion);
+
+    const tombstone = await PetTombstoneModel.create({
+      userId,
+      name,
+      description,
+      image,
+      namePostion: namePostionStr,
+      descPostion: descPostionStr,
+      imagePostion: imagePostionStr,
+      datePostion: datePostionStr,
+    });
+
+    res.status(200).json({
+      tombstone: tombstone,
+      message: "Tombstone created successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const getPetTombstone = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const tombstone = await PetTombstoneModel.findById(id);
+
+    if (!tombstone) {
+      return res.status(404).send("Tombstone not found");
+    }
+
+    
+    const namePostion = JSON.parse(tombstone.namePostion);
+    const descPostion = JSON.parse(tombstone.descPostion);
+    const imagePostion = JSON.parse(tombstone.imagePostion);
+    const datePostion = JSON.parse(tombstone.datePostion);
+
+    res.status(200).json({
+      ...tombstone.toObject(),
+      namePostion,
+      descPostion,
+      imagePostion,
+      datePostion,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+// Fetching all pet tombstons boi
+export const getAllPetTombstones = async (req: Request, res: Response) => {
+  try {
+    const tombstones = await PetTombstoneModel.find();
+
+    const parsedTombstones = tombstones.map(tombstone => {
+      return {
+        ...tombstone.toObject(),
+        namePostion: JSON.parse(tombstone.namePostion),
+        descPostion: JSON.parse(tombstone.descPostion),
+        imagePostion: JSON.parse(tombstone.imagePostion),
+        datePostion: JSON.parse(tombstone.datePostion),
+      };
+    });
+
+    res.status(200).json(parsedTombstones);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
 export const fetchUsersTombstone = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;

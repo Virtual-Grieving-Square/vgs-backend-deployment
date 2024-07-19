@@ -9,6 +9,9 @@ import {
   deleteTombstone,
   usersTombstone,
   fetchUsersTombstone,
+  getPetTombstone,
+  petTombstone,
+  getAllPetTombstones,
 } from "../controller/tombstone";
 
 const storage = multer.memoryStorage();
@@ -25,4 +28,9 @@ router.delete("/delete/:id", deleteTombstone);
 router.post("/users/create", upload.single("image"), usersTombstone);
 router.get("/users/tombstone:userId", fetchUsersTombstone);
 
+
+// pet Tombstone 
+router.post("/pets/create", upload.single("image"), petTombstone);
+router.get("/pet/getTombstone:id", getPetTombstone);
+router.get("/pet/getAllTombstone", getAllPetTombstones);
 export default router;
