@@ -95,7 +95,7 @@ export const createPetMemorial = async (req: Request, res: Response) => {
 
       // const url = coverImage[0].url;
       let petMemorial = null;
-      if (tombstone == true) {
+      if (tombstone == "true") {
         petMemorial = new PetMemorial({
           name: name,
           age: age,
