@@ -154,12 +154,11 @@ export const usersTombstone = async (req: Request, res: Response) => {
 
 export const petTombstone = async (req: Request, res: Response) => {
   try {
-    
     const {
       userId,
       name,
       description,
-      image,
+   
       namePostion,
       descPostion,
       imagePostion,
@@ -190,7 +189,7 @@ export const petTombstone = async (req: Request, res: Response) => {
       userId,
       name,
       description,
-      image,
+      image: fileName,
       namePostion: namePostionStr,
       descPostion: descPostionStr,
       imagePostion: imagePostionStr,
@@ -216,7 +215,6 @@ export const getPetTombstone = async (req: Request, res: Response) => {
       return res.status(404).send("Tombstone not found");
     }
 
-    
     const namePostion = JSON.parse(tombstone.namePostion);
     const descPostion = JSON.parse(tombstone.descPostion);
     const imagePostion = JSON.parse(tombstone.imagePostion);
@@ -240,7 +238,7 @@ export const getAllPetTombstones = async (req: Request, res: Response) => {
   try {
     const tombstones = await PetTombstoneModel.find();
 
-    const parsedTombstones = tombstones.map(tombstone => {
+    const parsedTombstones = tombstones.map((tombstone) => {
       return {
         ...tombstone.toObject(),
         namePostion: JSON.parse(tombstone.namePostion),
