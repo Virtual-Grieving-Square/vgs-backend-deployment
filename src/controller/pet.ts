@@ -1,10 +1,7 @@
 import { Request, Response } from "express";
 import { PetMemorial } from "../model/petMemorial";
 import { removeSpaces } from "../util/removeSpace";
-import {
-  GetObjectCommand,
-  PutObjectCommand
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { Stream } from "stream";
 import { UserModel } from "../model/user";
@@ -36,9 +33,8 @@ export const getAllPetMemorial = async (req: any, res: Response) => {
       page: page,
       limit: limit,
       totalPages: Math.ceil(total / limit),
-      memorials: allpetMemorials
+      memorials: allpetMemorials,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -54,11 +50,22 @@ export const getPetById = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
 export const createPetMemorial = async (req: Request, res: Response) => {
   try {
-    const { name, age, type, dob, dod, author, description } = req.body;
+    const {
+      name,
+      age,
+      type,
+      dob,
+      dod,
+      author,
+      description,
+      petmemorialNote,
+      tombstone,
+      tombstoneId,
+    } = req.body;
     const owner = author;
     console.log(req.files);
     console.log(req.body);
@@ -66,13 +73,10 @@ export const createPetMemorial = async (req: Request, res: Response) => {
     if (req.files?.length === 0) {
       return res.status(406).json({ message: "No image provided" });
     } else {
-      // const coverImage = (req.files as Express.Multer.File[]).map(
-      //   (file: Express.Multer.File) => ({
-      //     url: file.path,
-      //   })
-      // );
       const fileOrgnName = req.file?.originalname || "";
-      const fileName = `uploads/image/Memorial/PetMemorial/${Date.now()} -${removeSpaces(fileOrgnName)}`;
+      const fileName = `uploads/image/Memorial/PetMemorial/${Date.now()} -${removeSpaces(
+        fileOrgnName
+      )}`;
 
       // Upload file to S3
       const uploadParams = {
@@ -90,16 +94,34 @@ export const createPetMemorial = async (req: Request, res: Response) => {
       }
 
       // const url = coverImage[0].url;
-      const petMemorial = new PetMemorial({
-        name: name,
-        age: age,
-        type: type,
-        DOB: dob,
-        DOD: dod,
-        owner: owner,
-        description: description,
-        coverImage: fileName,
-      });
+      let petMemorial = null;
+      if (tombstone == true) {
+        petMemorial = new PetMemorial({
+          name: name,
+          age: age,
+          type: type,
+          DOB: dob,
+          DOD: dod,
+          owner: owner,
+          description: description,
+          coverImage: fileName,
+          petmemorialNote,
+          tombstone: true,
+          tombstoneId,
+        });
+      } else {
+        petMemorial = new PetMemorial({
+          name: name,
+          age: age,
+          type: type,
+          DOB: dob,
+          DOD: dod,
+          owner: owner,
+          description: description,
+          coverImage: fileName,
+          petmemorialNote,
+        });
+      }
 
       await petMemorial.save();
 
@@ -290,10 +312,12 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
               data: {},
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitCommentUpdate(memo.owner, `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+            await emitCommentUpdate(
+              memo.owner,
+              `${user?.firstName} ${user?.lastName} commented on your memorial.`,
               "Pet Memorial comment ",
               userId
-            )
+            );
           }
         }
         res.status(200).json({
@@ -325,7 +349,9 @@ export const likePetComment = async (req: Request, res: Response) => {
         likerId: likerId,
       });
 
-      await PetMemorialComment.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+      await PetMemorialComment.findByIdAndUpdate(postId, {
+        $inc: { likes: -1 },
+      });
 
       return res
         .status(200)
@@ -339,7 +365,9 @@ export const likePetComment = async (req: Request, res: Response) => {
 
       await like.save();
 
-      await PetMemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+      await PetMemorialComment.findByIdAndUpdate(postId, {
+        $inc: { likes: 1 },
+      });
 
       const memo = await PetMemorialComment.findById(postId);
       console.log(memo);
@@ -356,8 +384,12 @@ export const likePetComment = async (req: Request, res: Response) => {
           await sendNotification({ token: tokenData.token, payload });
         }
       }
-      await emitLikeUpdate(memo?.userId, `${user?.firstName} ${user?.lastName} liked your comment.`,  "Pet Memorial comment Like",
-        likerId)
+      await emitLikeUpdate(
+        memo?.userId,
+        `${user?.firstName} ${user?.lastName} liked your comment.`,
+        "Pet Memorial comment Like",
+        likerId
+      );
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });
@@ -454,7 +486,7 @@ export const deletePetMemorial = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-} 
+};
 
 // new ones
 
@@ -473,8 +505,10 @@ export const countPetComment = async (req: Request, res: Response) => {
   }
 };
 
-
-export const getAllPetMemorialComments = async (req: Request, res: Response) => {
+export const getAllPetMemorialComments = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { id } = req.params;
 

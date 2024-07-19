@@ -283,3 +283,18 @@ export const deleteTombstone = async (req: Request, res: Response) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+
+export const deletePetTombstone = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    console.log("Here");
+
+    await TombstoneModel.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Tombstone deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
