@@ -158,7 +158,7 @@ export const petTombstone = async (req: Request, res: Response) => {
       userId,
       name,
       description,
-   
+
       namePostion,
       descPostion,
       imagePostion,
@@ -239,15 +239,22 @@ export const getAllPetTombstones = async (req: Request, res: Response) => {
     const tombstones = await PetTombstoneModel.find();
 
     const parsedTombstones = tombstones.map((tombstone) => {
-      return {
-        ...tombstone.toObject(),
-        namePostion: JSON.parse(tombstone.namePostion),
-        descPostion: JSON.parse(tombstone.descPostion),
-        imagePostion: JSON.parse(tombstone.imagePostion),
-        datePostion: JSON.parse(tombstone.datePostion),
-      };
+      const parsedTombstone = tombstone.toObject();
+      parsedTombstone.namePostion = JSON.parse(
+        JSON.parse(tombstone.namePostion)
+      );
+      parsedTombstone.descPostion = JSON.parse(
+        JSON.parse(tombstone.descPostion)
+      );
+      parsedTombstone.imagePostion = JSON.parse(
+        JSON.parse(tombstone.imagePostion)
+      );
+      parsedTombstone.datePostion = JSON.parse(
+        JSON.parse(tombstone.datePostion)
+      );
+      return parsedTombstone;
     });
-
+    console.log(parsedTombstones);
     res.status(200).json(parsedTombstones);
   } catch (error) {
     console.error(error);
@@ -283,7 +290,6 @@ export const deleteTombstone = async (req: Request, res: Response) => {
     res.status(500).send("Internal Server Error");
   }
 };
-
 
 export const deletePetTombstone = async (req: Request, res: Response) => {
   try {
