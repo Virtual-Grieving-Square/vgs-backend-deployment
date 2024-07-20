@@ -32,7 +32,7 @@ router.get("/users/tombstone:userId", fetchUsersTombstone);
 
 // pet Tombstone 
 router.post("/pets/create", upload.single("image"), petTombstone);
-router.get("/pet/getTombstone:id", getPetTombstone);
+router.get("/pet/getTombstone/:id", getPetTombstone);
 router.get("/pet/getAllTombstone", getAllPetTombstones);
 router.delete("/pet/delete/:id", deletePetTombstone);
 export default router;

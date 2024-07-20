@@ -158,7 +158,7 @@ export const petTombstone = async (req: Request, res: Response) => {
       userId,
       name,
       description,
-   
+
       namePostion,
       descPostion,
       imagePostion,
@@ -220,9 +220,11 @@ export const getPetTombstone = async (req: Request, res: Response) => {
     const imagePostion = JSON.parse(tombstone.imagePostion);
     const datePostion = JSON.parse(tombstone.datePostion);
 
+    const name2 = JSON.parse(namePostion);
+
     res.status(200).json({
       ...tombstone.toObject(),
-      namePostion,
+      name2,
       descPostion,
       imagePostion,
       datePostion,
