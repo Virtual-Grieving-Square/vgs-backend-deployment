@@ -215,10 +215,11 @@ export const getPetTombstone = async (req: Request, res: Response) => {
       return res.status(404).send("Tombstone not found");
     }
 
-    const namePostion = JSON.parse(tombstone.namePostion);
-    const descPostion = JSON.parse(tombstone.descPostion);
-    const imagePostion = JSON.parse(tombstone.imagePostion);
-    const datePostion = JSON.parse(tombstone.datePostion);
+    // Parse position data strings back to JSON
+    const namePostion = JSON.parse(JSON.parse(tombstone.namePostion));
+    const descPostion = JSON.parse(JSON.parse(tombstone.descPostion));
+    const imagePostion = JSON.parse(JSON.parse(tombstone.imagePostion));
+    const datePostion = JSON.parse(JSON.parse(tombstone.datePostion));
 
     const name2 = JSON.parse(namePostion);
 
