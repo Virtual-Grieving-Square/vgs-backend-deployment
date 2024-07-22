@@ -15,9 +15,11 @@ export async function addNotificationFunction(
       seen: false,
       type,
       sendeId,
-      notificationtype
+      notificationtype,
     });
+
     const savedNotification = await newNotification.save();
+    console.log("FCM regestered Sucessfully");
     return savedNotification;
   } catch (error) {
     throw new Error(`Error adding notification: ${error}`);
