@@ -33,6 +33,7 @@ import {
   getAllPetMemorialComments,
   updatePetMemorial,
   updatePetNote,
+  updatePetTombstone,
   // searchPetMemorial,
 } from "../controller/pet";
 
@@ -99,6 +100,6 @@ router.get("/obituaries", getObituaries);
 
 //change tombstone
 router.post("/human/update/tombstone", updateHumanTombstone);
-router.post("/pet/update/tombstone", updateHumanTombstone);
+router.post("/pet/update/tombstone", updatePetTombstone);
 
 export default router;

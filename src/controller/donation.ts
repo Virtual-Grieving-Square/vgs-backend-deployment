@@ -230,9 +230,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/memory/human/${
-                  memorial!._id
-                }`,
+                memorialLink: `${process.env.DOMAIN}/memory/human/${memorial!._id
+                  }`,
                 recieverEmail: mainUser!.email,
               })
                 .then((response) => {
@@ -380,6 +379,7 @@ export const donateFlower = async (req: Request, res: Response) => {
                 );
               }
             }
+            console.log("Pet Flower Donation Successful");
             res
               .status(200)
               .json({ message: "Donated successfully", donateFlower });
