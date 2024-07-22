@@ -230,8 +230,9 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/memory/human/${memorial!._id
-                  }`,
+                memorialLink: `${process.env.DOMAIN}/memory/human/${
+                  memorial!._id
+                }`,
                 recieverEmail: mainUser!.email,
               })
                 .then((response) => {
@@ -355,13 +356,13 @@ export const donateFlower = async (req: Request, res: Response) => {
             const mainUser: any = await UserModel.findOne({ _id: pet!.owner });
 
             addToWalletFlower(mainUser!._id, amount);
-            const reciver = await PetMemorial.findOne({
-              _id: to,
-            });
+            // const reciver = await PetMemorial.findOne({
+            //   _id: to,
+            // });
             console.log(reciver);
-            if (reciver) {
+            if (mainUser) {
               const authorTokens = await FCMModel.find({
-                userId: reciver.owner,
+                userId: mainUser!._id,
               });
 
               for (const tokenData of authorTokens) {
@@ -372,7 +373,7 @@ export const donateFlower = async (req: Request, res: Response) => {
                 };
                 await sendNotification({ token: tokenData.token, payload });
                 await emitLikeUpdate(
-                  reciver.owner,
+                  mainUser!._id,
                   `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`,
                   "Memorial Donation",
                   from
