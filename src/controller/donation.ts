@@ -359,7 +359,7 @@ export const donateFlower = async (req: Request, res: Response) => {
             // const reciver = await PetMemorial.findOne({
             //   _id: to,
             // });
-            console.log(reciver);
+            // console.log(reciver);
             if (mainUser) {
               const authorTokens = await FCMModel.find({
                 userId: mainUser!._id,
