@@ -94,13 +94,13 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 connectDB();
-// try {
-//   console.log("where is it")
-//   // Schedule the job to run every hour
-//   cron.schedule("0 * * * *", fetchAndUpdateNews);
-// } catch (err) {
-//   console.log(err);
-// }
+try {
+  console.log("where is it")
+  // Schedule the job to run every hour
+  cron.schedule("0 * * * *", fetchAndUpdateNews);
+} catch (err) {
+  console.log(err);
+}
 
 // Routes
 app.use("/", index);
