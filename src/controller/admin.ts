@@ -79,3 +79,14 @@ export const signup = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+export const viewAll = async (req: Request, res: Response) => {
+  try {
+    const admin = await AdminModel.find();
+
+    res.status(200).json({ admin: admin });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
