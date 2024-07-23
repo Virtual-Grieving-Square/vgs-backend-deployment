@@ -6,13 +6,15 @@ export const generateAdminAccessToken = (
   lname: string,
   email: string,
   role: string,
+  type: string,
 ) => {
   const data = {
     id: id,
     fname: fname,
     lname: lname,
     email: email,
-    role: role
+    role: role,
+    type: type
   };
 
   return jwt.sign(data, process.env.JWT_SECRET as string);

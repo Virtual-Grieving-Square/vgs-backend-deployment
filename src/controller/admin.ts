@@ -33,7 +33,8 @@ export const login = async (req: Request, res: Response) => {
       admin.fname,
       admin.lname,
       admin.email,
-      admin.role
+      admin.role,
+      admin.type
     );
 
     res.status(200).json({ accessToken: accessToken });
@@ -46,7 +47,7 @@ export const login = async (req: Request, res: Response) => {
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { fname, lname, email, role, password } = req.body;
+    const { fname, lname, email, role, password, type } = req.body;
 
     if (!fname || !lname || !email || !role || !password) {
       return res.status(403).json({ message: "Please fill all fields" });
@@ -67,12 +68,13 @@ export const signup = async (req: Request, res: Response) => {
       lname: lname,
       email: email,
       role: role,
+      type: type,
       password: hashedPassword,
     });
 
     await newAdmin.save();
 
-    res.status(201).json({ message: "Admin created" });
+    res.status(200).json({ message: "Admin created" });
 
   } catch (error) {
     console.error(error);
