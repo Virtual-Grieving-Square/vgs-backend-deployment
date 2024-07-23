@@ -270,16 +270,16 @@ export const likePost = async (req: Request, res: Response) => {
           const payload = {
             title: "Your post got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your post.`,
-            data: {},
+            data: { from: likerId, to: post.author },
           };
           await sendNotification({ token: tokenData.token, payload });
-          await emitLikeUpdate(
-            post.author,
-            `${user?.firstName} ${user?.lastName} liked your comment.`,
-            "Post comment Like",
-            likerId
-          );
         }
+        await emitLikeUpdate(
+          post.author,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Post comment Like",
+          likerId
+        );
       }
       return res
         .status(200)
@@ -415,7 +415,7 @@ export const createComment = async (req: Request, res: Response) => {
             const payload = {
               title: "Your post got comment!",
               body: `${user?.firstName} ${user?.lastName} commented to your post.`,
-              data: { sender: senderId || "" },
+              data: { from: userId, to: reciver.author },
             };
             await sendNotification({ token: tokenData.token, payload });
             await emitLikeUpdate(
