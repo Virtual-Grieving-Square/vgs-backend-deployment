@@ -449,20 +449,24 @@ export const translateComment = async (req: Request, res: Response) => {
     text
   )}&target=${targetLanguage}`;
 
-  await axios
-    .post(apiUrl)
-    .then((response) => {
-      res.status(200).json({
-        translate: response.data.data.translations[0].translatedText,
-        lan: "eng",
+  try {
+    await axios
+      .post(apiUrl)
+      .then((response) => {
+        res.status(200).json({
+          translate: response.data.data.translations[0].translatedText,
+          lan: "en",
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        res.status(403).json({
+          error,
+        });
       });
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      res.status(403).json({
-        error,
-      });
-    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const likeComment = async (req: Request, res: Response) => {
