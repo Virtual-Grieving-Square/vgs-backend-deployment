@@ -270,16 +270,16 @@ export const likePost = async (req: Request, res: Response) => {
           const payload = {
             title: "Your post got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your post.`,
-            data: {},
+            data: { from: likerId, to: post.author },
           };
           await sendNotification({ token: tokenData.token, payload });
-          await emitLikeUpdate(
-            post.author,
-            `${user?.firstName} ${user?.lastName} liked your comment.`,
-            "Post comment Like",
-            likerId
-          );
         }
+        await emitLikeUpdate(
+          post.author,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Post comment Like",
+          likerId
+        );
       }
       return res
         .status(200)
@@ -415,7 +415,7 @@ export const createComment = async (req: Request, res: Response) => {
             const payload = {
               title: "Your post got comment!",
               body: `${user?.firstName} ${user?.lastName} commented to your post.`,
-              data: { sender: senderId || "" },
+              data: { from: userId, to: reciver.author },
             };
             await sendNotification({ token: tokenData.token, payload });
             await emitLikeUpdate(
@@ -449,20 +449,24 @@ export const translateComment = async (req: Request, res: Response) => {
     text
   )}&target=${targetLanguage}`;
 
-  await axios
-    .post(apiUrl)
-    .then((response) => {
-      res.status(200).json({
-        translate: response.data.data.translations[0].translatedText,
-        lan: "eng",
+  try {
+    await axios
+      .post(apiUrl)
+      .then((response) => {
+        res.status(200).json({
+          translate: response.data.data.translations[0].translatedText,
+          lan: "en",
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        res.status(403).json({
+          error,
+        });
       });
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      res.status(403).json({
-        error,
-      });
-    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const likeComment = async (req: Request, res: Response) => {

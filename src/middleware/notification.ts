@@ -9,7 +9,7 @@ interface NotificationPayload {
 
 interface SendNotificationOptions {
   token: string;
-  payload: NotificationPayload;
+  payload: any;
 }
 
 const sendNotification = async ({

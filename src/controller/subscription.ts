@@ -6,8 +6,12 @@ import PaymentListModel from "../model/paymentList";
 import DepositListModel from "../model/depositList";
 import { generateOrderNumber } from "../util/generateOrderNumber";
 import bcrypt from "bcrypt";
-import { sendEmailSubscriptionCancel, sendEmailSubscriptionDowngraded } from "../util/email";
+import {
+  sendEmailSubscriptionCancel,
+  sendEmailSubscriptionDowngraded,
+} from "../util/email";
 import { dateGetDate, dateGetTime } from "../util/date";
+import { FeePayment } from "../model/FeePercentage";
 
 const express = require("express");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
@@ -196,19 +200,19 @@ export const cancelSubscription = async (req: Request, res: Response) => {
                 name: user!.firstName + " " + user!.lastName,
                 email: user!.email,
                 date: dateGetDate(nowdate.toISOString()),
-                time: dateGetTime(nowdate.toISOString())
-              }).then((response) => {
-                console.log(response);
-              }).catch((error) => {
-                console.error(error);
+                time: dateGetTime(nowdate.toISOString()),
               })
-
-              res
-                .status(200)
-                .json({
-                  msg: "subscription_canceled",
-                  status: status,
+                .then((response) => {
+                  console.log(response);
+                })
+                .catch((error) => {
+                  console.error(error);
                 });
+
+              res.status(200).json({
+                msg: "subscription_canceled",
+                status: status,
+              });
             }
           });
       }
@@ -226,6 +230,17 @@ export const deposit = async (req: Request, res: Response) => {
   try {
     const { id, amount } = req.body;
 
+    // Fetch the fee percentage from the database
+    const feeRecord = await FeePayment.findOne({ _id: "feeRecord1" });
+    if (!feeRecord) {
+      return res.status(500).json({ error: "Fee percentage not set" });
+    }
+    const feePercentage = feeRecord.percentage;
+
+    // Calculate the fee based on the fetched percentage
+    const fee = amount * (feePercentage / 100);
+    const totalAmount = amount + fee;
+
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -233,20 +248,31 @@ export const deposit = async (req: Request, res: Response) => {
             currency: "usd",
             product_data: {
               name: "Deposit",
+              description: `Deposit of $${amount.toFixed(2)}`,
             },
             unit_amount: amount * 100,
           },
           quantity: 1,
         },
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "VGS Fee",
+              description: `Service fee of $${fee.toFixed(2)}`,
+            },
+            unit_amount: fee * 100,
+          },
+          quantity: 1,
+        },
       ],
       mode: "payment",
-      success_url: req.body.from && req.body.from == "memorial" ?
-        (
-          req.body.type && req.body.type == "pet" ?
-            `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance` :
-            `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
-        ) :
-        `${YOUR_DOMAIN}/account?success=true`,
+      success_url:
+        req.body.from && req.body.from == "memorial"
+          ? req.body.type && req.body.type == "pet"
+            ? `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`
+            : `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
+          : `${YOUR_DOMAIN}/account?success=true`,
       cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
       automatic_tax: { enabled: true },
     });
@@ -283,9 +309,8 @@ export const upgrade = async (req: Request, res: Response) => {
       const match = await bcrypt.compare(password, userInfo.password);
 
       if (!match) {
-        return res.status(403).json({ msg: "Password Incorrect" })
+        return res.status(403).json({ msg: "Password Incorrect" });
       } else {
-
         const levels: { [key: string]: number } = {
           free: 1,
           silver: 2,
@@ -298,7 +323,6 @@ export const upgrade = async (req: Request, res: Response) => {
         if (selectedLevel <= currentLevel) {
           return res.status(403).json({ msg: "Wrong upgrading option" });
         } else {
-
           const subscriptionPlan = await SubscriptionPlanModel.findOne({
             label: upSubscription,
           });
@@ -318,13 +342,12 @@ export const upgrade = async (req: Request, res: Response) => {
               },
             ],
             mode: "subscription",
-            success_url: req.body.from && req.body.from == "memorial" ?
-              (
-                req.body.type && req.body.type == "pet" ?
-                  `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}` :
-                  `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`
-              ) :
-              `${YOUR_DOMAIN}/account?payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`,
+            success_url:
+              req.body.from && req.body.from == "memorial"
+                ? req.body.type && req.body.type == "pet"
+                  ? `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`
+                  : `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=upgrade&payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`
+                : `${YOUR_DOMAIN}/account?payment=success&id=${userID}&type=upgrade&subscription=${upSubscription}`,
             cancel_url: `${YOUR_DOMAIN}/account?payment=canceled&id=${userID}&type=upgrade&subscription=${upSubscription}`,
             automatic_tax: { enabled: true },
           });
@@ -340,7 +363,6 @@ export const upgrade = async (req: Request, res: Response) => {
             session: session,
             client_secret: session.client_secret,
           });
-
         }
       }
     }
@@ -355,23 +377,30 @@ export const downgrade = async (req: Request, res: Response) => {
     const datenow = new Date();
 
     if (!user) {
-      return res.status(404).json({ msg: "User Not Found" })
+      return res.status(404).json({ msg: "User Not Found" });
     } else {
       const match = await bcrypt.compare(password, user.password);
 
       if (!match) {
         return res.status(403).json({ msg: "Password Incorrect" });
       } else {
-        const subscription = await stripe.subscriptions.retrieve(user.subscriptionId);
+        const subscription = await stripe.subscriptions.retrieve(
+          user.subscriptionId
+        );
 
-        const updateSubscription = await stripe.subscriptions.update(user.subscriptionId, {
-          items: [{
-            id: subscription.items.data[0].id,
-            price: "price_1PABuPFEZ2nUxcULGeQfmIs7",
-          }],
-          proration_behavior: 'none', // Disable proration
-          billing_cycle_anchor: 'now', // Changes take effect immediately 
-        });
+        const updateSubscription = await stripe.subscriptions.update(
+          user.subscriptionId,
+          {
+            items: [
+              {
+                id: subscription.items.data[0].id,
+                price: "price_1PABuPFEZ2nUxcULGeQfmIs7",
+              },
+            ],
+            proration_behavior: "none", // Disable proration
+            billing_cycle_anchor: "now", // Changes take effect immediately
+          }
+        );
 
         await UserModel.findOneAndUpdate(
           { _id: id },
@@ -389,11 +418,13 @@ export const downgrade = async (req: Request, res: Response) => {
           date: dateGetDate(datenow.toISOString()),
           payment: "5.00",
           time: dateGetTime(datenow.toISOString()),
-        }).then((response) => {
-          console.log(response);
-        }).catch((error) => {
-          console.error(error);
         })
+          .then((response) => {
+            console.log(response);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
 
         res.status(200).json({
           status: true,
@@ -405,7 +436,7 @@ export const downgrade = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ msg: "Internal Server Error" });
   }
-}
+};
 
 export const checkSubscriptions = async (req: Request, res: Response) => {
   try {
