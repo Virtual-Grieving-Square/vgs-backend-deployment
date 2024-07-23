@@ -10,4 +10,5 @@ router.post('/login', login);
 
 router.post("/admin/addFee", setFeePercentage);
 router.post("/admin/getFee", getFeePercentage);
+
 export default router;
