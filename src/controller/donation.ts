@@ -67,7 +67,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                 name: userFrom?.firstName + " " + userFrom?.lastName,
               });
 
-              await donate.save();
+              const newDonation = await donate.save();
+              const donationId = newDonation._id;
 
               await PetMemorial.updateOne(
                 {
@@ -106,16 +107,22 @@ export const makeDonation = async (req: Request, res: Response) => {
                   const payload = {
                     title: "Your memorial got donation!",
                     body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
-                    data: { sender: from },
+                    data: {
+                      from: from,
+                      to: reciver.owner,
+                      type: "donation-pet",
+                      petmemorialid: to,
+                      donationid: donationId,
+                    },
                   };
                   await sendNotification({ token: tokenData.token, payload });
-                  await emitLikeUpdate(
-                    reciver.owner,
-                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
-                    "Memorial Donation",
-                    from
-                  );
                 }
+                await emitLikeUpdate(
+                  reciver.owner,
+                  `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
+                  "Memorial Donation",
+                  from
+                );
               }
               res.status(200).json({ message: "Donated successfully", donate });
             }
@@ -148,7 +155,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                 name: userFrom?.firstName + " " + userFrom?.lastName,
               });
 
-              await donate.save();
+              const newDonation = await donate.save();
+              const donationId = newDonation._id;
 
               await HumanMemorial.updateOne(
                 {
@@ -192,16 +200,22 @@ export const makeDonation = async (req: Request, res: Response) => {
                   const payload = {
                     title: "Your memorial got donation!",
                     body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
-                    data: { sender: from },
+                    data: {
+                      from: from,
+                      to: reciver.author,
+                      type: "donation-human",
+                      humanmemorialid: to,
+                      donationid: donationId,
+                    },
                   };
                   await sendNotification({ token: tokenData.token, payload });
-                  await emitLikeUpdate(
-                    reciver.author,
-                    `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
-                    "Memorial Donation",
-                    from
-                  );
                 }
+                await emitLikeUpdate(
+                  reciver.author,
+                  `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
+                  "Memorial Donation",
+                  from
+                );
               }
               await sendEmailNonUserDonationSender({
                 name:
@@ -346,7 +360,8 @@ export const donateFlower = async (req: Request, res: Response) => {
               type: flowerType!.type,
             });
 
-            await donateFlower.save();
+            const newDonation = await donateFlower.save();
+            const donationId = newDonation._id;
 
             await UserModel.findOneAndUpdate(
               { _id: from },
@@ -369,16 +384,23 @@ export const donateFlower = async (req: Request, res: Response) => {
                 const payload = {
                   title: "Your memorial got donation!",
                   body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
-                  data: { sender: from },
+
+                  data: {
+                    from: from,
+                    to: mainUser!._id,
+                    type: "flower-pet",
+                    petmemorialid: to,
+                    donationid: donationId,
+                  },
                 };
                 await sendNotification({ token: tokenData.token, payload });
-                await emitLikeUpdate(
-                  mainUser!._id,
-                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`,
-                  "Memorial Donation",
-                  from
-                );
               }
+              await emitLikeUpdate(
+                mainUser!._id,
+                `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`,
+                "Memorial Donation",
+                from
+              );
             }
             console.log("Pet Flower Donation Successful");
             res
@@ -413,7 +435,8 @@ export const donateFlower = async (req: Request, res: Response) => {
               type: flowerType!.type,
             });
 
-            await donateFlower.save();
+            const newDonation = await donateFlower.save();
+            const donationID = newDonation._id;
 
             await UserModel.findOneAndUpdate(
               { _id: from },
@@ -438,16 +461,23 @@ export const donateFlower = async (req: Request, res: Response) => {
                 const payload = {
                   title: "Your memorial got donation!",
                   body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
-                  data: { sender: from },
+
+                  data: {
+                    from: from,
+                    to: reciver.author,
+                    type: "flower-human",
+                    petmemorialid: to,
+                    donationid: donationID,
+                  },
                 };
                 await sendNotification({ token: tokenData.token, payload });
-                await emitLikeUpdate(
-                  reciver.author,
-                  `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
-                  "Memorial donation",
-                  from
-                );
               }
+              await emitLikeUpdate(
+                reciver.author,
+                `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+                "Memorial donation",
+                from
+              );
             }
             res.status(200).json({
               message: "Donated successfully",
@@ -541,7 +571,8 @@ export const likeDonationComment = async (req: Request, res: Response) => {
         likerId: likerId,
       });
 
-      await like.save();
+      const newLike = await like.save();
+      const likeId = newLike._id;
 
       await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
@@ -555,16 +586,23 @@ export const likeDonationComment = async (req: Request, res: Response) => {
           const payload = {
             title: "Your comment got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
-            data: { postId: postId.toString(), likerId: likerId.toString() },
+
+            data: {
+              from: user?._id,
+              to: donation.from,
+              type: "donation-like",
+              likeid: likeId,
+              donationid: postId,
+            },
           };
           await sendNotification({ token: tokenData.token, payload });
-          await emitLikeUpdate(
-            donation.from,
-            `${user?.firstName} ${user?.lastName} liked your comment.`,
-            "Memorial Donation",
-            likerId
-          );
         }
+        await emitLikeUpdate(
+          donation.from,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Memorial Donation",
+          likerId
+        );
       }
       return res
         .status(200)
@@ -609,7 +647,8 @@ export const likeFlowerDonationComment = async (
         likerId: likerId,
       });
 
-      await like.save();
+      const newLike = await like.save();
+      const likeId = newLike._id;
 
       await FlowerDonationModel.findByIdAndUpdate(postId, {
         $inc: { likes: 1 },
@@ -624,16 +663,22 @@ export const likeFlowerDonationComment = async (
           const payload = {
             title: "Your comment got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
-            data: { postId: postId.toString(), likerId: likerId.toString() },
+            data: {
+              from: user?._id,
+              to: flower?.from,
+              type: "flower-like",
+              likeid: likeId,
+              donationid: postId,
+            },
           };
           await sendNotification({ token: tokenData.token, payload });
-          await emitLikeUpdate(
-            flower?.from,
-            `${user?.firstName} ${user?.lastName} liked your comment.`,
-            "Memorial comment Like",
-            likerId
-          );
         }
+        await emitLikeUpdate(
+          flower?.from,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Memorial comment Like",
+          likerId
+        );
       }
       return res
         .status(200)

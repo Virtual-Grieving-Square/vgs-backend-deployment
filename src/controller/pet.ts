@@ -299,7 +299,8 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
           banMessage: "Account Suspended for Bad Comment",
         });
       } else {
-        await comment.save();
+        const newCooment = await comment.save();
+        const commentId = newCooment._id;
         // await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
         const memo = await PetMemorial.findById(memorialId);
         if (memo) {
@@ -309,16 +310,22 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
             const payload = {
               title: "Your Memorial got new comment!",
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
-              data: {},
+              data: {
+                from: user?._id,
+                to: memo.owner,
+                type: "memorial-pet-comment",
+                memorialid: memorialId,
+                commentid: commentId,
+              },
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitCommentUpdate(
-              memo.owner,
-              `${user?.firstName} ${user?.lastName} commented on your memorial.`,
-              "Pet Memorial comment ",
-              userId
-            );
           }
+          await emitCommentUpdate(
+            memo.owner,
+            `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+            "Pet Memorial comment ",
+            userId
+          );
         }
         res.status(200).json({
           msg: "comment_created_successfully",
@@ -363,7 +370,8 @@ export const likePetComment = async (req: Request, res: Response) => {
         likerId: likerId,
       });
 
-      await like.save();
+      const newLike = await like.save();
+      const likeId = newLike._id;
 
       await PetMemorialComment.findByIdAndUpdate(postId, {
         $inc: { likes: 1 },
@@ -379,17 +387,25 @@ export const likePetComment = async (req: Request, res: Response) => {
           const payload = {
             title: "Your comment got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
-            data: { postId: postId.toString(), likerId: likerId.toString() },
+
+            data: {
+              from: user?._id,
+              to: memo?.userId,
+              type: "pet-comment-like",
+              likeid: likeId,
+              commentid: postId,
+            },
           };
           await sendNotification({ token: tokenData.token, payload });
         }
+
+        await emitLikeUpdate(
+          memo?.userId,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Pet Memorial comment Like",
+          likerId
+        );
       }
-      await emitLikeUpdate(
-        memo?.userId,
-        `${user?.firstName} ${user?.lastName} liked your comment.`,
-        "Pet Memorial comment Like",
-        likerId
-      );
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });

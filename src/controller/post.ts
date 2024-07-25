@@ -258,7 +258,8 @@ export const likePost = async (req: Request, res: Response) => {
         likerId: likerId,
       });
 
-      await like.save();
+      const newLike = await like.save();
+      const LikeId = newLike._id;
 
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
@@ -270,7 +271,14 @@ export const likePost = async (req: Request, res: Response) => {
           const payload = {
             title: "Your post got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your post.`,
-            data: { from: likerId, to: post.author },
+            data: {
+              from: likerId,
+              to: post.author,
+              type: "post-like",
+              postid: postId,
+              likeid: LikeId,
+            },
+          
           };
           await sendNotification({ token: tokenData.token, payload });
         }
@@ -401,7 +409,8 @@ export const createComment = async (req: Request, res: Response) => {
           banMessage: "Account Suspended for Bad Comment",
         });
       } else {
-        await comment.save();
+        const savedComment = await comment.save();
+        const newCommentId = savedComment._id;
         await PostModel.findByIdAndUpdate(postId, { $inc: { comments: 1 } });
 
         const reciver = await PostModel.findOne({
@@ -415,7 +424,13 @@ export const createComment = async (req: Request, res: Response) => {
             const payload = {
               title: "Your post got comment!",
               body: `${user?.firstName} ${user?.lastName} commented to your post.`,
-              data: { from: userId, to: reciver.author },
+              data: {
+                from: userId,
+                to: reciver.author,
+                type: "post-comment",
+                postid: postId,
+                commentid: newCommentId,
+              },
             };
             await sendNotification({ token: tokenData.token, payload });
             await emitLikeUpdate(
