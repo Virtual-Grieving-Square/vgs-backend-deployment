@@ -4,7 +4,7 @@ import { messaging } from "../firebase";
 interface NotificationPayload {
   title: string;
   body: string;
-  data?: { [key: string]: string };
+  data?: any;
 }
 
 interface SendNotificationOptions {
@@ -16,7 +16,6 @@ const sendNotification = async ({
   token,
   payload,
 }: SendNotificationOptions) => {
- 
   try {
     console.log(token);
     const message = {
