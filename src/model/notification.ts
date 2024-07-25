@@ -7,6 +7,7 @@ export interface INotif extends Document {
   senderId: string;
   type: string;
   notificationtype: string;
+  contentid: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +19,7 @@ const NotificationSchema: Schema = new Schema({
   senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   type: { type: String, required: true },
   notificationtype: { type: String, required: true },
+  contentid: { type: String, required: true },
   //Timestamp
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

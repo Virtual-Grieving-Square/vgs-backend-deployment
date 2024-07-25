@@ -469,21 +469,22 @@ export const createMemorialComment = async (req: Request, res: Response) => {
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
 
               data: {
-                fromid: user?._id.toString(),
+                fromid: user?._id?.toString(),
                 toid: memo.author.toString(),
                 type: "memorial-comment",
                 memorialid: memorialId.toString(),
-                commentid: commentId.toString(),
+                commentid: commentId?.toString(),
               },
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitCommentUpdate(
-              memo.author,
-              `${user?.firstName} ${user?.lastName} commented on your memorial.`,
-              "Memorial comment ",
-              userId
-            );
           }
+          await emitCommentUpdate(
+            memo.author,
+            `${user?.firstName} ${user?.lastName} commented on your memorial.`,
+            "Memorial comment ",
+            userId,
+            memorialId
+          );
         }
         res.status(200).json({
           msg: "comment_created_successfully",
@@ -574,11 +575,11 @@ export const likeComment = async (req: Request, res: Response) => {
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
 
             data: {
-              fromid: user?._id.toString(),
+              fromid: user?._id?.toString(),
               toid: memo?.userId.toString(),
               type: "memorial-comment-like",
               commmentid: postId.toString(),
-              likeid: likeID.toString(),
+              likeid: likeID?.toString(),
             },
           };
           await sendNotification({ token: tokenData.token, payload });
@@ -588,7 +589,8 @@ export const likeComment = async (req: Request, res: Response) => {
           memo?.userId,
           `${user?.firstName} ${user?.lastName} liked your comment.`,
           "Memorial comment Like",
-          likerId
+          likerId,
+          postId
         );
       }
       return res

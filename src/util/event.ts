@@ -34,7 +34,8 @@ const saveNotification = async (
   message: string,
   type: "like" | "comment",
   notificationtype: string,
-  senderId: string
+  senderId: string,
+  contentId: string
 ): Promise<void> => {
   try {
     const notification: Partial<INotif> = {
@@ -44,6 +45,7 @@ const saveNotification = async (
       senderId,
       type,
       notificationtype,
+      contentid: contentId,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -59,9 +61,10 @@ export const emitLikeUpdate = async (
   userId: any,
   data: string,
   type: string,
-  senderId: string
-  
+  senderId: string,
+  contentId: string
 ): Promise<void> => {
+  console.log("Like Updates");
   try {
     const user: User | null = await UserModel.findById(userId);
     if (!user) {
@@ -71,7 +74,7 @@ export const emitLikeUpdate = async (
 
     const dataToSend = constructDataToSend(user, data, "like", senderId, type);
     io.to(user.socketId).emit("realtime-notification", dataToSend);
-    await saveNotification(userId, data, "like",type, senderId);
+    await saveNotification(userId, data, "like", type, senderId, contentId);
   } catch (error) {
     console.error("Error fetching user:", error);
   }
@@ -82,7 +85,8 @@ export const emitCommentUpdate = async (
   userId: any,
   data: string,
   type: string,
-  senderId: string
+  senderId: string,
+  contentId: string
 ): Promise<void> => {
   try {
     const user: User | null = await UserModel.findById(userId);
@@ -99,30 +103,7 @@ export const emitCommentUpdate = async (
       type
     );
     io.to(user.socketId).emit("realtime-notification", dataToSend);
-    await saveNotification(userId, data, "comment", type, senderId);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-  }
-};
-
-
-export const emitnotificationUpdate = async (
-  userId: any,
-  data: string,
-  type: string,
-  senderId: string,
-  dataToSave: any
-): Promise<void> => {
-  try {
-    const user: User | null = await UserModel.findById(userId);
-    if (!user) {
-      console.error("User not found");
-      return;
-    }
-
-    
-    io.to(user.socketId).emit("realtime-notification", dataToSave);
-    await saveNotification(userId, data, "comment", type, senderId);
+    await saveNotification(userId, data, "comment", type, senderId, contentId);
   } catch (error) {
     console.error("Error fetching user:", error);
   }
