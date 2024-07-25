@@ -15,6 +15,7 @@ import {
 } from "../controller/famous";
 
 import multer from "multer";
+import { checkAdminState } from "../middleware/adminState";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -22,7 +23,7 @@ const upload = multer({ storage: storage });
 const router = express.Router();
 
 // Create Famous
-router.post("/create", upload.single("image"), create);
+router.post("/create", upload.single("image"), checkAdminState, create);
 
 // Get Items
 router.get("/getAll", getAll);
@@ -34,7 +35,7 @@ router.get("/getByNumber/:number", getByNumber);
 router.get('/getImage', getImage);
 
 // Delete Function
-router.delete("/delete/:id", deleteData);
+router.delete("/delete/:id", checkAdminState, deleteData);
 
 // Pet upload
 router.get("/pet/getAll", getAllPet);
@@ -43,10 +44,10 @@ router.get("/pet/getRandom",);
 router.get("/pet/getRandom/:id", getRandomByNumberPet);
 
 // Create Pet
-router.post("/pet/create", upload.single("image"), createPet);
+router.post("/pet/create", upload.single("image"), checkAdminState, createPet);
 
 // Delete Pet
-router.delete("/pet/delete/:id", deletePet);
+router.delete("/pet/delete/:id", checkAdminState, deletePet);
 
 
 

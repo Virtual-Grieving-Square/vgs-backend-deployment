@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import http from "http";
 import dotenv from "dotenv";
 import { connectDB } from "./database/db";
 import cron from "node-cron";
 import { initializeFirebase } from "./firebase";
+
 // Scoket.io
 import { Server } from "socket.io";
 
@@ -16,7 +18,6 @@ import admin from "./routes/admin";
 import auth from "./routes/auth";
 import users from "./routes/user";
 import post from "./routes/post";
-import admins from "./routes/admin";
 import streaming from "./routes/streaming";
 import subsciption from "./routes/subscription";
 import group from "./routes/group";
@@ -41,6 +42,7 @@ import heroes from "./routes/heroes";
 import tombstone from "./routes/tombstone";
 import comment from "./routes/comment";
 import notification from "./routes/notificatons";
+import cookies from "./routes/cookies";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
 
@@ -49,6 +51,8 @@ import { urlList } from "./util/urlList";
 import { tokenCheck } from "./middleware/tokenCheckMiddleware";
 import { stripeWebhook } from "./util/stripe";
 import { handleAuthentication } from "./util/socketAuthentication";
+import { checkAdminState } from "./middleware/adminState";
+
 var serviceAccount = require("../serviceAccountKey.json");
 
 const app = express();
@@ -62,9 +66,6 @@ const io = new Server(server, {
   },
 });
 
-// firebase.initializeApp({
-//   credential: firebase.credential.cert(serviceAccount),
-// });
 initializeFirebase();
 app.post(
   "/webhook",
@@ -78,6 +79,7 @@ app.post(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(
   cors({
@@ -111,7 +113,6 @@ app.use("/post", post); // here
 app.use("/streaming", streaming);
 app.use("/subscription", subsciption);
 app.use("/group", group);
-app.use("/admin", admins);
 app.use("/wallet", wallet); // here
 app.use("/email", email);
 app.use("/contact", contact);
@@ -133,6 +134,7 @@ app.use("/tombstone", tombstone);
 app.use("/heros", heroes);
 app.use("/comment", comment);
 app.use("/realTime", notification);
+app.use("/cookies", cookies);
 
 // Socket.io Connect
 io.on("connection", (socket: any) => {

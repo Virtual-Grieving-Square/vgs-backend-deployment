@@ -37,6 +37,18 @@ export const login = async (req: Request, res: Response) => {
       admin.type
     );
 
+    // res.cookie("accessToken", accessToken, {
+    //   httpOnly: process.env.NODE_ENV === 'production', // Ensures the cookie is sent only over HTTP(S), not client JavaScript
+    //   secure: process.env.NODE_ENV === 'production', // Ensures the cookie is sent only over HTTPS in production
+    //   sameSite: 'strict', // Helps prevent CSRF attacks
+    // });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: false, // Ensures the cookie is sent only over HTTP(S), not client JavaScript
+      secure: false, // Ensures the cookie is sent only over HTTPS in production
+      sameSite: 'strict', // Helps prevent CSRF attacks
+    });
+
     res.status(200).json({ accessToken: accessToken });
 
   } catch (error) {
@@ -87,6 +99,45 @@ export const viewAll = async (req: Request, res: Response) => {
     const admin = await AdminModel.find();
 
     res.status(200).json({ admin: admin });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export const deleteAdmin = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(403).json({ message: "Please provide id" });
+    }
+
+    await AdminModel.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Admin deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+export const suspendAdmin = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(403).json({ message: "Please provide id" });
+    }
+
+    const admin = await AdminModel.findById(id);
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    await AdminModel.findByIdAndUpdate(id, { suspend: !admin.suspend });
+
+    res.status(200).json({ message: "Admin suspended" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
