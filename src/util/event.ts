@@ -60,6 +60,7 @@ export const emitLikeUpdate = async (
   data: string,
   type: string,
   senderId: string
+  
 ): Promise<void> => {
   try {
     const user: User | null = await UserModel.findById(userId);
@@ -98,6 +99,29 @@ export const emitCommentUpdate = async (
       type
     );
     io.to(user.socketId).emit("realtime-notification", dataToSend);
+    await saveNotification(userId, data, "comment", type, senderId);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+  }
+};
+
+
+export const emitnotificationUpdate = async (
+  userId: any,
+  data: string,
+  type: string,
+  senderId: string,
+  dataToSave: any
+): Promise<void> => {
+  try {
+    const user: User | null = await UserModel.findById(userId);
+    if (!user) {
+      console.error("User not found");
+      return;
+    }
+
+    
+    io.to(user.socketId).emit("realtime-notification", dataToSave);
     await saveNotification(userId, data, "comment", type, senderId);
   } catch (error) {
     console.error("Error fetching user:", error);

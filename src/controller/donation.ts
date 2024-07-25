@@ -108,11 +108,11 @@ export const makeDonation = async (req: Request, res: Response) => {
                     title: "Your memorial got donation!",
                     body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
                     data: {
-                      from: from,
-                      to: reciver.owner,
+                      fromid: from.toString(),
+                      toid: reciver.owner.toString(),
                       type: "donation-pet",
-                      petmemorialid: to,
-                      donationid: donationId,
+                      petmemorialid: to.toString(),
+                      donationid: donationId.toString(),
                     },
                   };
                   await sendNotification({ token: tokenData.token, payload });
@@ -201,11 +201,11 @@ export const makeDonation = async (req: Request, res: Response) => {
                     title: "Your memorial got donation!",
                     body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
                     data: {
-                      from: from,
-                      to: reciver.author,
+                      fromid: from.toString(),
+                      toid: reciver.author.toString(),
                       type: "donation-human",
-                      humanmemorialid: to,
-                      donationid: donationId,
+                      humanmemorialid: to.toString(),
+                      donationid: donationId.toString(),
                     },
                   };
                   await sendNotification({ token: tokenData.token, payload });
@@ -386,11 +386,11 @@ export const donateFlower = async (req: Request, res: Response) => {
                   body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
 
                   data: {
-                    from: from,
-                    to: mainUser!._id,
+                    fromid: from.toString(),
+                    toid: mainUser!._id.toString(),
                     type: "flower-pet",
-                    petmemorialid: to,
-                    donationid: donationId,
+                    petmemorialid: to.toString(),
+                    donationid: donationId.toString(),
                   },
                 };
                 await sendNotification({ token: tokenData.token, payload });
@@ -463,11 +463,11 @@ export const donateFlower = async (req: Request, res: Response) => {
                   body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
 
                   data: {
-                    from: from,
-                    to: reciver.author,
+                    fromid: from.toString(),
+                    toid: reciver.author.toString(),
                     type: "flower-human",
-                    petmemorialid: to,
-                    donationid: donationID,
+                    petmemorialid: to.toString(),
+                    donationid: donationID.toString(),
                   },
                 };
                 await sendNotification({ token: tokenData.token, payload });
@@ -588,11 +588,11 @@ export const likeDonationComment = async (req: Request, res: Response) => {
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
 
             data: {
-              from: user?._id,
-              to: donation.from,
+              fromid: user?._id.toString(),
+              toid: donation.from?.toString(),
               type: "donation-like",
-              likeid: likeId,
-              donationid: postId,
+              likeid: likeId.toString(),
+              donationid: postId.toString(),
             },
           };
           await sendNotification({ token: tokenData.token, payload });
@@ -664,11 +664,11 @@ export const likeFlowerDonationComment = async (
             title: "Your comment got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
             data: {
-              from: user?._id,
-              to: flower?.from,
+              fromid: user?._id.toString(),
+              toid: flower?.from.toString(),
               type: "flower-like",
-              likeid: likeId,
-              donationid: postId,
+              likeid: likeId.toString(),
+              donationid: postId.toString(),
             },
           };
           await sendNotification({ token: tokenData.token, payload });

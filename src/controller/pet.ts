@@ -311,11 +311,11 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
               title: "Your Memorial got new comment!",
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
               data: {
-                from: user?._id,
-                to: memo.owner,
+                fromid: user?._id.toString(),
+                toid: memo.owner.toString(),
                 type: "memorial-pet-comment",
-                memorialid: memorialId,
-                commentid: commentId,
+                memorialid: memorialId.toString(),
+                commentid: commentId.toString(),
               },
             };
             await sendNotification({ token: tokenData.token, payload });
@@ -389,11 +389,11 @@ export const likePetComment = async (req: Request, res: Response) => {
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
 
             data: {
-              from: user?._id,
-              to: memo?.userId,
+              fromid: user?._id.toString(),
+              toid: memo?.userId.toString(),
               type: "pet-comment-like",
-              likeid: likeId,
-              commentid: postId,
+              likeid: likeId.toString(),
+              commentid: postId.toString(),
             },
           };
           await sendNotification({ token: tokenData.token, payload });

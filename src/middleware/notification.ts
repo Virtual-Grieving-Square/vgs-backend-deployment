@@ -15,9 +15,9 @@ interface SendNotificationOptions {
 const sendNotification = async ({
   token,
   payload,
-}: SendNotificationOptions) => {
+}: (any)) => {
   try {
-    console.log(token);
+    console.log(payload.data);
     const message = {
       notification: {
         title: payload.title,

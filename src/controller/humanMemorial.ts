@@ -469,11 +469,11 @@ export const createMemorialComment = async (req: Request, res: Response) => {
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
 
               data: {
-                from: user?._id,
-                to: memo.author,
+                fromid: user?._id.toString(),
+                toid: memo.author.toString(),
                 type: "memorial-comment",
-                memorialid: memorialId,
-                commentid: commentId,
+                memorialid: memorialId.toString(),
+                commentid: commentId.toString(),
               },
             };
             await sendNotification({ token: tokenData.token, payload });
@@ -574,11 +574,11 @@ export const likeComment = async (req: Request, res: Response) => {
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
 
             data: {
-              from: user?._id,
-              to: memo?.userId,
+              fromid: user?._id.toString(),
+              toid: memo?.userId.toString(),
               type: "memorial-comment-like",
-              commmentid: postId,
-              likeid: likeID,
+              commmentid: postId.toString(),
+              likeid: likeID.toString(),
             },
           };
           await sendNotification({ token: tokenData.token, payload });

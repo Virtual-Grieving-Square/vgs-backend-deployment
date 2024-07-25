@@ -24,7 +24,7 @@ import {
 } from "../util/storageTracker";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
-import { emitLikeUpdate } from "../util/event";
+import { emitLikeUpdate, emitnotificationUpdate } from "../util/event";
 
 // import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -272,13 +272,12 @@ export const likePost = async (req: Request, res: Response) => {
             title: "Your post got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your post.`,
             data: {
-              from: likerId,
-              to: post.author,
+              fromid: likerId.toString(),
+              toid: post.author.toString(),
               type: "post-like",
-              postid: postId,
-              likeid: LikeId,
+              postid: postId.toString(),
+              likeid: LikeId.toString(),
             },
-          
           };
           await sendNotification({ token: tokenData.token, payload });
         }
@@ -425,21 +424,35 @@ export const createComment = async (req: Request, res: Response) => {
               title: "Your post got comment!",
               body: `${user?.firstName} ${user?.lastName} commented to your post.`,
               data: {
-                from: userId,
-                to: reciver.author,
+                fromid: userId.toString(),
+                toid: reciver.author.toString(),
                 type: "post-comment",
-                postid: postId,
-                commentid: newCommentId,
+                postid: postId.toString(),
+                commentid: newCommentId.toString(),
               },
             };
             await sendNotification({ token: tokenData.token, payload });
-            await emitLikeUpdate(
-              reciver.author,
-              `${user?.firstName} ${user?.lastName} commented to your post.`,
-              "Post Comment",
-              userId
-            );
           }
+          const dataTosave = {
+            fromid: userId.toString(),
+            toid: reciver.author.toString(),
+            type: "post-comment",
+            postid: postId.toString(),
+            commentid: newCommentId.toString(),
+          };
+          // await emitnotificationUpdate(
+          //   reciver.author,
+          //   `${user?.firstName} ${user?.lastName} commented to your post.`,
+          //   "Post Comment",
+          //   userId,
+          //   dataTosave
+          // );
+          await emitLikeUpdate(
+            reciver.author,
+            `${user?.firstName} ${user?.lastName} commented to your post.`,
+            "Post Comment",
+            userId
+          );
         }
         res.status(200).json({
           msg: "comment_created_successfully",
