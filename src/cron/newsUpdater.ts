@@ -51,6 +51,8 @@ export const fetchAndUpdateNews = async () => {
     const response = await newsapi.v2.everything({
       q: "died OR school-shootings OR funeral OR mass-shooting OR earth-quake OR celebrity-death",
       language: "en",
+      sortBy: "publishedAt",
+      pageSize: 50,
     });
 
     if (response.status === "ok") {

@@ -456,7 +456,8 @@ export const createMemorialComment = async (req: Request, res: Response) => {
           banMessage: "Account Suspended for Bad Comment",
         });
       } else {
-        await comment.save();
+        const newComment = await comment.save();
+        const commentId = newComment._id;
         await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
         const memo = await HumanMemorial.findById(memorialId);
         if (memo && user?._id !== memo.author) {
@@ -466,7 +467,14 @@ export const createMemorialComment = async (req: Request, res: Response) => {
             const payload = {
               title: "Your memorial got new comment!",
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
-              data: {},
+
+              data: {
+                from: user?._id,
+                to: memo.author,
+                type: "memorial-comment",
+                memorialid: memorialId,
+                commentid: commentId,
+              },
             };
             await sendNotification({ token: tokenData.token, payload });
             await emitCommentUpdate(
@@ -548,7 +556,8 @@ export const likeComment = async (req: Request, res: Response) => {
         likerId: likerId,
       });
 
-      await like.save();
+      const newLike = await like.save();
+      const likeID = newLike._id;
 
       await MemorialComment.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
@@ -563,17 +572,25 @@ export const likeComment = async (req: Request, res: Response) => {
           const payload = {
             title: "Your comment got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
-            data: { postId: postId.toString(), likerId: likerId.toString() },
+
+            data: {
+              from: user?._id,
+              to: memo?.userId,
+              type: "memorial-comment-like",
+              commmentid: postId,
+              likeid: likeID,
+            },
           };
           await sendNotification({ token: tokenData.token, payload });
         }
+
+        await emitLikeUpdate(
+          memo?.userId,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Memorial comment Like",
+          likerId
+        );
       }
-      await emitLikeUpdate(
-        memo?.userId,
-        `${user?.firstName} ${user?.lastName} liked your comment.`,
-        "Memorial comment Like",
-        likerId
-      );
       return res
         .status(200)
         .json({ like: true, message: "Comment liked successfully" });
