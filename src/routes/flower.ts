@@ -26,6 +26,6 @@ router.get("/getImage", getImage);
 
 // Update
 router.post("/updateFlowerImage", upload.single("image"), updateFlower);
-router.put("/update", checkAdminState, update);
+router.put("/update", update);
 
 export default router; 
