@@ -112,7 +112,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                       toid: reciver.owner.toString(),
                       type: "donation-pet",
                       petmemorialid: to.toString(),
-                      donationid: donationId.toString(),
+                      donationid: donationId?.toString(),
                     },
                   };
                   await sendNotification({ token: tokenData.token, payload });
@@ -121,7 +121,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                   reciver.owner,
                   `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
                   "Memorial Donation",
-                  from
+                  from,
+                  to
                 );
               }
               res.status(200).json({ message: "Donated successfully", donate });
@@ -205,7 +206,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                       toid: reciver.author.toString(),
                       type: "donation-human",
                       humanmemorialid: to.toString(),
-                      donationid: donationId.toString(),
+                      donationid: donationId?.toString(),
                     },
                   };
                   await sendNotification({ token: tokenData.token, payload });
@@ -214,7 +215,8 @@ export const makeDonation = async (req: Request, res: Response) => {
                   reciver.author,
                   `${userFrom?.firstName} ${userFrom?.lastName} Donated to your Memorial.`,
                   "Memorial Donation",
-                  from
+                  from,
+                  to
                 );
               }
               await sendEmailNonUserDonationSender({
@@ -390,7 +392,7 @@ export const donateFlower = async (req: Request, res: Response) => {
                     toid: mainUser!._id.toString(),
                     type: "flower-pet",
                     petmemorialid: to.toString(),
-                    donationid: donationId.toString(),
+                    donationid: donationId?.toString(),
                   },
                 };
                 await sendNotification({ token: tokenData.token, payload });
@@ -399,7 +401,8 @@ export const donateFlower = async (req: Request, res: Response) => {
                 mainUser!._id,
                 `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Memorial.`,
                 "Memorial Donation",
-                from
+                from,
+                to
               );
             }
             console.log("Pet Flower Donation Successful");
@@ -467,7 +470,7 @@ export const donateFlower = async (req: Request, res: Response) => {
                     toid: reciver.author.toString(),
                     type: "flower-human",
                     petmemorialid: to.toString(),
-                    donationid: donationID.toString(),
+                    donationid: donationID?.toString(),
                   },
                 };
                 await sendNotification({ token: tokenData.token, payload });
@@ -476,7 +479,8 @@ export const donateFlower = async (req: Request, res: Response) => {
                 reciver.author,
                 `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
                 "Memorial donation",
-                from
+                from,
+                to
               );
             }
             res.status(200).json({
@@ -588,10 +592,10 @@ export const likeDonationComment = async (req: Request, res: Response) => {
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
 
             data: {
-              fromid: user?._id.toString(),
+              fromid: user?._id?.toString(),
               toid: donation.from?.toString(),
               type: "donation-like",
-              likeid: likeId.toString(),
+              likeid: likeId?.toString(),
               donationid: postId.toString(),
             },
           };
@@ -601,7 +605,8 @@ export const likeDonationComment = async (req: Request, res: Response) => {
           donation.from,
           `${user?.firstName} ${user?.lastName} liked your comment.`,
           "Memorial Donation",
-          likerId
+          likerId,
+          postId
         );
       }
       return res
@@ -664,10 +669,10 @@ export const likeFlowerDonationComment = async (
             title: "Your comment got a new like!",
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
             data: {
-              fromid: user?._id.toString(),
+              fromid: user?._id?.toString(),
               toid: flower?.from.toString(),
               type: "flower-like",
-              likeid: likeId.toString(),
+              likeid: likeId?.toString(),
               donationid: postId.toString(),
             },
           };
@@ -677,7 +682,8 @@ export const likeFlowerDonationComment = async (
           flower?.from,
           `${user?.firstName} ${user?.lastName} liked your comment.`,
           "Memorial comment Like",
-          likerId
+          likerId,
+          postId
         );
       }
       return res

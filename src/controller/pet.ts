@@ -311,11 +311,11 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
               title: "Your Memorial got new comment!",
               body: `${user?.firstName} ${user?.lastName} commented on your memorial.`,
               data: {
-                fromid: user?._id.toString(),
+                fromid: user?._id?.toString(),
                 toid: memo.owner.toString(),
                 type: "memorial-pet-comment",
                 memorialid: memorialId.toString(),
-                commentid: commentId.toString(),
+                commentid: commentId?.toString(),
               },
             };
             await sendNotification({ token: tokenData.token, payload });
@@ -324,7 +324,8 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
             memo.owner,
             `${user?.firstName} ${user?.lastName} commented on your memorial.`,
             "Pet Memorial comment ",
-            userId
+            userId,
+            memorialId
           );
         }
         res.status(200).json({
@@ -389,10 +390,10 @@ export const likePetComment = async (req: Request, res: Response) => {
             body: `${user?.firstName} ${user?.lastName} liked your comment.`,
 
             data: {
-              fromid: user?._id.toString(),
+              fromid: user?._id?.toString(),
               toid: memo?.userId.toString(),
               type: "pet-comment-like",
-              likeid: likeId.toString(),
+              likeid: likeId?.toString(),
               commentid: postId.toString(),
             },
           };
@@ -403,7 +404,8 @@ export const likePetComment = async (req: Request, res: Response) => {
           memo?.userId,
           `${user?.firstName} ${user?.lastName} liked your comment.`,
           "Pet Memorial comment Like",
-          likerId
+          likerId,
+          postId?.toString()
         );
       }
       return res
