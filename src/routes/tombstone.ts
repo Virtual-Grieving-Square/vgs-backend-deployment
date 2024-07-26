@@ -26,7 +26,7 @@ const router = Router();
 router.get("/getAll", getAll);
 router.get("/getById/:id", getById);
 router.post("/create", upload.single("image"), create);
-router.delete("/delete/:id", checkAdminRole, deleteTombstone);
+router.delete("/delete/:id", deleteTombstone);
 
 //users tombstone
 router.post("/users/create", upload.single("image"), usersTombstone);
@@ -37,6 +37,6 @@ router.get("/users/tombstone:userId", fetchUsersTombstone);
 router.post("/pets/create", upload.single("image"), petTombstone);
 router.get("/pet/getTombstone/:id", getPetTombstone);
 router.get("/pet/getAllTombstone", getAllPetTombstones);
-router.delete("/pet/delete/:id", checkAdminRole, deletePetTombstone);
+router.delete("/pet/delete/:id", deletePetTombstone);
 
 export default router;
