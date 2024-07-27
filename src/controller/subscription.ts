@@ -13,6 +13,8 @@ import {
 import { dateGetDate, dateGetTime } from "../util/date";
 import { FeePayment } from "../model/FeePercentage";
 
+import config from "../config";
+
 const express = require("express");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -107,9 +109,11 @@ export const pay = async (req: Request, res: Response) => {
       } else {
         if (user) {
           if (user.subscriptionType == "silver") {
-            price = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+            // price = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+            price = config.PRICE_SUB_SILVER;
           } else if (user.subscriptionType == "gold") {
-            price = "price_1PABvTFEZ2nUxcULGaj999zd";
+            // price = "price_1PABvTFEZ2nUxcULGaj999zd";
+            price = config.PRICE_SUB_GOLD;
           }
 
           const orderNumber = generateOrderNumber(20);
@@ -333,9 +337,11 @@ export const upgrade = async (req: Request, res: Response) => {
 
           var newPrice: string = "";
           if (upSubscription == "silver") {
-            newPrice = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+            // newPrice = "price_1PABuPFEZ2nUxcULGeQfmIs7";
+            newPrice = config.PRICE_SUB_SILVER;
           } else if (upSubscription == "gold") {
-            newPrice = "price_1PABvTFEZ2nUxcULGaj999zd";
+            // newPrice = "price_1PABvTFEZ2nUxcULGaj999zd";
+            newPrice = config.PRICE_SUB_GOLD;
           }
 
           const session = await stripe.checkout.sessions.create({
@@ -398,7 +404,7 @@ export const downgrade = async (req: Request, res: Response) => {
             items: [
               {
                 id: subscription.items.data[0].id,
-                price: "price_1PABuPFEZ2nUxcULGeQfmIs7",
+                price: config.PRICE_SUB_SILVER,
               },
             ],
             proration_behavior: "none", // Disable proration
