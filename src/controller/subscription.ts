@@ -230,16 +230,20 @@ export const deposit = async (req: Request, res: Response) => {
   try {
     const { id, amount } = req.body;
 
-    // Fetch the fee percentage from the database
-    const feeRecord = await FeePayment.findOne({ _id: "feeRecord1" });
-    if (!feeRecord) {
-      return res.status(500).json({ error: "Fee percentage not set" });
+    if(!amount || !id){
+      return res.status(500).json({ error: "amount and id not specifed" });
     }
-    const feePercentage = feeRecord.percentage;
+
+    // Fetch the fee percentage from the database
+    // const feeRecord = await FeePayment.findOne({ _id: "feeRecord1" });
+    // if (!feeRecord) {
+    //   return res.status(500).json({ error: "Fee percentage not set" });
+    // }
+    // const feePercentage = feeRecord.percentage;
 
     // Calculate the fee based on the fetched percentage
-    const fee = amount * (feePercentage / 100);
-    const totalAmount = (amount + fee).toFixed(2);
+    // const fee = amount * (feePercentage / 100);
+    // const totalAmount = (amount + fee).toFixed(2);
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -254,17 +258,17 @@ export const deposit = async (req: Request, res: Response) => {
           },
           quantity: 1,
         },
-        // {
-        //   price_data: {
-        //     currency: "usd",
-        //     product_data: {
-        //       name: "VGS Fee",
-        //       description: `Service fee of $${fee.toFixed(2)}`,
-        //     },
-        //     unit_amount: fee * 100,
-        //   },
-        //   quantity: 1,
-        // },
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "VGS Fee",
+              description: `Service fee of $0`,
+            },
+            unit_amount: 0,
+          },
+          quantity: 1,
+        },
       ],
       mode: "payment",
       success_url:
