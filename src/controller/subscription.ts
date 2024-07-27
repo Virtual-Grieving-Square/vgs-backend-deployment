@@ -239,7 +239,7 @@ export const deposit = async (req: Request, res: Response) => {
 
     // Calculate the fee based on the fetched percentage
     const fee = amount * (feePercentage / 100);
-    const totalAmount = amount + fee;
+    const totalAmount = (amount + fee).toFixed(2);
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -254,17 +254,17 @@ export const deposit = async (req: Request, res: Response) => {
           },
           quantity: 1,
         },
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "VGS Fee",
-              description: `Service fee of $${fee.toFixed(2)}`,
-            },
-            unit_amount: fee * 100,
-          },
-          quantity: 1,
-        },
+        // {
+        //   price_data: {
+        //     currency: "usd",
+        //     product_data: {
+        //       name: "VGS Fee",
+        //       description: `Service fee of $${fee.toFixed(2)}`,
+        //     },
+        //     unit_amount: fee * 100,
+        //   },
+        //   quantity: 1,
+        // },
       ],
       mode: "payment",
       success_url:
