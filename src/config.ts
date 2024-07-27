@@ -35,8 +35,8 @@ const config: Config = {
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || "",
   twilioService: process.env.SERVICETOKEN || "",
   JWT_TOKEN: process.env.JWT_SECRET || "",
-  PRICE_SUB_SILVER: process.env.JWT_SECRET || "",
-  PRICE_SUB_GOLD: process.env.JWT_SECRET || "",
+  PRICE_SUB_SILVER: process.env.PRICE_SUB_SILVER || "",
+  PRICE_SUB_GOLD: process.env.PRICE_SUB_GOLD || "",
 };
 
 export default config;
