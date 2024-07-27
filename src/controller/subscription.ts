@@ -230,7 +230,7 @@ export const deposit = async (req: Request, res: Response) => {
   try {
     const { id, amount } = req.body;
 
-    if(!amount || !id){
+    if (!amount || !id) {
       return res.status(500).json({ error: "amount and id not specifed" });
     }
 
@@ -258,17 +258,17 @@ export const deposit = async (req: Request, res: Response) => {
           },
           quantity: 1,
         },
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "VGS Fee",
-              description: `Service fee of $0`,
-            },
-            unit_amount: 0,
-          },
-          quantity: 1,
-        },
+        // {
+        //   price_data: {
+        //     currency: "usd",
+        //     product_data: {
+        //       name: "VGS Fee",
+        //       description: `Service fee of $0`,
+        //     },
+        //     unit_amount: 0,
+        //   },
+        //   quantity: 1,
+        // },
       ],
       mode: "payment",
       success_url:
