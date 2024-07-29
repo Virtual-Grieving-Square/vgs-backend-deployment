@@ -394,7 +394,7 @@ export const likePetComment = async (req: Request, res: Response) => {
               toid: memo?.userId.toString(),
               type: "pet-comment-like",
               likeid: likeId?.toString(),
-              commentid: postId.toString(),
+              memorialid: memo.memorialId.toString(),
             },
           };
           await sendNotification({ token: tokenData.token, payload });

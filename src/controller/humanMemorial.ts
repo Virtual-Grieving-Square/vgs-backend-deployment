@@ -578,7 +578,7 @@ export const likeComment = async (req: Request, res: Response) => {
               fromid: user?._id?.toString(),
               toid: memo?.userId.toString(),
               type: "memorial-comment-like",
-              commmentid: postId.toString(),
+              memorialid: memo?.memorialId.toString(),
               likeid: likeID?.toString(),
             },
           };
