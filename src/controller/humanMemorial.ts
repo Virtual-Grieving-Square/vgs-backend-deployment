@@ -568,7 +568,7 @@ export const likeComment = async (req: Request, res: Response) => {
       const memopost = await HumanMemorial.findById(memo?.memorialId);
       console.log(memo);
       // console.log(memopost);
-      const reciver = likerId.toString();
+      const reciver = memo?.userId.toString();
       const sender = user?._id?.toString();
       if (memo && sender !== reciver) {
         const authorTokens = await FCMModel.find({ userId: memo?.userId });
