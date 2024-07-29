@@ -594,7 +594,7 @@ export const likeComment = async (req: Request, res: Response) => {
           `${user?.firstName} ${user?.lastName} liked your comment.`,
           "Memorial comment Like",
           likerId,
-          postId
+          memo?.memorialId
         );
       }
       return res

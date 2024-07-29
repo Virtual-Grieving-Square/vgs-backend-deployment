@@ -306,14 +306,42 @@ export const makeDonationNonUser = async (req: Request, res: Response) => {
         paymentId: session.id,
         to: user!._id,
         amount: amount,
-        name: name || "",
+        name: name || "anonymous",
         email: email || "",
         relation: relation || "",
         note: note || "",
         description: description || "Donation",
       });
 
-      await donate.save();
+      const newDonation: any = await donate.save();
+      const reciver = user._id?.toString();
+      const sender = newDonation._id.toString();
+      if (sender !== reciver) {
+        const authorTokens = await FCMModel.find({ userId: reciver });
+        console.log(authorTokens);
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your Memorie got a new Donation!",
+            body: `${name} donated to your memorial.`,
+
+            data: {
+              fromid: user?._id?.toString(),
+              toid: user._id?.toString(),
+              type: "non-user-donation",
+              memorialid: to.toString(),
+            },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+
+        await emitLikeUpdate(
+          reciver,
+          `${name} donated to your memorial.`,
+          "Non-User Donation",
+          sender,
+          to
+        );
+      }
 
       res.status(200).json({
         request: "success",
