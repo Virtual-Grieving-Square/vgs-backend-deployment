@@ -303,7 +303,9 @@ export const createPetMemorialComment = async (req: Request, res: Response) => {
         const commentId = newCooment._id;
         // await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
         const memo = await PetMemorial.findById(memorialId);
-        if (memo) {
+        const reciver = memo?.owner?.toString();
+        const sender = user?._id?.toString();
+        if (memo && sender !== reciver) {
           const authorTokens = await FCMModel.find({ userId: memo.owner });
 
           for (const tokenData of authorTokens) {
@@ -381,7 +383,9 @@ export const likePetComment = async (req: Request, res: Response) => {
       const memo = await PetMemorialComment.findById(postId);
       console.log(memo);
       // console.log(memopost);
-      if (memo) {
+      const sender = user?._id?.toString();
+      const reciver = memo?.userId.toString();
+      if (memo && reciver !== sender) {
         const authorTokens = await FCMModel.find({ userId: memo?.userId });
         console.log(authorTokens);
         for (const tokenData of authorTokens) {

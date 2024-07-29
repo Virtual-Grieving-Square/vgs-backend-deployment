@@ -264,7 +264,9 @@ export const likePost = async (req: Request, res: Response) => {
       await PostModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
       const post = await PostModel.findById(postId);
-      if (post) {
+      const reciver = post?.author.toString();
+      const sender = user?._id?.toString();
+      if (post && reciver !== sender) {
         const authorTokens = await FCMModel.find({ userId: post.author });
 
         for (const tokenData of authorTokens) {
@@ -417,7 +419,8 @@ export const createComment = async (req: Request, res: Response) => {
           _id: postId,
         });
         const senderId = user._id?.toString();
-        if (reciver) {
+        const reciverId = reciver?.author.toString();
+        if (reciver && reciverId !== senderId) {
           const authorTokens = await FCMModel.find({ userId: reciver.author });
 
           for (const tokenData of authorTokens) {

@@ -460,7 +460,9 @@ export const createMemorialComment = async (req: Request, res: Response) => {
         const commentId = newComment._id;
         await Memorial.findByIdAndUpdate(memorialId, { $inc: { comments: 1 } });
         const memo = await HumanMemorial.findById(memorialId);
-        if (memo && user?._id !== memo.author) {
+        const sender = user?._id?.toString();
+        const reciver = memo?.author.toString();
+        if (memo && sender !== reciver) {
           const authorTokens = await FCMModel.find({ userId: memo.author });
 
           for (const tokenData of authorTokens) {
@@ -566,7 +568,9 @@ export const likeComment = async (req: Request, res: Response) => {
       const memopost = await HumanMemorial.findById(memo?.memorialId);
       console.log(memo);
       // console.log(memopost);
-      if (memo && user?._id !== likerId) {
+      const reciver = likerId.toString();
+      const sender = user?._id?.toString();
+      if (memo && sender !== reciver) {
         const authorTokens = await FCMModel.find({ userId: memo?.userId });
         console.log(authorTokens);
         for (const tokenData of authorTokens) {
