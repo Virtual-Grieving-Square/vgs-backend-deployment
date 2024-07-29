@@ -111,7 +111,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                       fromid: from.toString(),
                       toid: reciver.owner.toString(),
                       type: "donation-pet",
-                      petmemorialid: to.toString(),
+                      memorialid: to.toString(),
                       donationid: donationId?.toString(),
                     },
                   };
@@ -205,7 +205,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                       fromid: from.toString(),
                       toid: reciver.author.toString(),
                       type: "donation-human",
-                      humanmemorialid: to.toString(),
+                      memorialid: to.toString(),
                       donationid: donationId?.toString(),
                     },
                   };
@@ -419,7 +419,7 @@ export const donateFlower = async (req: Request, res: Response) => {
                     fromid: from.toString(),
                     toid: mainUser!._id.toString(),
                     type: "flower-pet",
-                    petmemorialid: to.toString(),
+                    memorialid: to.toString(),
                     donationid: donationId?.toString(),
                   },
                 };
@@ -497,7 +497,7 @@ export const donateFlower = async (req: Request, res: Response) => {
                     fromid: from.toString(),
                     toid: reciver.author.toString(),
                     type: "flower-human",
-                    petmemorialid: to.toString(),
+                    memorialid: to.toString(),
                     donationid: donationID?.toString(),
                   },
                 };
