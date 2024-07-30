@@ -62,7 +62,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: urlList,
-    // origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
@@ -85,9 +84,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: urlList,
-    // origin: "*",
     optionsSuccessStatus: 200,
-    credentials: false,
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
