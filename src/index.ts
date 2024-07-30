@@ -84,8 +84,8 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    // origin: urlList,
-    origin: "*",
+    origin: urlList,
+    // origin: "*",
     optionsSuccessStatus: 200,
     credentials: false,
     methods: ["GET", "POST", "PUT", "DELETE"],
