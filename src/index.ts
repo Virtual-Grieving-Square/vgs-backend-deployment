@@ -61,7 +61,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: urlList,
+    // origin: urlList,
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
