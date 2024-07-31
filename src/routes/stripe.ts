@@ -2,8 +2,10 @@ import express from 'express';
 import {
   addStripeAccount,
   addStripeAccount2,
+  checkAccountStatus,
   createCheckoutSession,
   createPaymentIntent,
+  disconnectAccount,
   processPayout,
   stripeBalace,
   transferFunds,
@@ -20,6 +22,8 @@ router.post("/createPaymentIntent", createPaymentIntent);
 router.post("/process-payout", processPayout);
 
 // Test
+router.post("/checkaccoutStatus", checkAccountStatus);
+router.post("/disconectAccount", disconnectAccount)
 router.post("/addStripeAccount2", addStripeAccount2);
 router.post("/createCheckoutSession", createCheckoutSession);
 
