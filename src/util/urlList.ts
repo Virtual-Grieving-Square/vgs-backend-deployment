@@ -13,4 +13,5 @@ export const urlList = [
   "https://deoow05yxfsr.cloudfront.net",
   "https://virtualgrievingsquare.com",
   "https://admin.virtualgrievingsquare.com",
+  "https://0652-196-188-123-14.ngrok-free.app",
 ];
