@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { UserModel } from "../model/user";
 
+// Axios
+import axios from "axios";
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = process.env.DOMAIN;
@@ -41,7 +44,7 @@ export const addStripeAccount = async (req: Request, res: Response) => {
           const accountLink = await stripe.accountLinks.create({
             account: accountId,
             refresh_url: `${YOUR_DOMAIN}/account`,
-            return_url: `${YOUR_DOMAIN}/account?success=true&type=stripe-account-creation&id=${id}`,
+            return_url: `${YOUR_DOMAIN}/account`,
             type: "account_onboarding",
           });
 
@@ -59,9 +62,12 @@ export const addStripeAccount = async (req: Request, res: Response) => {
         })
         .catch((error: any) => {
           console.error(error);
-          res
-            .status(400)
-            .json({ error: error, msg: "Error in creating account" });
+          const errorMessage = error?.message || "An error occurred";
+          res.status(400).json({
+            errormsg: errorMessage,
+            error: error,
+            msg: "Error in creating account",
+          });
         });
     }
   } catch (error) {
@@ -69,6 +75,49 @@ export const addStripeAccount = async (req: Request, res: Response) => {
     res.status(500).json({ error: error, msg: "Internal Server Error" });
   }
 };
+
+export const updateAccountRegistration = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await UserModel.findById(id);
+
+    const accountLink = await stripe.accountLinks.create({
+      account: user?.stripeAccountId,
+      refresh_url: `${YOUR_DOMAIN}/account`,
+      return_url: `${YOUR_DOMAIN}/account`,
+      type: "account_onboarding",
+    });
+
+    res.status(200).json({
+      url: accountLink,
+    })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error, msg: "Internal Server Error" });
+  }
+}
+
+export const logintToAccount = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await UserModel.findById(id);
+
+    const loginLink = await stripe.accounts.createLoginLink(user?.stripeAccountId, {
+      redirect_url: YOUR_DOMAIN,
+    });
+
+    res.status(200).json({
+      url: loginLink,
+    })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error, msg: "Internal Server Error" });
+  }
+}
 
 export const addStripeAccount2 = async (req: Request, res: Response) => {
   try {
@@ -129,23 +178,167 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
   }
 };
 
+// export const transferFunds = async (req: Request, res: Response) => {
+//   try {
+//     const { amount, userId } = req.body;
+
+//     const transfer = await stripe.transfers.create({
+//       amount: amount * 100,
+//       currency: "usd",
+//       destination: userId,
+//     });
+
+//     res.status(200).json({ success: true, transfer: transfer });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: error, msg: "Internal Server Error" });
+//   }
+// };
+
 export const transferFunds = async (req: Request, res: Response) => {
   try {
     const { amount, userId } = req.body;
 
+    // Ensure amount and userId are provided
+    if (!amount || !userId) {
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: amount or userId" });
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Create a transfer
     const transfer = await stripe.transfers.create({
-      amount: amount * 100,
+      amount: amount * 100, // Amount in cents
       currency: "usd",
-      destination: userId,
+      destination: user.stripeAccountId,
     });
 
-    res.status(200).json({ success: true, transfer: transfer });
-  } catch (error) {
+    res.status(200).json({ success: true, transfer });
+  } catch (error: any) {
     console.error(error);
-    res.status(500).json({ error: error, msg: "Internal Server Error" });
+
+    const errorMessage = error?.message || "An error occurred";
+    const errorType = error?.type || "UnknownError";
+    const errorCode = error?.code || "unknown_error";
+    const statusCode = error?.statusCode || 500;
+
+    let httpStatusCode = 500;
+    if (errorType === "StripeInvalidRequestError") {
+      httpStatusCode = 400;
+    } else if (errorType === "StripeCardError") {
+      httpStatusCode = 402;
+    } else if (errorType === "StripeAPIError") {
+      httpStatusCode = 500;
+    } else if (errorType === "StripeConnectionError") {
+      httpStatusCode = 502;
+    } else if (errorType === "StripeAuthenticationError") {
+      httpStatusCode = 401;
+    }
+
+    res.status(httpStatusCode).json({
+      success: false,
+      error: errorMessage,
+      type: errorType,
+      code: errorCode,
+      msg: "Error in processing transfer",
+    });
   }
 };
 
+export const checkAccountStatus = async (req: Request, res: Response) => {
+  try {
+    const { accountId } = req.body;
+
+    if (!accountId) {
+      return res
+        .status(400)
+        .json({ error: "Missing required field: accountId" });
+    }
+
+    const account = await stripe.accounts.retrieve(accountId);
+
+    const isRestricted = account.requirements.disabled_reason !== null;
+    const isEnabled = account.capabilities.transfers === "active";
+
+    let accountStatus = "unknown";
+    if (isRestricted) {
+      accountStatus = "restricted";
+    } else if (isEnabled) {
+      accountStatus = "enabled";
+    }
+
+    res.status(200).json({
+      success: true,
+      accountStatus,
+      requirements: account.requirements,
+      capabilities: account.capabilities,
+    });
+  } catch (error: any) {
+    console.error(error);
+
+    const errorMessage = error?.message || "An error occurred";
+    const errorType = error?.type || "UnknownError";
+    const errorCode = error?.code || "unknown_error";
+    const statusCode = error?.statusCode || 500;
+
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage,
+      type: errorType,
+      code: errorCode,
+      msg: "Error in checking account status",
+    });
+  }
+};
+
+export const disconnectAccount = async (req: Request, res: Response) => {
+  try {
+    const { accountId } = req.body;
+
+    if (!accountId) {
+      return res
+        .status(400)
+        .json({ error: "Missing required field: accountId" });
+    }
+
+    const deletedAccount = await stripe.accounts.del(accountId);
+    const user = await UserModel.findOne({ stripeAccountId: accountId });
+
+    if (user) {
+      user.stripeAccountId = "";
+      user.stripeAccountCompleted = false;
+      await user.save();
+    }
+
+    if (deletedAccount.deleted) {
+      res
+        .status(200)
+        .json({ success: true, message: "Account disconnected successfully" });
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: "Failed to disconnect account" });
+    }
+  } catch (error: any) {
+    const errorMessage = error?.message || "An error occurred";
+    const errorType = error?.type || "UnknownError";
+    const errorCode = error?.code || "unknown_error";
+    const statusCode = error?.statusCode || 500;
+
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage,
+      type: errorType,
+      code: errorCode,
+      msg: "Error in disconnecting account",
+    });
+  }
+};
 export const createPaymentIntent = async (req: Request, res: Response) => {
   try {
     const { amount, currency, customerEmail } = req.body;
