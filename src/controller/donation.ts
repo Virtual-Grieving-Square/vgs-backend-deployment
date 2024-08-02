@@ -20,6 +20,7 @@ import {
   sendEmail,
   sendEmailNonUserDonationReceiver,
   sendEmailNonUserDonationSender,
+  sendEmailClaimer
 } from "../util/email";
 import LikeModel from "../model/like";
 import { FCMModel } from "../model/fcmTokens";
@@ -840,28 +841,50 @@ export const getDonationByUserId = async (req: Request, res: Response) => {
 export const claimMoneyDonation = async (req: Request, res: Response) => {
   try {
     const { id } = req.body;
-    const user = await UserModel.findOne({ _id: id });
-    var wallet;
-    wallet = await WalletModel.findOne({ userId: id });
 
-    if (wallet!.balance == 0) {
+    
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    
+    const user = await UserModel.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const wallet = await WalletModel.findOne({ userId: id });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" });
+    }
+
+   
+    if (wallet.balance === 0) {
       return res.status(403).json({ message: "No balance to claim" });
     }
+
+    
     const transfer = await stripe.transfers.create({
-      amount: wallet!.balance * 100,
+      amount: wallet.balance * 100, 
       currency: "usd",
-      destination: user!.stripeAccountId,
+      destination: user.stripeAccountId,
     });
 
-    wallet = await WalletModel.updateOne(
-      { userId: id },
-      { $set: { balance: 0 } }
-    );
+  
+    await WalletModel.updateOne({ userId: id }, { $set: { balance: 0 } });
 
-    res.status(200).json({ wallet: wallet, transfer: transfer });
+
+    res.status(200).json({ wallet, transfer });
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error", msg: error });
+
+    if (error.response && error.response.data) {
+      return res.status(500).json({
+        message: "Stripe error occurred",
+        details: error.response.data,
+      });
+    }
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

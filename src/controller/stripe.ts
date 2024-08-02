@@ -3,6 +3,7 @@ import { UserModel } from "../model/user";
 
 // Axios
 import axios from "axios";
+import { sendEmailClaimer } from "../util/email";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -76,7 +77,10 @@ export const addStripeAccount = async (req: Request, res: Response) => {
   }
 };
 
-export const updateAccountRegistration = async (req: Request, res: Response) => {
+export const updateAccountRegistration = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { id } = req.params;
 
@@ -91,13 +95,12 @@ export const updateAccountRegistration = async (req: Request, res: Response) => 
 
     res.status(200).json({
       url: accountLink,
-    })
-
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error, msg: "Internal Server Error" });
   }
-}
+};
 
 export const logintToAccount = async (req: Request, res: Response) => {
   try {
@@ -105,19 +108,21 @@ export const logintToAccount = async (req: Request, res: Response) => {
 
     const user = await UserModel.findById(id);
 
-    const loginLink = await stripe.accounts.createLoginLink(user?.stripeAccountId, {
-      redirect_url: YOUR_DOMAIN,
-    });
+    const loginLink = await stripe.accounts.createLoginLink(
+      user?.stripeAccountId,
+      {
+        redirect_url: YOUR_DOMAIN,
+      }
+    );
 
     res.status(200).json({
       url: loginLink,
-    })
-
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error, msg: "Internal Server Error" });
   }
-}
+};
 
 export const addStripeAccount2 = async (req: Request, res: Response) => {
   try {
@@ -211,12 +216,35 @@ export const transferFunds = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    const balance = Number(user.balance);
+    const amountToWithdraw = Number(amount);
+
+    if (balance < amountToWithdraw) {
+      return res.status(404).json({ error: "Insufficient balance" });
+    }
     // Create a transfer
     const transfer = await stripe.transfers.create({
       amount: amount * 100, // Amount in cents
       currency: "usd",
       destination: user.stripeAccountId,
     });
+
+    await sendEmailClaimer({
+      name: user!.firstName + " " + user!.lastName,
+      email: user!.email,
+      amount: amount,
+      date: new Date().toISOString().split("T")[0],
+      type: "Withdrawal",
+      confirmation: "Confirmed",
+
+      recieverEmail: user!.email,
+    })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     res.status(200).json({ success: true, transfer });
   } catch (error: any) {

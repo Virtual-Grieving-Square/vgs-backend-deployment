@@ -12,21 +12,30 @@ export const sendEmail = async (type: string, data: any) => {
   var ejsTemplatePath;
 
   switch (type) {
-    case 'signup':
-      ejsTemplatePath = path.join(__dirname!, '../../src/pages/auth/signup.ejs');
+    case "signup":
+      ejsTemplatePath = path.join(
+        __dirname!,
+        "../../src/pages/auth/signup.ejs"
+      );
       break;
-    case 'forgotPassword':
+    case "forgotPassword":
       ejsTemplatePath = path.join(__dirname, "../templates/forgotPassword.ejs");
       break;
-    case 'donation-withdrawal':
-      ejsTemplatePath = path.join(__dirname, "../../src/pages/auth/donationWithdrawal.ejs");
+    case "donation-withdrawal":
+      ejsTemplatePath = path.join(
+        __dirname,
+        "../../src/pages/auth/donationWithdrawal.ejs"
+      );
       break;
     default:
       ejsTemplatePath = path.join(__dirname, "../templates/signup.ejs");
-  };
+  }
 
   const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
-  const renderHtml = ejs.render(ejsTemplate, { name: `${data.firstName} ${data.lastName}`, code: data.verificationCode });
+  const renderHtml = ejs.render(ejsTemplate, {
+    name: `${data.firstName} ${data.lastName}`,
+    code: data.verificationCode,
+  });
 
   const transporter = nodemailer.createTransport({
     host: env.NODEMAILER_HOST!,
@@ -47,13 +56,16 @@ export const sendEmail = async (type: string, data: any) => {
 
   if (info.accepted) return true;
   else return false;
-}
+};
 
 export const sendEmailNonUserDonationSender = async (data: any) => {
   try {
     const env = process.env;
 
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-sender.ejs');
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/donation/money-donation-non-user-sender.ejs"
+    );
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
       name: data.name,
@@ -62,7 +74,7 @@ export const sendEmailNonUserDonationSender = async (data: any) => {
       donatedFor: data.donatedFor,
       date: data.date,
       type: data.type,
-      confirmation: "Confirmed"
+      confirmation: "Confirmed",
     });
 
     const transporter = nodemailer.createTransport({
@@ -83,18 +95,20 @@ export const sendEmailNonUserDonationSender = async (data: any) => {
     });
 
     return [{ status: true, message: "Email sent successfully", info: info }];
-
   } catch (error) {
     console.error(error);
     return [{ status: false, message: "Internal server error", error: error }];
   }
-}
+};
 
 export const sendEmailNonUserDonationReceiver = async (data: any) => {
   try {
     const env = process.env;
 
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/donation/money-donation-non-user-reciever.ejs');
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/donation/money-donation-non-user-reciever.ejs"
+    );
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
       name: data.name,
@@ -104,7 +118,7 @@ export const sendEmailNonUserDonationReceiver = async (data: any) => {
       date: data.date,
       type: data.type,
       confirmation: "Confirmed",
-      memorialLink: data.memorialLink
+      memorialLink: data.memorialLink,
     });
 
     const transporter = nodemailer.createTransport({
@@ -129,12 +143,14 @@ export const sendEmailNonUserDonationReceiver = async (data: any) => {
     console.error(error);
     return [{ status: false, message: "Internal server error", error: error }];
   }
-}
+};
 
 export const sendDepositConfirmation = async (data: any) => {
   try {
-
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/deposit/money-deposit.ejs');
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/deposit/money-deposit.ejs"
+    );
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
       name: data.name,
@@ -167,11 +183,14 @@ export const sendDepositConfirmation = async (data: any) => {
     console.error(error);
     return [{ status: false, message: "Internal server error", error: error }];
   }
-}
+};
 
 export const sendEmailSubscriptionUpgraded = async (data: any) => {
   try {
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/subscription/subscription-upgraded.ejs');
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/subscription/subscription-upgraded.ejs"
+    );
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
       name: data.name,
@@ -203,20 +222,22 @@ export const sendEmailSubscriptionUpgraded = async (data: any) => {
     console.error(error);
     return [{ status: false, message: "Internal server error", error: error }];
   }
-}
+};
 
 export const sendEmailSubscriptionDowngraded = async (data: any) => {
   try {
-    var ejsTemplatePath = path.join(__dirname!, '../../src/pages/subscription/subscription-downgrade.ejs');
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/subscription/subscription-downgrade.ejs"
+    );
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
       name: data.name,
       subscription: data.subscription,
       date: data.date,
       payment: data.payment,
-      time: data.time
+      time: data.time,
     });
-
 
     const transporter = nodemailer.createTransport({
       host: env.NODEMAILER_HOST!,
@@ -237,20 +258,23 @@ export const sendEmailSubscriptionDowngraded = async (data: any) => {
 
     return [{ status: true, message: "Email sent successfully", info: info }];
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+};
 
 export const sendEmailSubscriptionCancel = async (data: any) => {
   try {
-    var ejsTemplatePath = path.join(__dirname!, "../../src/pages/subscription/subscription-cancel.ejs");
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/subscription/subscription-cancel.ejs"
+    );
     const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
     const renderHtml = ejs.render(ejsTemplate, {
       name: data.name,
       subscription: "Free",
       date: data.date,
       payment: "0.00",
-      time: data.time
+      time: data.time,
     });
 
     const transporter = nodemailer.createTransport({
@@ -271,9 +295,51 @@ export const sendEmailSubscriptionCancel = async (data: any) => {
     });
 
     return [{ status: true, message: "Email sent successfully", info: info }];
-
   } catch (error) {
     console.error(error);
     return [{ status: false, message: "Internal server error", error: error }];
   }
-}
+};
+
+export const sendEmailClaimer = async (data: any) => {
+  try {
+    const env = process.env;
+
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/deposit/withdraw-balance.ejs"
+    );
+    const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+    const renderHtml = ejs.render(ejsTemplate, {
+      name: data.name,
+      email: data.email,
+      amount: data.amount,
+
+      date: data.date,
+      type: data.type,
+      confirmation: "Confirmed",
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: env.NODEMAILER_HOST!,
+      port: 465,
+      secure: true,
+      auth: {
+        user: env.NODEMAILER_USER_DONATION!,
+        pass: env.NODEMAILER_PASS_DONATION!,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: '"Virtual Grieving Square" <donation@virtualgrievingsquare.com>',
+      to: data.recieverEmail,
+      subject: "VGS, Withdrawal Notification",
+      html: renderHtml,
+    });
+
+    return [{ status: true, message: "Email sent successfully", info: info }];
+  } catch (error) {
+    console.error(error);
+    return [{ status: false, message: "Internal server error", error: error }];
+  }
+};
