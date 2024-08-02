@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { UserModel } from "../model/user";
 
+// Axios
+import axios from "axios";
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
 const YOUR_DOMAIN = process.env.DOMAIN;
@@ -41,7 +44,7 @@ export const addStripeAccount = async (req: Request, res: Response) => {
           const accountLink = await stripe.accountLinks.create({
             account: accountId,
             refresh_url: `${YOUR_DOMAIN}/account`,
-            return_url: `${YOUR_DOMAIN}/account?success=true&type=stripe-account-creation&id=${id}`,
+            return_url: `${YOUR_DOMAIN}/account`,
             type: "account_onboarding",
           });
 
@@ -72,6 +75,49 @@ export const addStripeAccount = async (req: Request, res: Response) => {
     res.status(500).json({ error: error, msg: "Internal Server Error" });
   }
 };
+
+export const updateAccountRegistration = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await UserModel.findById(id);
+
+    const accountLink = await stripe.accountLinks.create({
+      account: user?.stripeAccountId,
+      refresh_url: `${YOUR_DOMAIN}/account`,
+      return_url: `${YOUR_DOMAIN}/account`,
+      type: "account_onboarding",
+    });
+
+    res.status(200).json({
+      url: accountLink,
+    })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error, msg: "Internal Server Error" });
+  }
+}
+
+export const logintToAccount = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await UserModel.findById(id);
+
+    const loginLink = await stripe.accounts.createLoginLink(user?.stripeAccountId, {
+      redirect_url: YOUR_DOMAIN,
+    });
+
+    res.status(200).json({
+      url: loginLink,
+    })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error, msg: "Internal Server Error" });
+  }
+}
 
 export const addStripeAccount2 = async (req: Request, res: Response) => {
   try {
@@ -160,11 +206,16 @@ export const transferFunds = async (req: Request, res: Response) => {
         .json({ error: "Missing required fields: amount or userId" });
     }
 
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     // Create a transfer
     const transfer = await stripe.transfers.create({
       amount: amount * 100, // Amount in cents
       currency: "usd",
-      destination: userId,
+      destination: user.stripeAccountId,
     });
 
     res.status(200).json({ success: true, transfer });
