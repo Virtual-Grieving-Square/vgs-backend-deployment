@@ -52,6 +52,7 @@ export const addStripeAccount = async (req: Request, res: Response) => {
           const user = await UserModel.findById(id);
           if (user?.stripeAccountId == "") {
             user.stripeAccountId = accountId;
+            user.stripeAccountCompleted = true;
             await user.save();
             res.status(200).json({ url: accountLink.url });
           } else {
