@@ -233,9 +233,9 @@ export const transferFunds = async (req: Request, res: Response) => {
 
     await WalletModel.updateOne(
       { userId: userId },
-      { $inc: { balance: -amount } }
+      { $inc: { balance: -amountToWithdraw } }
     );
-    
+
     await sendEmailClaimer({
       name: user!.firstName + " " + user!.lastName,
       email: user!.email,
