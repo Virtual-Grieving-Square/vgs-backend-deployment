@@ -4,6 +4,7 @@ import { UserModel } from "../model/user";
 // Axios
 import axios from "axios";
 import { sendEmailClaimer } from "../util/email";
+import { WalletModel } from "../model/wallet";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -230,6 +231,11 @@ export const transferFunds = async (req: Request, res: Response) => {
       destination: user.stripeAccountId,
     });
 
+    await WalletModel.updateOne(
+      { userId: userId },
+      { $inc: { balance: -amount } }
+    );
+    
     await sendEmailClaimer({
       name: user!.firstName + " " + user!.lastName,
       email: user!.email,
