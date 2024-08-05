@@ -232,7 +232,7 @@ export const transferFunds = async (req: Request, res: Response) => {
     });
 
     await WalletModel.updateOne(
-      { userId: userId },
+      { userId: user._id },
       { $inc: { balance: -amountToWithdraw } }
     );
 
