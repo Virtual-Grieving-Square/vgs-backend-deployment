@@ -45,6 +45,7 @@ import notification from "./routes/notificatons";
 import cookies from "./routes/cookies";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
+import { fetchAniversayEmail } from "./cron/newsUpdater";
 
 import { apiAuthMiddleware } from "./middleware/apiAuth";
 import { urlList } from "./util/urlList";
@@ -97,9 +98,11 @@ app.use(express.static("public"));
 
 connectDB();
 try {
-  console.log("where is it")
+  console.log("where is it");
   // Schedule the job to run every hour
   cron.schedule("0 * * * *", fetchAndUpdateNews);
+  cron.schedule("* * * * *", fetchAniversayEmail);// for testing purpose
+  cron.schedule("0 1 * * *", fetchAniversayEmail); // This will run daily at 1:00 AM
 } catch (err) {
   console.log(err);
 }

@@ -1,6 +1,11 @@
 import cron from "node-cron";
 import NewsModel from "../model/news";
 import NewsFetchTimeModel from "../model/newsFetchTime";
+import { HumanMemorial } from "../model/humanMemorial";
+import FamousPeopleModel from "../model/famousPeople";
+import { PetMemorial } from "../model/petMemorial";
+import { UserModel } from "../model/user";
+import { sendEmailAniversary } from "../util/email";
 const NewsAPI = require("newsapi");
 
 const NewApiEnv = process.env.NEWS_API_KEY;
@@ -86,6 +91,66 @@ export const fetchAndUpdateNews = async () => {
     }
   } catch (error) {
     console.error("Error fetching news:", error);
+  }
+
+  console.log("Cron job finished at", new Date().toISOString());
+};
+
+export const fetchAniversayEmail = async () => {
+  console.log("Cron job started at for aniversarry", new Date().toISOString());
+
+  try {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    // Set time to start of the day
+    oneYearAgo.setHours(0, 0, 0, 0);
+
+    const endOfOneYearAgo = new Date(oneYearAgo);
+    // Set end time to end of the day
+    endOfOneYearAgo.setHours(23, 59, 59, 999);
+
+    const humanObituaries = await HumanMemorial.aggregate([
+      {
+        $match: {
+          dod: { $gte: oneYearAgo, $lt: endOfOneYearAgo },
+        },
+      },
+    ]);
+
+    const famousObituaries = await PetMemorial.aggregate([
+      {
+        $match: {
+          DOD: { $gte: oneYearAgo, $lt: endOfOneYearAgo },
+        },
+      },
+    ]);
+    console.log(famousObituaries);
+    if (humanObituaries.length !== 0) {
+      for (const obituary of humanObituaries) {
+        console.log(obituary.author);
+        const user = await UserModel.findById(obituary.author);
+        if (user) {
+          console.log(`User for human obituary ${obituary}:`);
+          // Process user or send email
+          sendEmailAniversary(user, obituary);
+        } else {
+          console.log(`No user found for AuthorID ${obituary}`);
+        }
+      }
+    }
+
+    if (famousObituaries.length !== 0) {
+      for (const obituary of famousObituaries) {
+        const user = await UserModel.findById(obituary.owner);
+        if (user) {
+          sendEmailAniversary(user, obituary);
+        } else {
+          console.log(`No user found for ownerId ${obituary}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending aniversary:", error);
   }
 
   console.log("Cron job finished at", new Date().toISOString());

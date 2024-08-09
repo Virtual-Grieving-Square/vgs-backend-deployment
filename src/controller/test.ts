@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import { sendOtp, verifyOtp } from "../util/smsMethods";
 import { sendNotification } from "../middleware/notification";
 import { sendEmailClaimer } from "../util/email";
+import { fetchAniversayEmail } from "../cron/newsUpdater";
 
 export const testSMS = async (req: Request, res: Response) => {
   try {
@@ -56,6 +57,16 @@ export const testNotif3 = async (req: Request, res: Response) => {
     const { otp, pnum } = req.body;
     const response = await verifyOtp(otp, pnum);
     res.status(200).json({ msg: response });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+export const testAniversary = async (req: Request, res: Response) => {
+  try {
+    fetchAniversayEmail();
+    res.status(200).json({ msg: "Works" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Internal Server Error" });

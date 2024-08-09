@@ -343,3 +343,43 @@ export const sendEmailClaimer = async (data: any) => {
     return [{ status: false, message: "Internal server error", error: error }];
   }
 };
+
+export const sendEmailAniversary = async (data: any, Memory: any) => {
+  try {
+    const env = process.env;
+
+    var ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/anniversary/one-year.ejs"
+    );
+    const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+    const renderHtml = ejs.render(ejsTemplate, {
+      name: data.firstName + " " + data.lastName,
+      title: Memory.name,
+      description: Memory.description,
+      Dod: Memory.DOD || Memory.dod,
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: env.NODEMAILER_HOST!,
+      port: 465,
+      secure: true,
+      auth: {
+        user: env.NODEMAILER_USER!,
+        pass: env.NODEMAILER_PASS!,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
+      to: data.email,
+      subject: "VGS, Anniversary Notification",
+      html: renderHtml,
+    });
+
+    return [{ status: true, message: "Email sent successfully", info: info }];
+  } catch (error) {
+    console.error(error);
+    return [{ status: false, message: "Internal server error", error: error }];
+  }
+};
