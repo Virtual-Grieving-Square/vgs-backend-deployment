@@ -221,24 +221,36 @@ export const transferFunds = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const balance = Number(user.balance);
+   
+
+    const wallet = await WalletModel.findOne({ userId: userId });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" });
+    }
+
+    const balance = Number(wallet.balance);
     const amountToWithdraw = Number(amount);
-    console.log("balance and withdraw");
+    console.log("wallet and withdraw");
     console.log(balance);
     console.log(amountToWithdraw);
 
-    if (balance < amountToWithdraw) {
+    if (wallet.balance === 0) {
+      return res.status(403).json({ message: "No balance to claim" });
+    }
+
+    if (wallet.balance < amountToWithdraw) {
       return res.status(404).json({ error: "Insufficient balance" });
     }
     // Create a transfer
     const transfer = await stripe.transfers.create({
-      amount: amount * 100, // Amount in cents
+      amount: wallet.balance * 100, // Amount in cents
       currency: "usd",
       destination: user.stripeAccountId,
     });
     console.log("accountId and transfer");
     console.log(user.stripeAccountId);
     console.log(transfer);
+
     await WalletModel.updateOne(
       { userId: user._id },
       { $inc: { balance: -amountToWithdraw } }
