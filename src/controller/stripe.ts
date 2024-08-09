@@ -216,12 +216,16 @@ export const transferFunds = async (req: Request, res: Response) => {
     }
 
     const user = await UserModel.findById(userId);
+    console.log(user);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const balance = Number(user.balance);
     const amountToWithdraw = Number(amount);
+    console.log("balance and withdraw");
+    console.log(balance);
+    console.log(amountToWithdraw);
 
     if (balance < amountToWithdraw) {
       return res.status(404).json({ error: "Insufficient balance" });
@@ -232,7 +236,9 @@ export const transferFunds = async (req: Request, res: Response) => {
       currency: "usd",
       destination: user.stripeAccountId,
     });
-
+    console.log("accountId and transfer");
+    console.log(user.stripeAccountId);
+    console.log(transfer);
     await WalletModel.updateOne(
       { userId: user._id },
       { $inc: { balance: -amountToWithdraw } }
