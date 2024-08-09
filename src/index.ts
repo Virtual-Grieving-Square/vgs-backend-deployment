@@ -101,7 +101,7 @@ try {
   console.log("where is it");
   // Schedule the job to run every hour
   cron.schedule("0 * * * *", fetchAndUpdateNews);
-  cron.schedule("* * * * *", fetchAniversayEmail);// for testing purpose
+  // cron.schedule("* * * * *", fetchAniversayEmail);// for testing purpose
   cron.schedule("0 1 * * *", fetchAniversayEmail); // This will run daily at 1:00 AM
 } catch (err) {
   console.log(err);
