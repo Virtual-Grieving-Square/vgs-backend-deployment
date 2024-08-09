@@ -5,10 +5,59 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../util/awsAccess";
 import { Stream } from "stream";
 
+// export const getRecentObituaries = async (req: any, res: Response) => {
+//   try {
+//     const sixMonthsAgo = new Date();
+//     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 5;
+//     const skip = (page - 1) * limit;
+
+//     const humanObituaries = await HumanMemorial.aggregate([
+//       {
+//         $match: {
+//           dod: { $gte: sixMonthsAgo },
+//         },
+//       },
+//     ]);
+
+//     const famousObituaries = await FamousPeopleModel.aggregate([
+//       {
+//         $match: {
+//           dod: { $gte: sixMonthsAgo },
+//         },
+//       },
+//     ]);
+
+//     const recentObituaries = [...humanObituaries, ...famousObituaries];
+
+//     const total = recentObituaries.length;
+
+//     res.status(200).json({
+//       total: total,
+//       page: page,
+//       limit: limit,
+//       totalPages: Math.ceil(total / limit),
+//       obituaries: recentObituaries.slice(skip, skip + limit),
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 export const getRecentObituaries = async (req: any, res: Response) => {
   try {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    // Set time to start of the day
+    oneYearAgo.setHours(0, 0, 0, 0);
+
+    const endOfOneYearAgo = new Date(oneYearAgo);
+    // Set end time to end of the day
+    endOfOneYearAgo.setHours(23, 59, 59, 999);
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
@@ -16,7 +65,7 @@ export const getRecentObituaries = async (req: any, res: Response) => {
     const humanObituaries = await HumanMemorial.aggregate([
       {
         $match: {
-          dod: { $gte: sixMonthsAgo },
+          dod: { $gte: oneYearAgo, $lt: endOfOneYearAgo },
         },
       },
     ]);
@@ -24,7 +73,7 @@ export const getRecentObituaries = async (req: any, res: Response) => {
     const famousObituaries = await FamousPeopleModel.aggregate([
       {
         $match: {
-          dod: { $gte: sixMonthsAgo },
+          dod: { $gte: oneYearAgo, $lt: endOfOneYearAgo },
         },
       },
     ]);
@@ -40,7 +89,6 @@ export const getRecentObituaries = async (req: any, res: Response) => {
       totalPages: Math.ceil(total / limit),
       obituaries: recentObituaries.slice(skip, skip + limit),
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
