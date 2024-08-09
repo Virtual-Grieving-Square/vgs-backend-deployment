@@ -5,7 +5,7 @@ import { sendEmailClaimer } from "../util/email";
 
 export const testSMS = async (req: Request, res: Response) => {
   try {
-    const response = await sendOtp("+251936657001");
+    const response = await sendOtp("251937174609");
     res.status(200).json({ msg: response });
   } catch (error) {
     console.error(error);

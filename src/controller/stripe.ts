@@ -205,7 +205,9 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
 export const transferFunds = async (req: Request, res: Response) => {
   try {
     const { amount, userId } = req.body;
-
+    console.log("Transfer Fund");
+    console.log(amount);
+    console.log(userId);
     // Ensure amount and userId are provided
     if (!amount || !userId) {
       return res
