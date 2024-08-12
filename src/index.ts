@@ -59,7 +59,7 @@ var serviceAccount = require("../serviceAccountKey.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
-const socketIo = require("socket.io");
+// const socketIo = require("socket.io");
 // const io = new Server(server, {
 //   cors: {
 //     origin: urlList,
@@ -95,12 +95,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// app.use(
+//   cors({
+//     origin: urlList,
+//     optionsSuccessStatus: 200,
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//   })
+// );
+
 app.use(
   cors({
-    origin: urlList,
+    origin: "*",
     optionsSuccessStatus: 200,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
 
