@@ -59,26 +59,13 @@ var serviceAccount = require("../serviceAccountKey.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
-// const socketIo = require("socket.io");
-// const io = new Server(server, {
-//   cors: {
-//     origin: urlList,
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//   },
-// });
 
 const io = new Server(server, {
-  path: "/socket.io",
+  cors: {
+    origin: urlList,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
 });
-
-// const io = new Server(server, {
-//   cors: {
-//     origin: urlList,
-//     methods: ["GET", "POST"],
-//     credentials: true /
-//   },
-//   path: '/socket.io/'
-// });
 
 initializeFirebase();
 app.post(
@@ -95,21 +82,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// app.use(
-//   cors({
-//     origin: urlList,
-//     optionsSuccessStatus: 200,
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//   })
-// );
-
 app.use(
   cors({
-    origin: "*",
+    origin: urlList,
     optionsSuccessStatus: 200,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
 
