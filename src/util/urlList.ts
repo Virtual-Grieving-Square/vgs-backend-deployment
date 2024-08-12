@@ -8,6 +8,7 @@ export const urlList = [
   "http://localhost:3000",
   "http://192.168.0.105:3131",
   "http://192.168.1.8:3131",
+  "http://192.168.1.3:3131",
   // Production
   "https://uione.virtualgrievingsquare.com",
   "https://55e9-196-188-55-185.ngrok-free.app",
