@@ -60,11 +60,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 
+// const io = new Server(server, {
+//   cors: {
+//     origin: urlList,
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//   },
+// });
+
+
 const io = new Server(server, {
   cors: {
-    origin: urlList,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: urlList, // List of allowed origins
+    methods: ["GET", "POST"],
+    credentials: true // Optional: Allows cookies to be sent across origins
   },
+  path: '/socket.io/' // Path should match your WebSocket clients' expected path
 });
 
 initializeFirebase();
