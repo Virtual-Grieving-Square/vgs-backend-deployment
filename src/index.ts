@@ -59,7 +59,7 @@ var serviceAccount = require("../serviceAccountKey.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
-
+const socketIo = require("socket.io");
 // const io = new Server(server, {
 //   cors: {
 //     origin: urlList,
@@ -67,15 +67,18 @@ const server = http.createServer(app);
 //   },
 // });
 
-
 const io = new Server(server, {
-  cors: {
-    origin: urlList, // List of allowed origins
-    methods: ["GET", "POST"],
-    credentials: true // Optional: Allows cookies to be sent across origins
-  },
-  path: '/socket.io/' // Path should match your WebSocket clients' expected path
+  path: "/socket.io",
 });
+
+// const io = new Server(server, {
+//   cors: {
+//     origin: urlList,
+//     methods: ["GET", "POST"],
+//     credentials: true /
+//   },
+//   path: '/socket.io/'
+// });
 
 initializeFirebase();
 app.post(
