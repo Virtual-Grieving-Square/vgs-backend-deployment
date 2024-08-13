@@ -2,6 +2,7 @@ import { Request, Response, } from 'express';
 
 export const index = (req: Request, res: Response) => {
   try {
+    console.log("index touch")
     res.status(200).json({ message: "Welcome to the R.I.P. API" });
   } catch (error) {
     console.log(error);
