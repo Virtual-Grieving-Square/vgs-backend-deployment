@@ -1,21 +1,22 @@
-import { Request, Response, } from 'express';
+import { Request, Response } from "express";
 
 export const index = (req: Request, res: Response) => {
   try {
-    console.log("index touch")
+    console.log("index touch");
     res.status(200).json({ message: "Welcome to the R.I.P. API" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const apigatway = (req: Request, res: Response) => {
   try {
-    console.log("index touch")
+    console.log("index touch websocket");
+    console.log(req);
     res.status(200).json({ message: "Welcome to the R.I.P. API" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
