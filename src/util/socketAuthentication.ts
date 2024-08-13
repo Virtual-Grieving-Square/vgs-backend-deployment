@@ -42,8 +42,7 @@ import WebSocket from "ws";
 export const handleAuthentication = async (ws: any, token: any) => {
   return new Promise<void>(async (resolve, reject) => {
     try {
-      // Verify and decode token (JWT or similar)
-      // Example using JWT, replace with your actual token verification logic
+      
       const decodedToken = jwt.verify(
         token,
         process.env.JWT_TOKEN || "your-secret-key"
@@ -61,8 +60,8 @@ export const handleAuthentication = async (ws: any, token: any) => {
         return reject(new Error("User not found"));
       }
 
-      // Update or set socketId in database
-      user.socketId = ws._socket.remotePort; // You may need to use an appropriate property or method to get the socket ID
+      
+      user.socketId = ws._socket.remotePort; 
       await user.save();
       console.log(
         `User ${userId} authenticated and associated with socket ${user.socketId}`
