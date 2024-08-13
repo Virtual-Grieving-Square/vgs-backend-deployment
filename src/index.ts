@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./database/db";
 import cron from "node-cron";
 import { initializeFirebase } from "./firebase";
-
+import WebSocket from "ws";
 // Scoket.io
 import { Server } from "socket.io";
 
@@ -140,49 +140,49 @@ app.use("/realTime", notification);
 app.use("/cookies", cookies);
 
 // Socket.io Connect
-io.on("connection", (socket: any) => {
-  console.log("A User Connected", socket.id);
+// io.on("connection", (socket: any) => {
+//   console.log("A User Connected", socket.id);
 
-  socket.on("authenticate", async (token: string) => {
-    try {
-      console.log("Authenticateion Sockiet.io");
-      console.log(token);
-      await handleAuthentication(socket, token);
+//   socket.on("authenticate", async (token: string) => {
+//     try {
+//       console.log("Authenticateion Sockiet.io");
+//       console.log(token);
+//       await handleAuthentication(socket, token);
 
-      socket.emit("authenticated");
-    } catch (error) {
-      socket.emit("authentication_failed");
-    }
-  });
+//       socket.emit("authenticated");
+//     } catch (error) {
+//       socket.emit("authentication_failed");
+//     }
+//   });
 
-  socket.on("client_like_update", (data: any) => {
-    socket.emit("server_update_like", data);
-  });
+//   socket.on("client_like_update", (data: any) => {
+//     socket.emit("server_update_like", data);
+//   });
 
-  socket.on("client_new_post", (data: any) => {
-    socket.emit("server_new_post");
-  });
+//   socket.on("client_new_post", (data: any) => {
+//     socket.emit("server_new_post");
+//   });
 
-  socket.on("client_new_memorial", () => {
-    socket.emit("server_new_memorial");
-  });
+//   socket.on("client_new_memorial", () => {
+//     socket.emit("server_new_memorial");
+//   });
 
-  socket.on("client_comment_update", () => {
-    socket.emit("server_comment_update");
-  });
+//   socket.on("client_comment_update", () => {
+//     socket.emit("server_comment_update");
+//   });
 
-  socket.on("client_new_hero", () => {
-    socket.emit("server_new_hero");
-  });
+//   socket.on("client_new_hero", () => {
+//     socket.emit("server_new_hero");
+//   });
 
-  socket.on("disconnect", () => {
-    console.log("A User Disconnected");
-  });
+//   socket.on("disconnect", () => {
+//     console.log("A User Disconnected");
+//   });
 
-  socket.on("client-stripe-account-setup-complete", () => {
-    socket.emit("server-stripe-account-setup-complete");
-  });
-});
+//   socket.on("client-stripe-account-setup-complete", () => {
+//     socket.emit("server-stripe-account-setup-complete");
+//   });
+// });
 
 export { io };
 
@@ -191,3 +191,64 @@ server.listen(PORT, () => {
     `R.I.P. Server is running on port http://localhost:${PORT} - ${new Date().toLocaleString()}`
   );
 });
+
+// websocket
+
+const wss = new WebSocket.Server({ server });
+
+wss.on("connection", (ws) => {
+  console.log("A User Connected");
+
+  ws.on("message", async (message: string) => {
+    const data = JSON.parse(message);
+
+    switch (data.action) {
+      case "authenticate":
+        try {
+          console.log("Authentication");
+          console.log(data.token);
+          console.log(ws)
+          await handleAuthentication(ws, data.token);
+          ws.send(JSON.stringify({ event: "authenticated" }));
+        } catch (error) {
+          ws.send(JSON.stringify({ event: "authentication_failed" }));
+        }
+        break;
+      case "client_like_update":
+        ws.send(
+          JSON.stringify({ event: "server_update_like", data: data.data })
+        );
+        break;
+      case "client_new_post":
+        ws.send(JSON.stringify({ event: "server_new_post" }));
+        break;
+      case "client_new_memorial":
+        ws.send(JSON.stringify({ event: "server_new_memorial" }));
+        break;
+      case "client_comment_update":
+        ws.send(JSON.stringify({ event: "server_comment_update" }));
+        break;
+      case "client_new_hero":
+        ws.send(JSON.stringify({ event: "server_new_hero" }));
+        break;
+      case "client-stripe-account-setup-complete":
+        ws.send(
+          JSON.stringify({ event: "server-stripe-account-setup-complete" })
+        );
+        break;
+      default:
+        console.log("Unknown action:", data.action);
+        break;
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("A User Disconnected");
+  });
+
+  ws.on("error", (error) => {
+    console.error("WebSocket Error:", error);
+  });
+});
+
+
