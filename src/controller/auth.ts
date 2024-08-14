@@ -431,6 +431,7 @@ export const signInWithGoogle: RequestHandler = async (
         refreshToken: refreshToken,
         subscriptionType: subscriptionType,
         storage: storageSubscribed,
+        password: req.body.password,
         signInMethod: "Google",
       });
 
