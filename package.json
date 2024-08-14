@@ -28,6 +28,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.14",
     "@types/uuid": "^9.0.8",
+    "@types/ws": "^8.5.12",
     "nodemon": "^3.0.3",
     "typescript": "^5.3.3"
   },
@@ -66,6 +67,7 @@
     "twilio": "^4.23.0",
     "twilio-video": "^2.28.1",
     "uuid": "^9.0.1",
-    "winston": "^3.13.0"
+    "winston": "^3.13.0",
+    "ws": "^8.18.0"
   }
 }
