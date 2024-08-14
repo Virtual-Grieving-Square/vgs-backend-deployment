@@ -43,6 +43,7 @@ import tombstone from "./routes/tombstone";
 import comment from "./routes/comment";
 import notification from "./routes/notificatons";
 import cookies from "./routes/cookies";
+import webSocket from "./routes/webSocket";
 
 import { fetchAndUpdateNews } from "./cron/newsUpdater";
 import { fetchAniversayEmail } from "./cron/newsUpdater";
@@ -138,6 +139,7 @@ app.use("/heros", heroes);
 app.use("/comment", comment);
 app.use("/realTime", notification);
 app.use("/cookies", cookies);
+app.use("/websocket", webSocket);
 
 // Socket.io Connect
 // io.on("connection", (socket: any) => {
