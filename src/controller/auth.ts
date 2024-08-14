@@ -79,7 +79,7 @@ export const signup: RequestHandler = async (
               firstName: firstName,
               lastName: lastName,
               username: username,
-              email: email,
+              email: email.toLowerCase(),
               phoneNumber: phoneNumber,
               otp: verificationCode,
               subscriptionType: subscriptionType,
@@ -92,7 +92,7 @@ export const signup: RequestHandler = async (
           firstName: firstName,
           lastName: lastName,
           username: username,
-          email: email,
+          email: email.toLowerCase(),
           phoneNumber: phoneNumber,
           otp: verificationCode,
           subscriptionType: subscriptionType,
@@ -120,7 +120,7 @@ export const signup: RequestHandler = async (
               firstName: firstName,
               lastName: lastName,
               username: username,
-              email: email,
+              email: email.toLowerCase(),
               phoneNumber: phoneNumber,
               otp: verificationCode,
               subscriptionType: subscriptionType,
@@ -133,7 +133,7 @@ export const signup: RequestHandler = async (
           firstName: firstName,
           lastName: lastName,
           username: username,
-          email: email,
+          email: email.toLowerCase(),
           phoneNumber: phoneNumber,
           otp: verificationCode,
           subscriptionType: subscriptionType,
@@ -146,13 +146,13 @@ export const signup: RequestHandler = async (
       sendEmail("signup", {
         firstName: firstName,
         lastName: lastName,
-        email: email,
+        email: email.toLowerCase(),
         verificationCode: verificationCode,
       }).then((response) => {
         if (response == true) {
           res.status(200).json({
             type: "email",
-            email: email,
+            email: email.toLowerCase(),
             message: "Verification code sent successfully",
           });
         } else {
