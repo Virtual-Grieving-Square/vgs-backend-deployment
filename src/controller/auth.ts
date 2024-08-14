@@ -308,8 +308,9 @@ export const login: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body.data;
-    // console.log(req.body)
+    console.log(req.body)
+
+    const { email, password } = req.body;
     if (!email || !password) {
       return res
         .status(401)
