@@ -34,8 +34,9 @@ export const Disconnect = async (req: Request, res: Response) => {
 
 export const Defualt = async (req: Request, res: Response) => {
   try {
+    
     const data = req.body;
-
+    console.log("defualt data ", data);
     switch (data.action) {
       case "client_like_update":
         res.status(200).json({ event: "server_update_like", data: data.data });
