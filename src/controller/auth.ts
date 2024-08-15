@@ -27,8 +27,7 @@ export const signup: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { firstName, lastName, email, password } =
-      req.body.data;
+    const { firstName, lastName, email, password } = req.body.data;
     const phoneNumber = req.body.phoneNumber;
     const verification = req.body.verification;
     const subscriptionType = req.body.subscriptionType;
@@ -63,7 +62,7 @@ export const signup: RequestHandler = async (
     }
 
     if (verification == "phone") {
-      console.log(phoneNumber)
+      console.log(phoneNumber);
       // here is where i need to send the sms
       const verificationSMS = await sendOtp(phoneNumber);
 
@@ -107,7 +106,6 @@ export const signup: RequestHandler = async (
         message: "Verification code sent successfully",
       });
     } else if (verification == "email") {
-
       const checkTempUser = await TempUserModel.findOne({
         email: email,
       });
@@ -181,7 +179,6 @@ export const verify: RequestHandler = async (
       const tempUser = await TempUserModel.findOne({ email: email, otp: otp });
 
       if (tempUser) {
-
         const storagePicked = await SubscriptionPlanModel.findOne({
           label: tempUser.subscriptionType,
         });
@@ -229,72 +226,69 @@ export const verify: RequestHandler = async (
           accessToken: accessToken,
           message: "User created successfully",
         });
-
       } else {
         res.status(401).json({ msg: "Invalid OTP" });
       }
     } else if (type == "phone") {
+      verifyOtp(otp, phoneNumber).then(async (response) => {
+        if (response !== "approved") {
+          res.status(401).json({ msg: "Invalid OTP" });
+        } else {
+          const tempUser = await TempUserModel.findOne({
+            phoneNumber: phoneNumber,
+          });
 
-      verifyOtp(otp, phoneNumber)
-        .then(async (response) => {
-          if (response !== "approved") {
-            res.status(401).json({ msg: "Invalid OTP" });
-          } else {
-            const tempUser = await TempUserModel.findOne({
+          const storagePicked = await SubscriptionPlanModel.findOne({
+            label: tempUser!.subscriptionType,
+          });
+
+          const storageSubscribed = storagePicked?.storagePerk || 0;
+
+          if (tempUser) {
+            const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
+            const user = new UserModel({
+              firstName: tempUser.firstName,
+              lastName: tempUser.lastName,
+              username: tempUser.username,
+              email: tempUser.email,
+              phoneNumber: tempUser.phoneNumber,
+              password: hashedPassword,
+              subscriptionType: tempUser.subscriptionType,
+              signInMethod: "phone",
+              storage: storageSubscribed,
+            });
+            await user.save();
+
+            await TempUserModel.deleteOne({
               phoneNumber: phoneNumber,
             });
 
-            const storagePicked = await SubscriptionPlanModel.findOne({
-              label: tempUser!.subscriptionType,
+            const UserData = {
+              id: user.id,
+              fname: user.firstName,
+              lname: user.lastName,
+              username: user.username,
+              phoneNumber: user.phoneNumber,
+              email: user.email,
+              subscribed: user.subscribed,
+              paid: user.paid,
+              subType: user.subscriptionType,
+              firstTimePaid: user.firstTimePaid,
+              profileImage: user.profileImage,
+              coverImage: user.coverImage,
+              signInMethod: user.signInMethod,
+            };
+
+            const accessToken = generateUserAccessToken(UserData);
+
+            res.status(200).json({
+              accessToken: accessToken,
+              message: "User created successfully",
             });
-
-            const storageSubscribed = storagePicked?.storagePerk || 0;
-
-            if (tempUser) {
-              const hashedPassword = await bcrypt.hash(tempUser.password, 10);
-
-              const user = new UserModel({
-                firstName: tempUser.firstName,
-                lastName: tempUser.lastName,
-                username: tempUser.username,
-                email: tempUser.email,
-                phoneNumber: tempUser.phoneNumber,
-                password: hashedPassword,
-                subscriptionType: tempUser.subscriptionType,
-                signInMethod: "phone",
-                storage: storageSubscribed,
-              });
-              await user.save();
-
-              await TempUserModel.deleteOne({
-                phoneNumber: phoneNumber,
-              });
-
-              const UserData = {
-                id: user.id,
-                fname: user.firstName,
-                lname: user.lastName,
-                username: user.username,
-                phoneNumber: user.phoneNumber,
-                email: user.email,
-                subscribed: user.subscribed,
-                paid: user.paid,
-                subType: user.subscriptionType,
-                firstTimePaid: user.firstTimePaid,
-                profileImage: user.profileImage,
-                coverImage: user.coverImage,
-                signInMethod: user.signInMethod,
-              };
-
-              const accessToken = generateUserAccessToken(UserData);
-
-              res.status(200).json({
-                accessToken: accessToken,
-                message: "User created successfully",
-              });
-            }
           }
-        })
+        }
+      });
     }
   } catch (error) {
     console.log(error);
@@ -308,10 +302,11 @@ export const login: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
-    console.log(req.body)
+    console.log(req.body);
 
     const { email, password } = req.body;
     if (!email || !password) {
+      console.log("email and password missing");
       return res
         .status(401)
         .json({ message: "Authentication failed. not full information." });
@@ -320,8 +315,10 @@ export const login: RequestHandler = async (
     const user = await UserModel.findOne({
       email: email,
     });
+    console.log("user fetched", user);
 
     if (!user) {
+      console.log("no user wit this email", email);
       return res
         .status(401)
         .json({ message: "Authentication failed. User not found." });
@@ -329,8 +326,11 @@ export const login: RequestHandler = async (
 
     // Check if password is correct
     const passwordMatch = await bcrypt.compare(password, user.password);
+    console.log("password match with this", password);
+    console.log("password match result", passwordMatch);
 
     if (!passwordMatch) {
+      console.log("password match not");
       return res
         .status(402)
         .json({ message: "Authentication failed. Invalid password." });
@@ -351,9 +351,9 @@ export const login: RequestHandler = async (
       coverImage: user.coverImage,
       signInMethod: user.signInMethod,
     };
-
+    console.log("data to tokanize", UserData);
     const accessToken = generateUserAccessToken(UserData);
-
+    console.log("token", accessToken);
     await UserModel.updateOne(
       { email: email },
       {
@@ -362,7 +362,7 @@ export const login: RequestHandler = async (
         },
       }
     );
-
+    console.log("after update");
     return res.status(200).json({
       accessToken: accessToken,
       message: "Authentication successful",
@@ -373,7 +373,11 @@ export const login: RequestHandler = async (
   }
 };
 
-export const checkGoogleSignin: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const checkGoogleSignin: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email } = req.params;
     const existingUser = await UserModel.findOne({ email: email });
@@ -383,12 +387,11 @@ export const checkGoogleSignin: RequestHandler = async (req: Request, res: Respo
     } else {
       return res.status(200).json({ user: true });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const signInWithGoogle: RequestHandler = async (
   req: Request,
@@ -405,16 +408,14 @@ export const signInWithGoogle: RequestHandler = async (
       profileImage,
       accessToken,
       refreshToken,
-      subscriptionType
+      subscriptionType,
     } = req.body;
-
 
     console.log(req.body);
 
     const existingUser = await UserModel.findOne({ email: email });
 
     if (!existingUser) {
-
       const storagePicked = await SubscriptionPlanModel.findOne({
         label: subscriptionType,
       });
@@ -461,7 +462,6 @@ export const signInWithGoogle: RequestHandler = async (
         message: "User created successfully",
       });
     } else {
-
       const user = await UserModel.findOne({ email: email });
 
       const UserData = {
