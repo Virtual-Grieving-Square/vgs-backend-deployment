@@ -18,6 +18,6 @@ export const urlList = [
   "https://virtualgrievingsquare.com",
   "https://admin.virtualgrievingsquare.com",
   "https://0652-196-188-123-14.ngrok-free.app",
-  // "https://sjxdbohpzl.execute-api.us-east-2.amazonaws.com/prod/",
-  // "https://ik9tn7wxw0.execute-api.us-east-2.amazonaws.com/dev/"
+  "https://www.virtualgrievingsquare.com",
+  "https://www.uione.virtualgrievingsquare.com",
 ];
