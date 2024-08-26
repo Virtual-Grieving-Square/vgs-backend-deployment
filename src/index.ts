@@ -84,6 +84,9 @@ app.use((req, res, next) => {
   res.setHeader("Keep-Alive", "timeout=30"); // Set the timeout for 30 seconds
   next();
 });
+
+server.keepAliveTimeout = 30 * 1000; // 30 seconds
+server.headersTimeout = 35 * 1000; // 35 seconds
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -200,6 +203,8 @@ server.listen(PORT, () => {
   );
 });
 
+server.keepAliveTimeout = 30 * 1000; // 30 seconds
+server.headersTimeout = 35 * 1000; // 35 seconds
 // websocket
 
 const wss = new WebSocket.Server({ server });
