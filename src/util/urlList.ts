@@ -11,13 +11,14 @@ export const urlList = [
   "http://192.168.1.8:3131",
   "http://192.168.1.3:3131",
   // Production
+  "https://0652-196-188-123-14.ngrok-free.app",
   "https://uione.virtualgrievingsquare.com",
   "https://55e9-196-188-55-185.ngrok-free.app",
   "https://5729-196-188-123-14.ngrok-free.app",
+
   "https://deoow05yxfsr.cloudfront.net",
   "https://virtualgrievingsquare.com",
-  "https://admin.virtualgrievingsquare.com",
-  "https://0652-196-188-123-14.ngrok-free.app",
+  "https://admin.virtualgrievingsquare.com", 
   "https://www.virtualgrievingsquare.com",
   "https://www.uione.virtualgrievingsquare.com",
 ];
