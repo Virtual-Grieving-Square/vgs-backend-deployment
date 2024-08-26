@@ -64,12 +64,30 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: urlList,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: true,
+    optionsSuccessStatus: 200,
+    methods: "*",
   },
 });
+app.use(
+  cors({
+    origin: true,
+    optionsSuccessStatus: 200,
+
+    methods: "*",
+  })
+);
 
 initializeFirebase();
+
+app.use((req, res, next) => {
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Keep-Alive", "timeout=30"); // Set the timeout for 30 seconds
+  next();
+});
+
+server.keepAliveTimeout = 30 * 1000; // 30 seconds
+server.headersTimeout = 35 * 1000; // 35 seconds
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -83,15 +101,6 @@ app.post(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: urlList,
-    optionsSuccessStatus: 200,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
-);
 
 // app.use(apiAuthMiddleware);
 
@@ -195,6 +204,8 @@ server.listen(PORT, () => {
   );
 });
 
+server.keepAliveTimeout = 30 * 1000; // 30 seconds
+server.headersTimeout = 35 * 1000; // 35 seconds
 // websocket
 
 const wss = new WebSocket.Server({ server });
@@ -210,7 +221,7 @@ wss.on("connection", (ws: any) => {
         try {
           console.log("Authentication");
           console.log(data.token);
-          console.log(ws)
+          console.log(ws);
           await handleAuthentication(ws, data.token);
           ws.send(JSON.stringify({ event: "authenticated" }));
         } catch (error) {
@@ -258,5 +269,3 @@ wss.on("connection", (ws: any) => {
     console.error("WebSocket Error:", error);
   });
 });
-
-

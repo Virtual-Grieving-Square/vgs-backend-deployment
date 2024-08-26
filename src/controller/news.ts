@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import NewsFetchTimeModel from "../model/newsFetchTime";
 import { fetchNews } from "../util/newsfetchapi";
 import NewsModel from "../model/news";
+import { fetchAndUpdateNews } from "../cron/newsUpdater";
 // import newsapi from "newsapi";
 const NewsAPI = require("newsapi");
 
@@ -161,6 +162,16 @@ export const getRecent3News = async (req: any, res: Response) => {
   try {
     const news = await NewsModel.find({}).sort({ createdAt: -1 }).limit(3);
     res.status(200).json(news);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateNews = async (req: any, res: Response) => {
+  try {
+    const news = await fetchAndUpdateNews();
+    res.status(200).json("news updated");
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
