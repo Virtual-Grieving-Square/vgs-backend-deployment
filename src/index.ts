@@ -68,8 +68,22 @@ const io = new Server(server, {
     methods: "*",
   },
 });
+app.use(
+  cors({
+    origin: true,
+    optionsSuccessStatus: 200,
+
+    methods: "*",
+  })
+);
 
 initializeFirebase();
+
+app.use((req, res, next) => {
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Keep-Alive", "timeout=30"); // Set the timeout for 30 seconds
+  next();
+});
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -83,15 +97,6 @@ app.post(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: true,
-    optionsSuccessStatus: 200,
-
-    methods: "*",
-  })
-);
 
 // app.use(apiAuthMiddleware);
 
