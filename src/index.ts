@@ -7,6 +7,7 @@ import { connectDB } from "./database/db";
 import cron from "node-cron";
 import { initializeFirebase } from "./firebase";
 import WebSocket from "ws";
+
 // Scoket.io
 import { Server } from "socket.io";
 
@@ -198,7 +199,7 @@ server.listen(PORT, () => {
 
 const wss = new WebSocket.Server({ server });
 
-wss.on("connection", (ws) => {
+wss.on("connection", (ws: any) => {
   console.log("A User Connected");
 
   ws.on("message", async (message: string) => {
@@ -238,6 +239,11 @@ wss.on("connection", (ws) => {
           JSON.stringify({ event: "server-stripe-account-setup-complete" })
         );
         break;
+      case "test-webhook":
+        ws.send(
+          JSON.stringify({ event: "Testing WebHook Works" })
+        );
+        break;
       default:
         console.log("Unknown action:", data.action);
         break;
@@ -248,7 +254,7 @@ wss.on("connection", (ws) => {
     console.log("A User Disconnected");
   });
 
-  ws.on("error", (error) => {
+  ws.on("error", (error: any) => {
     console.error("WebSocket Error:", error);
   });
 });

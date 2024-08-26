@@ -27,7 +27,7 @@ const userSchema: Schema = new Schema({
   coverImage: {
     type: String,
     required: false,
-    default: "https://picsum.photos/1000/350?random=222",
+    default: "uploads/image/coverImage/defaultCoverImage.jpg",
   },
   storage: { type: Number, default: 0 },
   stripeAccountId: { type: String, default: "" },
