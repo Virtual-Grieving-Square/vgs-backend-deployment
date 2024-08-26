@@ -85,10 +85,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: urlList,
+    origin: true,
     optionsSuccessStatus: 200,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: "*",
   })
 );
 
@@ -209,7 +209,7 @@ wss.on("connection", (ws) => {
         try {
           console.log("Authentication");
           console.log(data.token);
-          console.log(ws)
+          console.log(ws);
           await handleAuthentication(ws, data.token);
           ws.send(JSON.stringify({ event: "authenticated" }));
         } catch (error) {
@@ -252,5 +252,3 @@ wss.on("connection", (ws) => {
     console.error("WebSocket Error:", error);
   });
 });
-
-
