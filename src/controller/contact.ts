@@ -30,8 +30,8 @@ export const contactUs = async (req: Request, res: Response) => {
     });
 
     const mailOptions = {
-      from: '"VGS" <verification@virtualgrievingsquare.com>',
-      to: "verification@virtualgrievingsquare.com",
+      from: '"VGS" <vgssupport@virtualgrievingsquare.com>',
+      to: "vgssupport@virtualgrievingsquare.com",
       subject: `Contact Form Submission: ${name}`,
       text: `
         Name: ${name}
