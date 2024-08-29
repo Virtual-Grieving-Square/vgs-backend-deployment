@@ -150,7 +150,7 @@ export const suspendAdmin = async (req: Request, res: Response) => {
 
 export const forgetPasswordOtp = async (req: Request, res: Response) => {
   try {
-    const { email } = req.body.data;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(403).json({ message: "Please fill all fields" });
