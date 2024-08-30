@@ -4,6 +4,9 @@ import { sendNotification } from "../middleware/notification";
 import { sendEmailClaimer } from "../util/email";
 import { fetchAniversayEmail } from "../cron/newsUpdater";
 
+// Axios
+import axios from 'axios';
+
 export const testSMS = async (req: Request, res: Response) => {
   try {
     const response = await sendOtp("251937174609");
@@ -72,3 +75,33 @@ export const testAniversary = async (req: Request, res: Response) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 };
+
+export const testLogin = async (req: Request, res: Response) => {
+  try {
+    const results: any = [];
+
+    for (let i = 0; i < 100; i++) {
+      console.log(`Sending request number: ${i + 1}`);
+      axios.post("https://sjxdbohpzl.execute-api.us-east-2.amazonaws.com/prod/auth/login", {
+        email: "demo@virtualgrievingsquare.com",
+        password: "Testing123!"
+      }).then((response) => {
+        console.log(response.data);
+
+        results.push({
+          requestNumber: i + 1,
+        });
+      }).catch((error) => {
+        console.error("Error Logging In", error);
+      })
+    }
+
+    console.log('Finished sending requests.');
+    console.log("Results", results);
+
+    res.json({ message: 'Requests completed', results });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+}

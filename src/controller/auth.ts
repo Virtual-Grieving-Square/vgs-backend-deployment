@@ -311,6 +311,7 @@ export const login: RequestHandler = async (
         .status(401)
         .json({ message: "Authentication failed. not full information." });
     }
+
     // Find user by email
     const user = await UserModel.findOne({
       email: email,

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 import ContactDetailModel from "../model/contact";
 
 export const contactUs = async (req: Request, res: Response) => {
@@ -16,7 +16,7 @@ export const contactUs = async (req: Request, res: Response) => {
       name: name,
       email: email,
       phoneNumber: phone,
-      message: message
+      message: message,
     });
 
     const transporter = await nodemailer.createTransport({
@@ -31,7 +31,7 @@ export const contactUs = async (req: Request, res: Response) => {
 
     const mailOptions = {
       from: '"VGS" <verification@virtualgrievingsquare.com>',
-      to: "verification@virtualgrievingsquare.com",
+      to: "vgssupport@virtualgrievingsquare.com",
       subject: `Contact Form Submission: ${name}`,
       text: `
         Name: ${name}

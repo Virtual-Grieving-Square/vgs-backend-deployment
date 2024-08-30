@@ -7,6 +7,7 @@ import { connectDB } from "./database/db";
 import cron from "node-cron";
 import { initializeFirebase } from "./firebase";
 import WebSocket from "ws";
+
 // Scoket.io
 import { Server } from "socket.io";
 
@@ -63,12 +64,30 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: urlList,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: true,
+    optionsSuccessStatus: 200,
+    methods: "*",
   },
 });
+app.use(
+  cors({
+    origin: true,
+    optionsSuccessStatus: 200,
+
+    methods: "*",
+  })
+);
 
 initializeFirebase();
+
+app.use((req, res, next) => {
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Keep-Alive", "timeout=30"); // Set the timeout for 30 seconds
+  next();
+});
+
+server.keepAliveTimeout = 30 * 1000; // 30 seconds
+server.headersTimeout = 35 * 1000; // 35 seconds
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -82,15 +101,6 @@ app.post(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: urlList,
-    optionsSuccessStatus: 200,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  })
-);
 
 // app.use(apiAuthMiddleware);
 
@@ -194,11 +204,13 @@ server.listen(PORT, () => {
   );
 });
 
+server.keepAliveTimeout = 30 * 1000; // 30 seconds
+server.headersTimeout = 35 * 1000; // 35 seconds
 // websocket
 
 const wss = new WebSocket.Server({ server });
 
-wss.on("connection", (ws) => {
+wss.on("connection", (ws: any) => {
   console.log("A User Connected");
 
   ws.on("message", async (message: string) => {
@@ -209,7 +221,7 @@ wss.on("connection", (ws) => {
         try {
           console.log("Authentication");
           console.log(data.token);
-          console.log(ws)
+          console.log(ws);
           await handleAuthentication(ws, data.token);
           ws.send(JSON.stringify({ event: "authenticated" }));
         } catch (error) {
@@ -238,6 +250,11 @@ wss.on("connection", (ws) => {
           JSON.stringify({ event: "server-stripe-account-setup-complete" })
         );
         break;
+      case "test-webhook":
+        ws.send(
+          JSON.stringify({ event: "Testing WebHook Works" })
+        );
+        break;
       default:
         console.log("Unknown action:", data.action);
         break;
@@ -248,9 +265,7 @@ wss.on("connection", (ws) => {
     console.log("A User Disconnected");
   });
 
-  ws.on("error", (error) => {
+  ws.on("error", (error: any) => {
     console.error("WebSocket Error:", error);
   });
 });
-
-
