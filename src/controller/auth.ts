@@ -421,7 +421,7 @@ export const signInWithGoogle: RequestHandler = async (
         label: subscriptionType,
       });
       const storageSubscribed = storagePicked?.storagePerk || 0;
-
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
       const user = new UserModel({
         firstName: firstName,
         lastName: lastName,
@@ -433,7 +433,7 @@ export const signInWithGoogle: RequestHandler = async (
         refreshToken: refreshToken,
         subscriptionType: subscriptionType,
         storage: storageSubscribed,
-        password: req.body.password,
+        password: hashedPassword,
         signInMethod: "Google",
       });
 
