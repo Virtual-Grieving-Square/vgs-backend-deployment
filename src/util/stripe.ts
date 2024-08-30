@@ -11,7 +11,12 @@ import { SubscriptionPlanModel } from "../model/subscriptionPlan";
 import UpgreadModel from "../model/upgrade";
 import { UserModel } from "../model/user";
 import { dateGetDate, dateGetTime } from "./date";
-import { sendDepositConfirmation, sendEmailNonUserDonationReceiver, sendEmailNonUserDonationSender, sendEmailSubscriptionUpgraded } from "./email";
+import {
+  sendDepositConfirmation,
+  sendEmailNonUserDonationReceiver,
+  sendEmailNonUserDonationSender,
+  sendEmailSubscriptionUpgraded,
+} from "./email";
 import { addToWallet } from "./wallet";
 
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET!;
@@ -25,7 +30,8 @@ export const stripeWebhook = async (
   try {
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-
+      console.log("event", event);
+      console.log("event type", event["type"]);
       switch (event["type"]) {
         case "checkout.session.completed":
           handleCheckoutSessionCompleted(event);
@@ -52,18 +58,20 @@ function handlePaymentSucceeded(invoice: any) {
 }
 
 async function handleCheckoutSessionCompleted(event: any) {
+  console.log("checkout session started");
   const checkOutId = event.data.object.id;
   const paymentStatus = event.data.object.payment_status;
   console.log("Payment Status: ", paymentStatus);
-
+  console.log("CheckoutId", checkOutId);
   if (paymentStatus === "paid") {
-
     // Check Subscription Payment
     const CheckSubscriptionPayment = await PaymentListModel.findOne({
       paymentId: checkOutId,
     });
-
+    console.log("check subscription payment", CheckSubscriptionPayment);
     if (CheckSubscriptionPayment) {
+
+      console.log("check subscription payment inside");
       const paidd = await PaymentListModel.updateOne(
         {
           paymentId: checkOutId,
@@ -76,6 +84,8 @@ async function handleCheckoutSessionCompleted(event: any) {
       const user = await PaymentListModel.findOne({
         paymentId: checkOutId,
       });
+
+      console.log("user", user);
 
       await UserModel.updateOne(
         {
@@ -135,11 +145,13 @@ async function handleCheckoutSessionCompleted(event: any) {
           email: user!.email,
           amount: CheckDeposit.amount,
           date: new Date().toISOString().split("T")[0],
-        }).then((response) => {
-          console.log(response);
-        }).catch((error) => {
-          console.error(error);
-        });
+        })
+          .then((response) => {
+            console.log(response);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
       }
     }
 
@@ -155,9 +167,7 @@ async function handleCheckoutSessionCompleted(event: any) {
         label: CheckUpgrade.upgreadType,
       });
 
-
       if (userInfo && subscrptionType) {
-
         if (userInfo.subscriptionType == "free") {
           // Update User Model
           await UserModel.updateOne(
@@ -179,32 +189,32 @@ async function handleCheckoutSessionCompleted(event: any) {
           await UpgreadModel.updateOne(
             { paymentId: checkOutId },
             {
-              paid: true
+              paid: true,
             }
           );
 
           await sendEmailSubscriptionUpgraded({
             name: userInfo!.firstName + " " + userInfo!.lastName,
             email: userInfo!.email,
-            subscription: CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
+            subscription:
+              CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
             date: dateGetDate(CheckUpgrade!.createdAt),
             payment: CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
             time: dateGetTime(CheckUpgrade!.createdAt),
-          }).then((response) => {
-            console.log(response);
-          }).catch((error) => {
-            console.error(error);
-          });
-
+          })
+            .then((response) => {
+              console.log(response);
+            })
+            .catch((error) => {
+              console.error(error);
+            });
         } else {
           if (userInfo.subscriptionId != "") {
-
             stripe.subscriptions
               .cancel(userInfo.subscriptionId)
               .then(async (response: any) => {
                 const status = response.status;
                 if (status == "canceled") {
-
                   // Update User Model
                   await UserModel.updateOne(
                     {
@@ -223,29 +233,31 @@ async function handleCheckoutSessionCompleted(event: any) {
                   await UpgreadModel.updateOne(
                     { paymentId: checkOutId },
                     {
-                      paid: true
+                      paid: true,
                     }
                   );
 
                   await sendEmailSubscriptionUpgraded({
                     name: userInfo!.firstName + " " + userInfo!.lastName,
                     email: userInfo!.email,
-                    subscription: CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
+                    subscription:
+                      CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
                     date: dateGetDate(CheckUpgrade!.createdAt),
-                    payment: CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
+                    payment:
+                      CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
                     time: dateGetTime(CheckUpgrade!.createdAt),
-                  }).then((response) => {
-                    console.log(response);
-                  }).catch((error) => {
-                    console.error(error);
-                  });
-
+                  })
+                    .then((response) => {
+                      console.log(response);
+                    })
+                    .catch((error) => {
+                      console.error(error);
+                    });
                 } else {
                   throw "couldnt cancel request";
                 }
               });
           } else {
-
             // Update User Model
             await UserModel.updateOne(
               {
@@ -264,42 +276,43 @@ async function handleCheckoutSessionCompleted(event: any) {
             await UpgreadModel.updateOne(
               { paymentId: checkOutId },
               {
-                paid: true
+                paid: true,
               }
             );
 
             await sendEmailSubscriptionUpgraded({
               name: userInfo!.firstName + " " + userInfo!.lastName,
               email: userInfo!.email,
-              subscription: CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
+              subscription:
+                CheckUpgrade.upgreadType == "silver" ? "Silver" : "Gold",
               date: dateGetDate(CheckUpgrade!.createdAt),
               payment: CheckUpgrade.upgreadType == "silver" ? "5.00" : "9.99",
               time: dateGetTime(CheckUpgrade!.createdAt),
-            }).then((response) => {
-              console.log(response);
-            }).catch((error) => {
-              console.error(error);
             })
+              .then((response) => {
+                console.log(response);
+              })
+              .catch((error) => {
+                console.error(error);
+              });
           }
         }
-
       } else {
         throw "Error fetching users selection";
       }
     }
 
-    // Non-User Donation 
+    // Non-User Donation
     const checkNonUserDonation = await DonationNonUserModel.findOne({
       paymentId: checkOutId,
-    })
+    });
 
     if (checkNonUserDonation) {
-
       // Update Donation Model
       await DonationNonUserModel.updateOne(
         { paymentId: checkOutId },
         {
-          paid: true
+          paid: true,
         }
       );
 
@@ -324,9 +337,13 @@ async function handleCheckoutSessionCompleted(event: any) {
         }
       );
 
-      const humanMemorial = await HumanMemorial.findOne({ _id: checkNonUserDonation.to });
+      const humanMemorial = await HumanMemorial.findOne({
+        _id: checkNonUserDonation.to,
+      });
 
-      const mainUser: any = await UserModel.findOne({ _id: humanMemorial!.author });
+      const mainUser: any = await UserModel.findOne({
+        _id: humanMemorial!.author,
+      });
 
       addToWallet(mainUser!._id, checkNonUserDonation.amount);
 
@@ -337,12 +354,14 @@ async function handleCheckoutSessionCompleted(event: any) {
         donatedFor: humanMemorial!.name,
         date: new Date().toISOString().split("T")[0],
         type: "Donation",
-        confirmation: "Confirmed"
-      }).then((response: any) => {
-        console.log(response);
-      }).catch((error) => {
-        console.error(error);
-      });
+        confirmation: "Confirmed",
+      })
+        .then((response: any) => {
+          console.log(response);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
 
       await sendEmailNonUserDonationReceiver({
         name: mainUser!.firstName + " " + mainUser!.lastName,
@@ -352,13 +371,17 @@ async function handleCheckoutSessionCompleted(event: any) {
         date: new Date().toISOString().split("T")[0],
         type: "Donation",
         confirmation: "Confirmed",
-        memorialLink: `${process.env.DOMAIN}/memory/human/${checkNonUserDonation!.to}`,
+        memorialLink: `${process.env.DOMAIN}/memory/human/${
+          checkNonUserDonation!.to
+        }`,
         recieverEmail: mainUser!.email,
-      }).then((response) => {
-        console.log(response);
-      }).catch((error) => {
-        console.error(error);
-      });
+      })
+        .then((response) => {
+          console.log(response);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
   }
 }
