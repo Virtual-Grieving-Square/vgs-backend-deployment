@@ -1,7 +1,13 @@
-import { Request, Response } from 'express';
-import { AdminModel } from '../model/admin';
-import bcrypt from 'bcrypt';
-import { generateAdminAccessToken } from '../util/generateAdminAccessToken';
+import { Request, Response } from "express";
+import { AdminModel } from "../model/admin";
+import bcrypt from "bcrypt";
+import { generateAdminAccessToken } from "../util/generateAdminAccessToken";
+import { RecoverPasswordModel } from "../model/recoverPassword";
+import { verificationCodeGenerator } from "../util/verificationCodeGenerator";
+import path from "path";
+import fs from "fs";
+import ejs from "ejs";
+import nodemailer from "nodemailer";
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -46,16 +52,15 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: false, // Ensures the cookie is sent only over HTTP(S), not client JavaScript
       secure: false, // Ensures the cookie is sent only over HTTPS in production
-      sameSite: 'strict', // Helps prevent CSRF attacks
+      sameSite: "strict", // Helps prevent CSRF attacks
     });
 
     res.status(200).json({ accessToken: accessToken });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -87,12 +92,11 @@ export const signup = async (req: Request, res: Response) => {
     await newAdmin.save();
 
     res.status(200).json({ message: "Admin created" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 export const viewAll = async (req: Request, res: Response) => {
   try {
@@ -103,7 +107,7 @@ export const viewAll = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 export const deleteAdmin = async (req: Request, res: Response) => {
   try {
@@ -120,7 +124,7 @@ export const deleteAdmin = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 export const suspendAdmin = async (req: Request, res: Response) => {
   try {
     const { id } = req.body;
@@ -142,4 +146,125 @@ export const suspendAdmin = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
+
+export const forgetPasswordOtp = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(403).json({ message: "Please fill all fields" });
+    }
+
+    const admin: any = await AdminModel.findOne({
+      email: email,
+    });
+
+    console.log(admin);
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    const verificationCode = verificationCodeGenerator(6);
+
+    const checkTry = await RecoverPasswordModel.findOne({ email: email });
+
+    if (checkTry) {
+      await RecoverPasswordModel.updateOne(
+        { email: email },
+        {
+          $set: {
+            email: email,
+            code: verificationCode,
+          },
+        }
+      );
+    } else {
+      const recoverPassword = new RecoverPasswordModel({
+        email: email,
+        code: verificationCode,
+      });
+
+      await recoverPassword.save();
+    }
+
+    const ejsTemplatePath = path.join(
+      __dirname!,
+      "../../src/pages/auth/recoverPassword.ejs"
+    );
+    const ejsTemplate = fs.readFileSync(ejsTemplatePath, "utf-8");
+    const renderHtml = ejs.render(ejsTemplate, {
+      name: `${admin.fname} ${admin.lname}`,
+      code: verificationCode,
+    });
+
+    const transporter = await nodemailer.createTransport({
+      host: "smtp.titan.email",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "verification@virtualgrievingsquare.com",
+        pass: "8-yKf~NGAwn?*dF",
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: '"Virtual Grieving Square" <verification@virtualgrievingsquare.com>',
+      to: email,
+      subject: "Virtual Grieving Square Verification",
+      html: renderHtml,
+    });
+
+    console.log("Message sent: %s", info.messageId);
+
+    return res
+      .status(200)
+      .json({ message: "Verification code sent successfully" });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const forgetPasswordVerify = async (req: Request, res: Response) => {
+  try {
+    const { email, code } = req.body;
+
+    const checkTry = await RecoverPasswordModel.findOne({
+      email: email,
+      code: code,
+    });
+
+    if (checkTry) {
+      return res.status(200).json({ message: "Verification successful" });
+    } else {
+      return res.status(401).json({ message: "Invalid OTP" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await AdminModel.updateOne(
+      {
+        email: email,
+      },
+      {
+        $set: {
+          password: hashedPassword,
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
