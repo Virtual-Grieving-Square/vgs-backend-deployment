@@ -70,7 +70,6 @@ async function handleCheckoutSessionCompleted(event: any) {
     });
     console.log("check subscription payment", CheckSubscriptionPayment);
     if (CheckSubscriptionPayment) {
-
       console.log("check subscription payment inside");
       const paidd = await PaymentListModel.updateOne(
         {
@@ -178,6 +177,7 @@ async function handleCheckoutSessionCompleted(event: any) {
               subscriptionType: CheckUpgrade.upgreadType,
               subscriptionId: event.data.object.subscription,
               storage: subscrptionType.storagePerk,
+              firstTimePaid: true,
               paid: true,
               subscribed: true,
             }
@@ -225,6 +225,7 @@ async function handleCheckoutSessionCompleted(event: any) {
                       subscriptionId: event.data.object.subscription,
                       storage: subscrptionType.storagePerk,
                       subscribed: true,
+                      firstTimePaid: true,
                       paid: true,
                     }
                   );
@@ -267,6 +268,7 @@ async function handleCheckoutSessionCompleted(event: any) {
                 subscriptionType: CheckUpgrade.upgreadType,
                 subscriptionId: event.data.object.subscription,
                 storage: subscrptionType.storagePerk,
+                firstTimePaid: true,
                 subscribed: true,
                 paid: true,
               }
