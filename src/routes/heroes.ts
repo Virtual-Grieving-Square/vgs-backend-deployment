@@ -10,15 +10,22 @@ import {
   deleteHero,
   updateHero,
   getUserByHeroId,
+  updateHeroesNote,
+  createHeroesComment,
+  countHeroComment,
+  getAllHeroComments,
+  translateHeroComment,
+  likeHeroComment,
+  searchHeroMemorial,
 } from "../controller/Heroes.controller";
 
 import multer from "multer";
+import { checkUserStatus } from "../middleware/userStatus";
 
 const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
 
 router.post("/create", upload.single("image"), createHero);
 
@@ -38,6 +45,16 @@ router.get("/search", searcHeroMemorial);
 
 // Update
 router.post("/update", upload.single("image"), updateHero);
+router.post("/updateNote", updateHeroesNote);
 
+// Comment
+router.post("/comment/add", checkUserStatus, createHeroesComment);
+router.get("/count/:id", countHeroComment);
+router.get("/comment/:id", getAllHeroComments);
+router.post("/translate", translateHeroComment);
+router.post("/likeComment", likeHeroComment);
+
+// Search
+router.get("/search", searchHeroMemorial);
 
 export default router;
