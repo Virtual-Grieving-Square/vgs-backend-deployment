@@ -128,7 +128,6 @@ export const createHero = async (req: Request, res: Response) => {
     if (req.files?.length === 0) {
       return res.status(406).json({ message: "No image provided" });
     } else {
-
       const fileOrgnName = req.file?.originalname || "";
       const fileName = `uploads/image/Hero/${Date.now()}-${removeSpaces(
         fileOrgnName
@@ -338,7 +337,6 @@ export const deleteHero = async (req: Request, res: Response) => {
 //   }
 // };
 
-
 export const updateHero = async (req: any, res: Response) => {
   try {
     const { id, name, description, dob, dod, note, author } = req.body;
@@ -441,14 +439,11 @@ export const getUserByHeroId = async (req: Request, res: Response) => {
     }
 
     res.status(200).json(user);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
-
-
+};
 
 export const createHeroesComment = async (req: Request, res: Response) => {
   try {
@@ -574,7 +569,6 @@ export const createHeroesComment = async (req: Request, res: Response) => {
   }
 };
 
-
 export const countHeroComment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -590,13 +584,12 @@ export const countHeroComment = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getAllHeroComments = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const comments = await HeroComment.find({
-      _id: id,
+      memorialId: id,
     });
 
     res.status(200).json(comments);
@@ -605,7 +598,6 @@ export const getAllHeroComments = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 export const translateHeroComment = async (req: Request, res: Response) => {
   const text = req.body.text;
@@ -633,8 +625,6 @@ export const translateHeroComment = async (req: Request, res: Response) => {
     });
 };
 
-
-
 export const likeHeroComment = async (req: Request, res: Response) => {
   try {
     const { postId, likerId } = req.body;
@@ -644,7 +634,7 @@ export const likeHeroComment = async (req: Request, res: Response) => {
       likerId: likerId,
     });
     let user = await UserModel.findById(likerId);
-   
+
     if (likes.length > 0) {
       await LikeModel.deleteMany({
         postId: postId,
@@ -711,14 +701,11 @@ export const likeHeroComment = async (req: Request, res: Response) => {
   }
 };
 
-
 export const searchHeroMemorial = async (req: Request, res: Response) => {
   try {
     const [search] = Object.values(req.query);
     const humanMemorial = await Heroes.find({
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-      ],
+      $or: [{ name: { $regex: search, $options: "i" } }],
     });
 
     if (humanMemorial.length === 0) {

@@ -574,7 +574,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               .json({ message: "Donated successfully", donateFlower });
           }
         }
-      } else if (type == "hero") {
+      } else if (type == "Hero") {
         const user = await Heroes.findOne({ _id: to });
         if (!user) {
           res.status(402).send({ msg: "Hero not found" });
