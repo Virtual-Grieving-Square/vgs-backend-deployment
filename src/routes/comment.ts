@@ -20,6 +20,7 @@ import {
 import { likeComment } from "../controller/humanMemorial";
 import express, { Request, Response, NextFunction } from "express";
 import { likePetComment } from "../controller/pet";
+import { likeHeroComment } from "../controller/Heroes.controller";
 const router = Router();
 
 router.get("/:id", fetchComments);
@@ -52,6 +53,24 @@ router.post(
       await likeDonationComment(req, res);
     } else if (type == "comment") {
       await likePetComment(req, res);
+    } else {
+      res.status(400).json({ msg: "Unknown type" });
+    }
+  }
+);
+
+
+//hero
+router.post(
+  "/hero/likeComments",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { postId, likerId, type } = req.body;
+    if (type == "flower-donation") {
+      await likeFlowerDonationComment(req, res);
+    } else if (type == "donation") {
+      await likeDonationComment(req, res);
+    } else if (type == "comment") {
+      await likeHeroComment(req, res);
     } else {
       res.status(400).json({ msg: "Unknown type" });
     }

@@ -8,6 +8,7 @@ import { DonationNonUserModel } from "../model/donationNonUser";
 import { MemorialComment } from "../model/memorialComment";
 import { HumanMemorial } from "../model/humanMemorial";
 import { PetMemorialComment } from "../model/petMemorialComment";
+import { HeroComment } from "../model/heroComment";
 
 export const fetchComments = async (req: Request, res: Response) => {
   try {
@@ -20,6 +21,8 @@ export const fetchComments = async (req: Request, res: Response) => {
     const flower: any = await FlowerDonationModel.find({ to: id });
     const memorialComment: any = await MemorialComment.find({ memorialId: id });
     const petmemorialComment: any = await PetMemorialComment.find({ memorialId: id });
+    const heromemorialComment: any = await HeroComment.find({ memorialId: id });
+
 
     if (donation) {
       for (let i = 0; i < donation.length; i++) {
@@ -108,6 +111,24 @@ export const fetchComments = async (req: Request, res: Response) => {
           date: memorialComment[i].createdAt,
           likes: memorialComment[i].likes,
           creator: memorialComment[i].userId
+        });
+      }
+    }
+
+    if (heromemorialComment) {
+      for (let i = 0; i < heromemorialComment.length; i++) {
+        const user = await UserModel.findOne({
+          _id: heromemorialComment[i].userId,
+        });
+        comments.push({
+          id: heromemorialComment[i]._id,
+          name: heromemorialComment[i].cname,
+          note: heromemorialComment[i].comment,
+          type: "hero-comment",
+          blocked: heromemorialComment[i].blocked,
+          date: heromemorialComment[i].createdAt,
+          likes: heromemorialComment[i].likes,
+          creator: heromemorialComment[i].userId
         });
       }
     }

@@ -12,6 +12,7 @@ import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
 import { emitCommentUpdate, emitLikeUpdate } from "../util/event";
 import LikeModel from "../model/like";
+import { HeroComment } from "../model/heroComment";
 
 const filter = new Filter();
 
@@ -408,6 +409,86 @@ export const likePetComment = async (req: Request, res: Response) => {
           memo?.userId,
           `${user?.firstName} ${user?.lastName} liked your comment.`,
           "Pet Memorial comment Like",
+          likerId,
+          postId?.toString()
+        );
+      }
+      return res
+        .status(200)
+        .json({ like: true, message: "Comment liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+export const likeHeroComment = async (req: Request, res: Response) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await HeroComment.findByIdAndUpdate(postId, {
+        $inc: { likes: -1 },
+      });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Comment unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      const newLike = await like.save();
+      const likeId = newLike._id;
+
+      await HeroComment.findByIdAndUpdate(postId, {
+        $inc: { likes: 1 },
+      });
+
+      const memo = await HeroComment.findById(postId);
+      console.log(memo);
+      // console.log(memopost);
+      const sender = user?._id?.toString();
+      const reciver = memo?.userId.toString();
+      if (memo && reciver !== sender) {
+        const authorTokens = await FCMModel.find({ userId: memo?.userId });
+        console.log(authorTokens);
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+
+            data: {
+              fromid: user?._id?.toString(),
+              toid: memo?.userId.toString(),
+              type: "hero-comment-like",
+              likeid: likeId?.toString(),
+              memorialid: memo.memorialId.toString(),
+            },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+
+        await emitLikeUpdate(
+          memo?.userId,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "Hero Memorial comment Like",
           likerId,
           postId?.toString()
         );
