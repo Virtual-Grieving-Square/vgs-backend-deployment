@@ -394,6 +394,28 @@ export const editMemorialComment = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const editHeroComment = async (req: Request, res: Response) => {
+  const { authorID, commentId, type, note } = req.body;
+  try {
+    let memorial = await HeroComment.find({
+      userId: authorID,
+      _id: commentId,
+    });
+
+    if (!memorial) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
+    let memoriaID = await HeroComment.findByIdAndUpdate(commentId, {
+      comment: note,
+    });
+
+    res.status(200).json({ message: "Comment edited" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 export const editDonationComment = async (req: Request, res: Response) => {
   const { authorID, commentId, type, note } = req.body;
   try {
