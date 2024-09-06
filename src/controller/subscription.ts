@@ -237,7 +237,19 @@ export const deposit = async (req: Request, res: Response) => {
     if (!amount || !id) {
       return res.status(500).json({ error: "amount and id not specifed" });
     }
+    let success_urls;
 
+    if (req.body.from && req.body.from == "memorial") {
+      if (req.body.type && req.body.type == "pet") {
+        success_urls = `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`;
+      } else if (req.body.type == "hero") {
+        success_urls = `${YOUR_DOMAIN}/memory/hero/${req.body.memorialId}?tab=balance`;
+      } else {
+        success_urls = `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`;
+      }
+    } else {
+      success_urls = `${YOUR_DOMAIN}/account?success=true`;
+    }
     // Fetch the fee percentage from the database
     // const feeRecord = await FeePayment.findOne({ _id: "feeRecord1" });
     // if (!feeRecord) {
@@ -275,12 +287,14 @@ export const deposit = async (req: Request, res: Response) => {
         // },
       ],
       mode: "payment",
-      success_url:
-        req.body.from && req.body.from == "memorial"
-          ? req.body.type && req.body.type == "pet"
-            ? `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`
-            : `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
-          : `${YOUR_DOMAIN}/account?success=true`,
+      // success_url:
+      //   req.body.from && req.body.from == "memorial"
+      //     ? req.body.type && req.body.type == "pet"
+      //       ? `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`
+      //       : `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
+      //     : `${YOUR_DOMAIN}/account?success=true`,
+
+      success_url: success_urls,
       cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
       automatic_tax: { enabled: true },
     });
