@@ -398,12 +398,10 @@ async function handleCheckoutSessionCompleted(event: any) {
 }
 
 // subscription end and failure
-
-// Handles payment failed
 async function handlePaymentFailed(invoice: any) {
   const subscriptionId = invoice.subscription;
   const customerId = invoice.customer;
-  // const user = await UserModel.findOne({ subscriptionId });
+  
   console.log(`Payment failed for user ${customerId}`);
 }
 
