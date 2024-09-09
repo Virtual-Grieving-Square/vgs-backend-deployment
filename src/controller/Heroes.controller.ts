@@ -280,6 +280,25 @@ export const deleteHero = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteHeroComment = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const hero = await HeroComment.findById(id);
+
+    if (!hero) {
+      return res.status(404).json({ message: "Hero comment not found" });
+    }
+
+    await HeroComment.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Hero comment deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // export const updateHero = async (req: any, res: Response) => {
 //   try {
 //     const { id, name, description, dob, dod, author } = req.body;
