@@ -18,6 +18,7 @@ import {
   likeHeroComment,
   searchHeroMemorial,
   deleteHeroComment,
+  updateHeroTombstone,
 } from "../controller/Heroes.controller";
 
 import multer from "multer";
@@ -46,6 +47,8 @@ router.get("/search", searcHeroMemorial);
 // Update
 router.post("/update", upload.single("image"), updateHero);
 router.post("/updateNote", updateHeroesNote);
+router.post("/updateTombstone", updateHeroTombstone);
+
 
 // Comment
 router.post("/comment/add", checkUserStatus, createHeroesComment);
