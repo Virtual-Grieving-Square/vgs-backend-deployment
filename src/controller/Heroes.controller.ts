@@ -490,6 +490,28 @@ export const updateHeroesNote = async (req: any, res: Response) => {
   }
 };
 
+export const updateHeroTombstone = async (req: any, res: Response) => {
+  try {
+    const { heroID, tombstoneId } = req.body;
+
+    let hero = await Heroes.findById(heroID);
+    if (!hero) {
+      return res.status(400).json({ msg: "no memory found with that Id" });
+    }
+    const update = await Heroes.findByIdAndUpdate(heroID, {
+      tombstoneId: tombstoneId,
+    });
+
+    res.status(200).json({
+      tombstone: update,
+      message: "Tombstone updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 export const getUserByHeroId = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

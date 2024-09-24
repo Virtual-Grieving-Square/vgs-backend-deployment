@@ -18,6 +18,7 @@ import {
   likeHeroComment,
   searchHeroMemorial,
   deleteHeroComment,
+  updateHeroTombstone,
   changeHeroTombstone,
   removeHeroTombstone,
 } from "../controller/Heroes.controller";
@@ -47,6 +48,8 @@ router.get("/getImage", getImage);
 // Update
 router.post("/update", upload.single("image"), updateHero);
 router.post("/updateNote", updateHeroesNote);
+router.post("/updateTombstone", updateHeroTombstone);
+
 
 // Comment
 router.post("/comment/add", checkUserStatus, createHeroesComment);
