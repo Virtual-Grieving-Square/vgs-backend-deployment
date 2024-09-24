@@ -30,7 +30,7 @@ router.delete("/delete/:id", deleteTombstone);
 
 //users tombstone
 router.post("/users/create", upload.single("image"), usersTombstone);
-router.get("/users/tombstone:userId", fetchUsersTombstone);
+router.get("/users/tombstone/:userId", fetchUsersTombstone);
 
 
 // pet Tombstone 
