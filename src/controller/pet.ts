@@ -13,6 +13,7 @@ import { sendNotification } from "../middleware/notification";
 import { emitCommentUpdate, emitLikeUpdate } from "../util/event";
 import LikeModel from "../model/like";
 import { HeroComment } from "../model/heroComment";
+import { petTombstone } from "./tombstone";
 
 const filter = new Filter();
 
@@ -522,6 +523,56 @@ export const updatePetTombstone = async (req: any, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
+  }
+};
+
+export const changePetTombstone = async (req: Request, res: Response) => {
+  try {
+    const { petId, tombstoneId } = req.body;
+
+    if (!petId || !tombstoneId) {
+      return res.status(406).json({ message: "required field messing" });
+    }
+
+    const petMemorial = PetMemorial.findById(petId);
+
+    if (!petMemorial) {
+      return res.status(406).json({ message: "No Memorials found" });
+    }
+
+    await PetMemorial.findByIdAndUpdate(petId, {
+      tombstone: true,
+      tombstoneId: tombstoneId,
+    });
+    res.status(200).json({ message: "Tombstone updated successfully" });
+  } catch (error) {
+    console.error("Error pet Memorial tombstone:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const removePetTombstone = async (req: Request, res: Response) => {
+  try {
+    const { petId } = req.body;
+
+    if (!petId) {
+      return res.status(406).json({ message: "required field messing" });
+    }
+
+    const petMemorial = PetMemorial.findById(petId);
+
+    if (!petMemorial) {
+      return res.status(406).json({ message: "No Memorials found" });
+    }
+
+    await PetMemorial.findByIdAndUpdate(petId, {
+      tombstone: false,
+      tombstoneId: "",
+    });
+    res.status(200).json({ message: "Pet Tombstone removed successfully" });
+  } catch (error) {
+    console.error("Error Human Memorial Tombstone Remove:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

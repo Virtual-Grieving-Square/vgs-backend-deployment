@@ -18,6 +18,8 @@ import {
   likeHeroComment,
   searchHeroMemorial,
   deleteHeroComment,
+  changeHeroTombstone,
+  removeHeroTombstone,
 } from "../controller/Heroes.controller";
 
 import multer from "multer";
@@ -30,7 +32,6 @@ const upload = multer({ storage: storage });
 
 router.post("/create", upload.single("image"), createHero);
 
-
 // Get
 router.get("/getAll", getAllHeroes);
 router.get("/get/userId/:id", getHeroByUserId);
@@ -41,7 +42,7 @@ router.get("/getUserByHeroId/:id", getUserByHeroId);
 router.get("/getImage", getImage);
 
 // Search
-router.get("/search", searcHeroMemorial);
+// router.get("/search", searcHeroMemorial);
 
 // Update
 router.post("/update", upload.single("image"), updateHero);
@@ -60,5 +61,10 @@ router.get("/search", searchHeroMemorial);
 //delete
 router.delete("/delete/:id", deleteHero);
 router.delete("/delete/comment/:id", deleteHeroComment);
+
+//tombstone
+// Tombstone
+router.post("/addTombstone", changeHeroTombstone);
+router.post("/removeTombstone", removeHeroTombstone);
 
 export default router;

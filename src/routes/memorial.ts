@@ -18,6 +18,8 @@ import {
   likeComment,
   updateHumanTombstone,
   updateHumanNote,
+  changeTombstone,
+  removeTombstone,
 } from "../controller/humanMemorial";
 
 // Pet Memorial
@@ -34,6 +36,8 @@ import {
   updatePetMemorial,
   updatePetNote,
   updatePetTombstone,
+  changePetTombstone,
+  removePetTombstone,
   // searchPetMemorial,
 } from "../controller/pet";
 
@@ -73,6 +77,10 @@ router.post("/human/comment/add", checkUserStatus, createMemorialComment);
 router.post("/human/translate", translateMemoComment);
 router.post("/human/likeComment", likeComment);
 
+// Tombstone
+router.post("/human/addTombstone", changeTombstone);
+router.post("/human/removeTombstone", removeTombstone);
+
 // Pet Memorial
 router.get("/pet/getAll", getAllPetMemorial);
 router.get("/pet/getById/:id", getPetById);
@@ -101,5 +109,9 @@ router.get("/obituaries", getObituaries);
 //change tombstone
 router.post("/human/update/tombstone", updateHumanTombstone);
 router.post("/pet/update/tombstone", updatePetTombstone);
+
+// Pet Tombstone
+router.post("/pet/addTombstone", changePetTombstone);
+router.post("/pet/removeTombstone", removePetTombstone);
 
 export default router;

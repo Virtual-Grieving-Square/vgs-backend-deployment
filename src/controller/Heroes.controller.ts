@@ -299,6 +299,55 @@ export const deleteHeroComment = async (req: Request, res: Response) => {
   }
 };
 
+export const changeHeroTombstone = async (req: Request, res: Response) => {
+  try {
+    const { heroId, tombstoneId } = req.body;
+
+    if (!heroId || !tombstoneId) {
+      return res.status(406).json({ message: "required field messing" });
+    }
+
+    const heroMemorial = Heroes.findById(heroId);
+
+    if (!heroMemorial) {
+      return res.status(406).json({ message: "No Hero found" });
+    }
+
+    await Heroes.findByIdAndUpdate(heroId, {
+      tombstone: true,
+      tombstoneId: tombstoneId,
+    });
+    res.status(200).json({ message: "Tombstone updated successfully" });
+  } catch (error) {
+    console.error("Error Hero Memorial tombstone:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const removeHeroTombstone = async (req: Request, res: Response) => {
+  try {
+    const { heroId } = req.body;
+
+    if (!heroId) {
+      return res.status(406).json({ message: "required field messing" });
+    }
+
+    const heroMemorial = Heroes.findById(heroId);
+
+    if (!heroMemorial) {
+      return res.status(406).json({ message: "No Hero found" });
+    }
+
+    await Heroes.findByIdAndUpdate(heroId, {
+      tombstone: false,
+      tombstoneId: "",
+    });
+    res.status(200).json({ message: "Hero Tombstone removed successfully" });
+  } catch (error) {
+    console.error("Error Hero Memorial Tombstone Remove:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 // export const updateHero = async (req: any, res: Response) => {
 //   try {
 //     const { id, name, description, dob, dod, author } = req.body;
