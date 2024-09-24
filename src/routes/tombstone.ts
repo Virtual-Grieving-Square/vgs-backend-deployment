@@ -13,6 +13,8 @@ import {
   petTombstone,
   getAllPetTombstones,
   deletePetTombstone,
+  getByUserId,
+  deleteUsersTombstone,
 } from "../controller/tombstone";
 
 // Middleware
@@ -25,15 +27,16 @@ const router = Router();
 
 router.get("/getAll", getAll);
 router.get("/getById/:id", getById);
+router.get("/getByUserId/:userid", getByUserId);
 router.post("/create", upload.single("image"), create);
 router.delete("/delete/:id", deleteTombstone);
 
-//users tombstone
+//users tombstone 
 router.post("/users/create", upload.single("image"), usersTombstone);
-router.get("/users/tombstone/:userId", fetchUsersTombstone);
+router.get("/users/tombstone:userId", fetchUsersTombstone);
+router.post("/users/deleteTombstone", deleteUsersTombstone);
 
-
-// pet Tombstone 
+// pet Tombstone
 router.post("/pets/create", upload.single("image"), petTombstone);
 router.get("/pet/getTombstone/:id", getPetTombstone);
 router.get("/pet/getAllTombstone", getAllPetTombstones);
