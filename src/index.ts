@@ -187,6 +187,10 @@ io.on("connection", (socket: any) => {
     socket.emit("server_new_hero");
   });
 
+  socket.on("client_delete_tombstone", () => {
+    socket.emit("server_delete_tombstone");
+  });
+  
   socket.on("disconnect", () => {
     console.log("A User Disconnected");
   });
