@@ -297,7 +297,7 @@ export const deletePetTombstone = async (req: Request, res: Response) => {
     const { id } = req.params;
     console.log("Here");
 
-    await TombstoneModel.findByIdAndDelete(id);
+    await PetTombstoneModel.findByIdAndDelete(id);
 
     res.status(200).json({ message: "Tombstone deleted successfully" });
   } catch (error) {
