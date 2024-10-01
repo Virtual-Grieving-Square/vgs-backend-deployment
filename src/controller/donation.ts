@@ -248,7 +248,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/memory/human/${
+                memorialLink: `${process.env.DOMAIN}/hero/in/${
                   memorial!._id
                 }`,
                 recieverEmail: mainUser!.email,
