@@ -16,6 +16,8 @@ import {
 import {
   likeDonationComment,
   likeFlowerDonationComment,
+  likeHeroDonationComment,
+  likeHeroFlowerDonationComment,
 } from "../controller/donation";
 
 import { likeComment } from "../controller/humanMemorial";
@@ -65,9 +67,9 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     const { postId, likerId, type } = req.body;
     if (type == "flower-donation") {
-      await likeFlowerDonationComment(req, res);
+      await likeHeroFlowerDonationComment(req, res);
     } else if (type == "donation") {
-      await likeDonationComment(req, res);
+      await likeHeroDonationComment(req, res);
     } else if (type == "comment") {
       await likeHeroComment(req, res);
     } else {

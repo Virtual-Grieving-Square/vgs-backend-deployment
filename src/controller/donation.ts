@@ -860,6 +860,78 @@ export const likeDonationComment = async (req: Request, res: Response) => {
   }
 };
 
+export const likeHeroDonationComment = async (req: Request, res: Response) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Note unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      const newLike = await like.save();
+      const likeId = newLike._id;
+
+      await DonationModel.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
+
+      const donation = await DonationModel.findById(postId);
+      // const donator = await HumanMemorial.findById(donation?.to);
+
+      if (donation && user?._id !== likerId) {
+        const authorTokens = await FCMModel.find({ userId: donation.from });
+
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+
+            data: {
+              fromid: user?._id?.toString(),
+              toid: donation.from?.toString(),
+              type: "donation-like",
+              likeid: likeId?.toString(),
+              donationid: postId.toString(),
+            },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+        await emitLikeUpdate(
+          donation.from,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "hero-like",
+          likerId,
+          postId
+        );
+      }
+      return res
+        .status(200)
+        .json({ like: true, message: "Note liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const likeFlowerDonationComment = async (
   req: Request,
   res: Response
@@ -937,6 +1009,83 @@ export const likeFlowerDonationComment = async (
   }
 };
 
+
+export const likeHeroFlowerDonationComment = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { postId, likerId } = req.body;
+
+    const likes = await LikeModel.find({
+      postId: postId,
+      likerId: likerId,
+    });
+    let user = await UserModel.findById(likerId);
+
+    if (likes.length > 0) {
+      await LikeModel.deleteMany({
+        postId: postId,
+        likerId: likerId,
+      });
+
+      await FlowerDonationModel.findByIdAndUpdate(postId, {
+        $inc: { likes: -1 },
+      });
+
+      return res
+        .status(200)
+        .json({ like: false, message: "Note unliked successfully" });
+    } else {
+      const like = new LikeModel({
+        postId: postId,
+        Lname: user?.firstName + " " + user?.lastName,
+        likerId: likerId,
+      });
+
+      const newLike = await like.save();
+      const likeId = newLike._id;
+
+      await FlowerDonationModel.findByIdAndUpdate(postId, {
+        $inc: { likes: 1 },
+      });
+
+      const flower = await FlowerDonationModel.findById(postId);
+      // const donator = await HumanMemorial.findById(flower?.to);
+      if (flower && user?._id !== likerId) {
+        const authorTokens = await FCMModel.find({ userId: flower?.from });
+
+        for (const tokenData of authorTokens) {
+          const payload = {
+            title: "Your comment got a new like!",
+            body: `${user?.firstName} ${user?.lastName} liked your comment.`,
+            data: {
+              fromid: user?._id?.toString(),
+              toid: flower?.from.toString(),
+              type: "hero-like",
+              likeid: likeId?.toString(),
+              donationid: postId.toString(),
+            },
+          };
+          await sendNotification({ token: tokenData.token, payload });
+        }
+        await emitLikeUpdate(
+          flower?.from,
+          `${user?.firstName} ${user?.lastName} liked your comment.`,
+          "hero-like",
+          likerId,
+          postId
+        );
+      }
+      return res
+        .status(200)
+        .json({ like: true, message: "Note liked successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 export const getAll = async (req: Request, res: Response) => {
   try {
     const donations = await DonationModel.find();
