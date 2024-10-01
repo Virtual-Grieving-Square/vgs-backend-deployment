@@ -216,7 +216,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                 await emitLikeUpdate(
                   reciver.author,
                   `${userFrom?.firstName} ${userFrom?.lastName} Donated to your hero.`,
-                  "Hero Donation",
+                  "hero-donation",
                   from,
                   to
                 );
@@ -626,7 +626,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               for (const tokenData of authorTokens) {
                 const payload = {
                   title: "Your hero got donation!",
-                  body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+                  body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Hero.`,
 
                   data: {
                     fromid: from.toString(),
@@ -640,8 +640,8 @@ export const donateFlower = async (req: Request, res: Response) => {
               }
               await emitLikeUpdate(
                 reciver.author,
-                `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
-                "Memorial donation",
+                `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Hero.`,
+                "hero-donation",
                 from,
                 to
               );
@@ -936,8 +936,6 @@ export const likeFlowerDonationComment = async (
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
 
 export const getAll = async (req: Request, res: Response) => {
   try {
