@@ -20,12 +20,13 @@ import {
   sendEmail,
   sendEmailNonUserDonationReceiver,
   sendEmailNonUserDonationSender,
-  sendEmailClaimer
+  sendEmailClaimer,
 } from "../util/email";
 import LikeModel from "../model/like";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
 import { emitLikeUpdate } from "../util/event";
+import { Heroes } from "../model/heroes";
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY!);
 
@@ -126,6 +127,139 @@ export const makeDonation = async (req: Request, res: Response) => {
                   to
                 );
               }
+              res.status(200).json({ message: "Donated successfully", donate });
+            }
+          }
+        }
+      } else if (type == "Hero") {
+        const user = await Heroes.findOne({ _id: to });
+        const userFrom = await UserModel.findById(from);
+        if (!user) {
+          res.status(402).send({ msg: "User not found" });
+        } else {
+          const checkUser = await Heroes.findOne({
+            _id: to,
+          });
+
+          if (checkUser!.author == from) {
+            res.status(402).send({ msg: "You can't donate to yourself" });
+          } else {
+            const checDonatorBalance = await UserModel.findOne({ _id: from });
+
+            if (checDonatorBalance!.balance < amount) {
+              res.status(405).send({ msg: "Insufficient balance" });
+            } else {
+              const donate = new DonationModel({
+                from: from,
+                to: user!._id,
+                amount: amount,
+                description: description || "Donation",
+                note: note,
+                name: userFrom?.firstName + " " + userFrom?.lastName,
+              });
+
+              const newDonation = await donate.save();
+              const donationId = newDonation._id;
+
+              await Heroes.updateOne(
+                {
+                  _id: user!._id,
+                },
+                {
+                  $push: {
+                    donations: donate._id,
+                  },
+                }
+              );
+
+              const memorial = await Heroes.findOne({ _id: user!._id });
+
+              const mainUser: any = await UserModel.findOne({
+                _id: user!.author,
+              });
+
+              addToWallet(mainUser!._id, amount);
+
+              await UserModel.updateOne(
+                {
+                  _id: from,
+                },
+                {
+                  $inc: {
+                    balance: -amount,
+                  },
+                }
+              );
+              const reciver = await Heroes.findOne({
+                _id: to,
+              });
+              console.log(reciver);
+              if (reciver) {
+                const authorTokens = await FCMModel.find({
+                  userId: reciver.author,
+                });
+
+                for (const tokenData of authorTokens) {
+                  const payload = {
+                    title: "Your Hero got donation!",
+                    body: `${userFrom?.firstName} ${userFrom?.lastName} Donated to your memorial.`,
+                    data: {
+                      fromid: from.toString(),
+                      toid: reciver.author.toString(),
+                      type: "donation-hero",
+                      memorialid: to.toString(),
+                      donationid: donationId?.toString(),
+                    },
+                  };
+                  await sendNotification({ token: tokenData.token, payload });
+                }
+                await emitLikeUpdate(
+                  reciver.author,
+                  `${userFrom?.firstName} ${userFrom?.lastName} Donated to your hero.`,
+                  "Hero Donation",
+                  from,
+                  to
+                );
+              }
+              await sendEmailNonUserDonationSender({
+                name:
+                  checDonatorBalance!.firstName +
+                  " " +
+                  checDonatorBalance!.lastName,
+                email: checDonatorBalance!.email,
+                amount: amount,
+                donatedFor: memorial!.name,
+                date: new Date().toISOString().split("T")[0],
+                type: "Donation",
+                confirmation: "Confirmed",
+              })
+                .then((response: any) => {
+                  console.log(response);
+                })
+                .catch((error) => {
+                  console.error(error);
+                });
+
+              await sendEmailNonUserDonationReceiver({
+                name: mainUser!.firstName + " " + mainUser!.lastName,
+                email: checDonatorBalance!.email,
+                amount: amount,
+                donatedFor: memorial!.name,
+                date: new Date().toISOString().split("T")[0],
+                type: "Donation",
+                confirmation: "Confirmed",
+                memorialLink: `${process.env.DOMAIN}/memory/human/${
+                  memorial!._id
+                }`,
+                recieverEmail: mainUser!.email,
+              })
+                .then((response) => {
+                  console.log(response);
+                })
+                .catch((error) => {
+                  console.error(error);
+                });
+
               res.status(200).json({ message: "Donated successfully", donate });
             }
           }
@@ -440,6 +574,84 @@ export const donateFlower = async (req: Request, res: Response) => {
               .json({ message: "Donated successfully", donateFlower });
           }
         }
+      } else if (type == "Hero") {
+        const user = await Heroes.findOne({ _id: to });
+        if (!user) {
+          res.status(402).send({ msg: "Hero not found" });
+        } else {
+          const checDonatorBalance = await UserModel.findOne({ _id: from });
+
+          if (checDonatorBalance!.balance < amount) {
+            res.status(405).send({ msg: "Insufficient balance" });
+          } else {
+            const flowerType = await FlowerModel.findOne({ _id: id });
+
+            const donateFlower = new FlowerDonationModel({
+              from: from,
+              to: to,
+              id: id,
+              amount: amount,
+              flowerId: flowerType!._id,
+              note: note,
+              name:
+                checDonatorBalance?.firstName +
+                " " +
+                checDonatorBalance?.lastName,
+              flowerImage: flowerType!.photos,
+              type: flowerType!.type,
+            });
+
+            const newDonation = await donateFlower.save();
+            const donationID = newDonation._id;
+
+            await UserModel.findOneAndUpdate(
+              { _id: from },
+              { $inc: { balance: -amount } }
+            );
+
+            const mainUser: any = await UserModel.findOne({
+              _id: user!.author,
+            });
+
+            addToWalletFlower(mainUser!._id, amount);
+
+            const reciver = await Heroes.findOne({
+              _id: to,
+            });
+            if (reciver) {
+              const authorTokens = await FCMModel.find({
+                userId: reciver.author,
+              });
+
+              for (const tokenData of authorTokens) {
+                const payload = {
+                  title: "Your hero got donation!",
+                  body: `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+
+                  data: {
+                    fromid: from.toString(),
+                    toid: reciver.author.toString(),
+                    type: "flower-hero",
+                    memorialid: to.toString(),
+                    donationid: donationID?.toString(),
+                  },
+                };
+                await sendNotification({ token: tokenData.token, payload });
+              }
+              await emitLikeUpdate(
+                reciver.author,
+                `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your memorial.`,
+                "Memorial donation",
+                from,
+                to
+              );
+            }
+            res.status(200).json({
+              message: "Donated successfully",
+              donateFlower,
+            });
+          }
+        }
       } else {
         const user = await HumanMemorial.findOne({ _id: to });
         if (!user) {
@@ -725,6 +937,8 @@ export const likeFlowerDonationComment = async (
   }
 };
 
+
+
 export const getAll = async (req: Request, res: Response) => {
   try {
     const donations = await DonationModel.find();
@@ -842,12 +1056,10 @@ export const claimMoneyDonation = async (req: Request, res: Response) => {
   try {
     const { id } = req.body;
 
-    
     if (!id) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    
     const user = await UserModel.findOne({ _id: id });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -858,21 +1070,17 @@ export const claimMoneyDonation = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Wallet not found" });
     }
 
-   
     if (wallet.balance === 0) {
       return res.status(403).json({ message: "No balance to claim" });
     }
 
-    
     const transfer = await stripe.transfers.create({
-      amount: wallet.balance * 100, 
+      amount: wallet.balance * 100,
       currency: "usd",
       destination: user.stripeAccountId,
     });
 
-  
     await WalletModel.updateOne({ userId: id }, { $set: { balance: 0 } });
-
 
     res.status(200).json({ wallet, transfer });
   } catch (error: any) {

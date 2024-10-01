@@ -39,6 +39,23 @@ export const getById = async (req: Request, res: Response) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+export const getByUserId = async (req: Request, res: Response) => {
+  try {
+    const { userid } = req.params;
+
+    const tombstone = await TombstoneModel.find({ userId: userid });
+
+    if (!tombstone) {
+      return res.status(404).json({ message: "Tombstone not found" });
+    }
+
+    res.status(200).json(tombstone);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
 export const create = async (req: Request, res: Response) => {
   try {
     const { name, description, type, userId } = req.body;
@@ -267,6 +284,23 @@ export const fetchUsersTombstone = async (req: Request, res: Response) => {
     const { userId } = req.params;
 
     const tombstone = await UsersTombstoneModel.find({ userId: userId });
+
+    if (!tombstone) {
+      return res.status(404).json({ message: "Tombstone not found" });
+    }
+
+    res.status(200).json(tombstone);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const deleteUsersTombstone = async (req: Request, res: Response) => {
+  try {
+    const { tombstoneId } = req.params;
+
+    const tombstone = await UsersTombstoneModel.findByIdAndDelete(tombstoneId);
 
     if (!tombstone) {
       return res.status(404).json({ message: "Tombstone not found" });

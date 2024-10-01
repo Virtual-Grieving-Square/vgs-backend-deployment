@@ -175,57 +175,61 @@ export const cancelSubscription = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(402).json({ msg: "User Not Found" });
-    } else {
-      const match = await bcrypt.compare(password, user.password);
-
-      if (!match) {
-        return res.status(403).json({ msg: "Password Incorrect" });
-      } else {
-        stripe.subscriptions
-          .cancel(user.subscriptionId)
-          .then(async (response: any) => {
-            const status = response.status;
-            if (status == "canceled") {
-              await UserModel.updateOne(
-                {
-                  _id: id,
-                },
-                {
-                  subscriptionType: "free",
-                  subscribed: false,
-                  subscriptionId: "",
-                  storage: 0,
-                }
-              );
-
-              const user = await UserModel.findById(id);
-
-              await sendEmailSubscriptionCancel({
-                name: user!.firstName + " " + user!.lastName,
-                email: user!.email,
-                date: dateGetDate(nowdate.toISOString()),
-                time: dateGetTime(nowdate.toISOString()),
-              })
-                .then((response) => {
-                  console.log(response);
-                })
-                .catch((error) => {
-                  console.error(error);
-                });
-
-              res.status(200).json({
-                msg: "subscription_canceled",
-                status: status,
-              });
-            }
-          });
-      }
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(403).json({ msg: "Password Incorrect" });
+    }
+
+    // Use async/await for Stripe subscription cancelation
+    const response = await stripe.subscriptions.cancel(user.subscriptionId);
+    const status = response.status;
+
+    if (status === "canceled") {
+      // Update user subscription in the database
+      await UserModel.updateOne(
+        { _id: id },
+        {
+          subscriptionType: "free",
+          subscribed: false,
+          subscriptionId: "",
+          storage: 0,
+        }
+      );
+
+      const updatedUser = await UserModel.findById(id);
+
+      if (!updatedUser) {
+        return res.status(404).json({ msg: "User Not Found After Update" });
+      }
+
+      // Send subscription cancellation email
+      try {
+        const emailResponse = await sendEmailSubscriptionCancel({
+          name: updatedUser.firstName + " " + updatedUser.lastName,
+          email: updatedUser.email,
+          date: dateGetDate(nowdate.toISOString()),
+          time: dateGetTime(nowdate.toISOString()),
+        });
+        console.log(emailResponse);
+      } catch (emailError) {
+        console.error("Email sending error:", emailError);
+        // Optional: You could still return success here but log the email failure
+      }
+
+      return res.status(200).json({
+        msg: "subscription_canceled",
+        status: status,
+      });
+    } else {
+      return res.status(500).json({ msg: "Failed to cancel subscription" });
+    }
+  } catch (error: any) {
+    console.error("Server Error:", error);
+    return res.status(500).json({
       msg: "Internal Server Error",
-      error: error,
+      error: error.message || error,
     });
   }
 };
@@ -237,7 +241,19 @@ export const deposit = async (req: Request, res: Response) => {
     if (!amount || !id) {
       return res.status(500).json({ error: "amount and id not specifed" });
     }
+    let success_urls;
 
+    if (req.body.from && req.body.from == "memorial") {
+      if (req.body.type && req.body.type == "pet") {
+        success_urls = `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`;
+      } else if (req.body.type == "hero") {
+        success_urls = `${YOUR_DOMAIN}/memory/hero/${req.body.memorialId}?tab=balance`;
+      } else {
+        success_urls = `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`;
+      }
+    } else {
+      success_urls = `${YOUR_DOMAIN}/account?success=true`;
+    }
     // Fetch the fee percentage from the database
     // const feeRecord = await FeePayment.findOne({ _id: "feeRecord1" });
     // if (!feeRecord) {
@@ -275,12 +291,14 @@ export const deposit = async (req: Request, res: Response) => {
         // },
       ],
       mode: "payment",
-      success_url:
-        req.body.from && req.body.from == "memorial"
-          ? req.body.type && req.body.type == "pet"
-            ? `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`
-            : `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
-          : `${YOUR_DOMAIN}/account?success=true`,
+      // success_url:
+      //   req.body.from && req.body.from == "memorial"
+      //     ? req.body.type && req.body.type == "pet"
+      //       ? `${YOUR_DOMAIN}/memory/pet/${req.body.memorialId}?tab=balance`
+      //       : `${YOUR_DOMAIN}/memory/human/${req.body.memorialId}?tab=balance`
+      //     : `${YOUR_DOMAIN}/account?success=true`,
+
+      success_url: success_urls,
       cancel_url: `${YOUR_DOMAIN}/account?canceled=true`,
       automatic_tax: { enabled: true },
     });

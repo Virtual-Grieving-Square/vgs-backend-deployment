@@ -8,6 +8,7 @@ import { DonationNonUserModel } from "../model/donationNonUser";
 import { MemorialComment } from "../model/memorialComment";
 import { HumanMemorial } from "../model/humanMemorial";
 import { PetMemorialComment } from "../model/petMemorialComment";
+import { HeroComment } from "../model/heroComment";
 
 export const fetchComments = async (req: Request, res: Response) => {
   try {
@@ -20,6 +21,8 @@ export const fetchComments = async (req: Request, res: Response) => {
     const flower: any = await FlowerDonationModel.find({ to: id });
     const memorialComment: any = await MemorialComment.find({ memorialId: id });
     const petmemorialComment: any = await PetMemorialComment.find({ memorialId: id });
+    const heromemorialComment: any = await HeroComment.find({ memorialId: id });
+
 
     if (donation) {
       for (let i = 0; i < donation.length; i++) {
@@ -108,6 +111,24 @@ export const fetchComments = async (req: Request, res: Response) => {
           date: memorialComment[i].createdAt,
           likes: memorialComment[i].likes,
           creator: memorialComment[i].userId
+        });
+      }
+    }
+
+    if (heromemorialComment) {
+      for (let i = 0; i < heromemorialComment.length; i++) {
+        const user = await UserModel.findOne({
+          _id: heromemorialComment[i].userId,
+        });
+        comments.push({
+          id: heromemorialComment[i]._id,
+          name: heromemorialComment[i].cname,
+          note: heromemorialComment[i].comment,
+          type: "hero-comment",
+          blocked: heromemorialComment[i].blocked,
+          date: heromemorialComment[i].createdAt,
+          likes: heromemorialComment[i].likes,
+          creator: heromemorialComment[i].userId
         });
       }
     }
@@ -364,6 +385,28 @@ export const editMemorialComment = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "You are not the author" });
     }
     let memoriaID = await MemorialComment.findByIdAndUpdate(commentId, {
+      comment: note,
+    });
+
+    res.status(200).json({ message: "Comment edited" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const editHeroComment = async (req: Request, res: Response) => {
+  const { authorID, commentId, type, note } = req.body;
+  try {
+    let memorial = await HeroComment.find({
+      userId: authorID,
+      _id: commentId,
+    });
+
+    if (!memorial) {
+      return res.status(400).json({ message: "You are not the author" });
+    }
+    let memoriaID = await HeroComment.findByIdAndUpdate(commentId, {
       comment: note,
     });
 

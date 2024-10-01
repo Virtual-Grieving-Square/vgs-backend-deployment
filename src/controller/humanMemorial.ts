@@ -17,6 +17,7 @@ import TombstoneModel from "../model/tombstone";
 import { FCMModel } from "../model/fcmTokens";
 import { sendNotification } from "../middleware/notification";
 import { emitCommentUpdate, emitLikeUpdate } from "../util/event";
+import { PetMemorial } from "../model/petMemorial";
 
 const filter = new Filter();
 
@@ -154,6 +155,66 @@ export const createHumanMemorial = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const removeTombstone = async (req: Request, res: Response) => {
+  try {
+    const { memorialId } = req.body;
+
+    if (!memorialId) {
+      return res.status(406).json({ message: "required field messing" });
+    }
+
+    const humanMemorial = HumanMemorial.findById(memorialId);
+
+    if (!humanMemorial) {
+      return res.status(406).json({ message: "No Memorials found" });
+    }
+
+    await HumanMemorial.findByIdAndUpdate(memorialId, {
+      tombstone: false,
+      tombstoneId: "",
+    });
+    res.status(200).json({ message: "Tombstone removed successfully" });
+  } catch (error) {
+    console.error("Error Human Memorial Tombstone Remove:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+export const changeTombstone = async (req: Request, res: Response) => {
+  try {
+    const { memorialId, tombstoneId } = req.body;
+
+    if (!memorialId || !tombstoneId) {
+      return res.status(406).json({ message: "required field messing" });
+    }
+
+    const humanMemorial = HumanMemorial.findById(memorialId);
+
+    if (!humanMemorial) {
+      return res.status(406).json({ message: "No Memorials found" });
+    }
+
+    const tombstone = TombstoneModel.findById(tombstoneId);
+
+    if (!tombstone) {
+      return res.status(406).json({ message: "No Tombstone found" });
+    }
+
+    await HumanMemorial.findByIdAndUpdate(memorialId, {
+      tombstone: true,
+      tombstoneId: tombstoneId,
+    });
+    res.status(200).json({ message: "Tombstone updated successfully" });
+  } catch (error) {
+    console.error("Error Human Memorial Tombstone:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
 
 export const getMemorialByUserId = async (req: Request, res: Response) => {
   try {

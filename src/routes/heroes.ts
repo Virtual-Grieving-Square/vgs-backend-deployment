@@ -10,19 +10,28 @@ import {
   deleteHero,
   updateHero,
   getUserByHeroId,
+  updateHeroesNote,
+  createHeroesComment,
+  countHeroComment,
+  getAllHeroComments,
+  translateHeroComment,
+  likeHeroComment,
+  searchHeroMemorial,
+  deleteHeroComment,
+  updateHeroTombstone,
+  changeHeroTombstone,
+  removeHeroTombstone,
 } from "../controller/Heroes.controller";
 
 import multer from "multer";
+import { checkUserStatus } from "../middleware/userStatus";
 
 const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-
 router.post("/create", upload.single("image"), createHero);
-
-router.delete("/delete/:id", deleteHero);
 
 // Get
 router.get("/getAll", getAllHeroes);
@@ -34,10 +43,31 @@ router.get("/getUserByHeroId/:id", getUserByHeroId);
 router.get("/getImage", getImage);
 
 // Search
-router.get("/search", searcHeroMemorial);
+// router.get("/search", searcHeroMemorial);
 
 // Update
 router.post("/update", upload.single("image"), updateHero);
+router.post("/updateNote", updateHeroesNote);
+router.post("/updateTombstone", updateHeroTombstone);
 
+
+// Comment
+router.post("/comment/add", checkUserStatus, createHeroesComment);
+router.get("/count/:id", countHeroComment);
+router.get("/comment/:id", getAllHeroComments);
+router.post("/translate", translateHeroComment);
+router.post("/likeComment", likeHeroComment);
+
+// Search
+router.get("/search", searchHeroMemorial);
+
+//delete
+router.delete("/delete/:id", deleteHero);
+router.delete("/delete/comment/:id", deleteHeroComment);
+
+//tombstone
+// Tombstone
+router.post("/addTombstone", changeHeroTombstone);
+router.post("/removeTombstone", removeHeroTombstone);
 
 export default router;

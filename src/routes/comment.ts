@@ -6,6 +6,7 @@ import {
   deleteMemorialComment,
   editDonationComment,
   editFlowerDonationComment,
+  editHeroComment,
   editMemorialComment,
   editPetMemorialComment,
   fetchComments,
@@ -20,6 +21,7 @@ import {
 import { likeComment } from "../controller/humanMemorial";
 import express, { Request, Response, NextFunction } from "express";
 import { likePetComment } from "../controller/pet";
+import { likeHeroComment } from "../controller/Heroes.controller";
 const router = Router();
 
 router.get("/:id", fetchComments);
@@ -40,7 +42,6 @@ router.post(
   }
 );
 
-
 // pet
 router.post(
   "/pet/likeComments",
@@ -52,6 +53,23 @@ router.post(
       await likeDonationComment(req, res);
     } else if (type == "comment") {
       await likePetComment(req, res);
+    } else {
+      res.status(400).json({ msg: "Unknown type" });
+    }
+  }
+);
+
+//hero
+router.post(
+  "/hero/likeComments",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { postId, likerId, type } = req.body;
+    if (type == "flower-donation") {
+      await likeFlowerDonationComment(req, res);
+    } else if (type == "donation") {
+      await likeDonationComment(req, res);
+    } else if (type == "comment") {
+      await likeHeroComment(req, res);
     } else {
       res.status(400).json({ msg: "Unknown type" });
     }
@@ -84,6 +102,23 @@ router.post(
       await editDonationComment(req, res);
     } else if (type == "comment") {
       await editMemorialComment(req, res);
+    } else {
+      res.status(400).json({ msg: "Unknown type" });
+    }
+  }
+);
+
+//hero edit
+router.post(
+  "/hero/comments/edit",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { authorID, commentId, type } = req.body;
+    if (type == "flower-donation") {
+      await editFlowerDonationComment(req, res);
+    } else if (type == "donation") {
+      await editDonationComment(req, res);
+    } else if (type == "comment") {
+      await editHeroComment(req, res);
     } else {
       res.status(400).json({ msg: "Unknown type" });
     }

@@ -39,6 +39,15 @@ export const stripeWebhook = async (
         case "payment_intent.succeeded":
           handlePaymentSucceeded(event.data.object);
           break;
+        case "invoice.payment_failed":
+          handlePaymentFailed(event.data.object);
+          break;
+        case "customer.subscription.deleted":
+          handleSubscriptionCanceled(event.data.object);
+          break;
+        case "customer.subscription.updated":
+          handleSubscriptionUpdated(event.data.object);
+          break;
       }
 
       res.json({ received: true });
@@ -384,6 +393,63 @@ async function handleCheckoutSessionCompleted(event: any) {
         .catch((error) => {
           console.error(error);
         });
+    }
+  }
+}
+
+// subscription end and failure
+async function handlePaymentFailed(invoice: any) {
+  const subscriptionId = invoice.subscription;
+  const customerId = invoice.customer;
+  
+  console.log(`Payment failed for user ${customerId}`);
+}
+
+// Handles subscription cancellation (either automatic or manual)
+async function handleSubscriptionCanceled(subscription: any) {
+  const subscriptionId = subscription.id;
+  const customerId = subscription.customer;
+  const user = await UserModel.findOne({ subscriptionId });
+
+  if (user) {
+    await UserModel.updateOne(
+      { _id: user._id },
+      {
+        subscribed: false,
+        subscriptionId: "",
+        paid: false,
+        firstTimePaid: false,
+      }
+    );
+    console.log(`Subscription canceled for user ${user.email}`);
+  }
+}
+
+// Handles subscription updates
+async function handleSubscriptionUpdated(subscription: any) {
+  const subscriptionId = subscription.id;
+  const status = subscription.status;
+
+  const user = await UserModel.findOne({ subscriptionId });
+
+  if (user) {
+    if (status === "active") {
+      await UserModel.updateOne(
+        { _id: user._id },
+        { subscribed: true, paid: true, firstTimePaid: true }
+      );
+      console.log(`Subscription updated for user ${user.email}`);
+    } else if (status === "canceled") {
+      await UserModel.updateOne(
+        { _id: user._id },
+        {
+          subscribed: false,
+          subscriptionId: "",
+          paid: false,
+          firstTimePaid: false,
+        }
+      );
+      console.log(`Subscription canceled for user ${user.email}`);
     }
   }
 }
