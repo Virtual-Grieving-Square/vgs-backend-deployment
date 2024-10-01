@@ -631,7 +631,7 @@ export const createHeroesComment = async (req: Request, res: Response) => {
               data: {
                 fromid: user?._id?.toString(),
                 toid: memo.author.toString(),
-                type: "Hero-memorial-comment",
+                type: "hero-comment",
                 memorialid: memorialId.toString(),
                 commentid: commentId?.toString(),
               },
@@ -641,7 +641,7 @@ export const createHeroesComment = async (req: Request, res: Response) => {
           await emitCommentUpdate(
             memo.author,
             `${user?.firstName} ${user?.lastName} commented on your Hero.`,
-            "Hero comment ",
+            "hero-comment",
             userId,
             memorialId
           );
@@ -765,7 +765,7 @@ export const likeHeroComment = async (req: Request, res: Response) => {
             data: {
               fromid: user?._id?.toString(),
               toid: memo?.userId.toString(),
-              type: "memorial-comment-like",
+              type: "hero-like",
               memorialid: memo?.memorialId.toString(),
               likeid: likeID?.toString(),
             },
@@ -776,7 +776,7 @@ export const likeHeroComment = async (req: Request, res: Response) => {
         await emitLikeUpdate(
           memo?.userId,
           `${user?.firstName} ${user?.lastName} liked your comment.`,
-          "Memorial comment Like",
+          "hero-like",
           likerId,
           memo?.memorialId
         );
