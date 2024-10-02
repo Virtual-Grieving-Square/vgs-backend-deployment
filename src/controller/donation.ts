@@ -216,7 +216,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                 await emitLikeUpdate(
                   reciver.author,
                   `${userFrom?.firstName} ${userFrom?.lastName} Donated to your hero.`,
-                  "hero-donation",
+                  "hero-money-donation",
                   from,
                   to
                 );
@@ -641,7 +641,7 @@ export const donateFlower = async (req: Request, res: Response) => {
               await emitLikeUpdate(
                 reciver.author,
                 `${checDonatorBalance?.firstName} ${checDonatorBalance?.lastName} Donated to your Hero.`,
-                "hero-donation",
+                "hero-flower-donation",
                 from,
                 to
               );
