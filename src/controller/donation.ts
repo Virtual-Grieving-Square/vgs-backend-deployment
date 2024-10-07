@@ -248,9 +248,7 @@ export const makeDonation = async (req: Request, res: Response) => {
                 date: new Date().toISOString().split("T")[0],
                 type: "Donation",
                 confirmation: "Confirmed",
-                memorialLink: `${process.env.DOMAIN}/hero/in/${
-                  memorial!._id
-                }`,
+                memorialLink: `${process.env.DOMAIN}/hero/in/${memorial!._id}`,
                 recieverEmail: mainUser!.email,
               })
                 .then((response) => {
@@ -1009,7 +1007,6 @@ export const likeFlowerDonationComment = async (
   }
 };
 
-
 export const likeHeroFlowerDonationComment = async (
   req: Request,
   res: Response
@@ -1344,7 +1341,8 @@ export const fetchDonors = async (req: Request, res: Response) => {
     const donation: any = await DonationModel.find({ to: id });
     const nonUserDonation = await DonationNonUserModel.find({ to: id });
     const flower: any = await FlowerDonationModel.find({ to: id });
-
+    // const hero: any = await .find({ to: id });
+    console.log(donation);
     if (donation) {
       for (let i = 0; i < donation.length; i++) {
         const user = await UserModel.findOne({ _id: donation[i].from });
@@ -1400,10 +1398,10 @@ export const fetchDonors = async (req: Request, res: Response) => {
       }
     }
 
-    donors = donors.filter(
-      (donor, index, self) =>
-        index === self.findIndex((t) => t.name === donor.name)
-    );
+    // donors = donors.filter(
+    //   (donor, index, self) =>
+    //     index === self.findIndex((t) => t.name === donor.name)
+    // );
 
     res.status(200).json({
       donors: donors,
